@@ -1,0 +1,197 @@
+{
+  "title": "Admin",
+  "subtitle": "Users, roles, and system usage. Acts on the live database.",
+  "backToApp": "Back to app",
+  "accessDenied": {
+    "title": "Admin access required",
+    "description": "Your account does not have access to the admin panel.",
+    "back": "Back to PatchMan"
+  },
+  "errors": {
+    "loadFailed": "Failed to load admin data"
+  },
+  "stats": {
+    "users": "Users",
+    "collections": "Collections",
+    "requests": "Requests",
+    "workspaces": "Workspaces",
+    "mockServers": "Mock servers",
+    "historyItems": "History items",
+    "testCases": "Test cases",
+    "gitlabLinks": "GitLab links",
+    "newThisWeek": "+{{n}} this week",
+    "routesOne": "{{n}} route",
+    "routesOther": "{{n}} routes"
+  },
+  "usersTable": {
+    "heading": "Users",
+    "countOfTotal": "({{shown}} of {{total}})",
+    "searchPlaceholder": "Search by name, email, or id…",
+    "colUser": "User",
+    "colRole": "Role",
+    "colIntegrations": "Integrations",
+    "colLastLogin": "Last login",
+    "colVersion": "Version",
+    "versionTitle": "Last-seen client version",
+    "colJoined": "Joined",
+    "loading": "Loading users…",
+    "noMatch": "No users match.",
+    "never": "Never",
+    "lastSeen": "Last seen {{date}}",
+    "colLastActivity": "Last activity",
+    "lastActivityTitle": "Latest of: app open, login, changes, sent requests, MCP use. Expand a row for every tool.",
+    "toggleUsage": "Show or hide usage"
+  },
+  "roles": {
+    "admin": "Admin",
+    "user": "User"
+  },
+  "integrations": {
+    "gitlab": "GitLab",
+    "mcp": "MCP",
+    "mcpCount": "MCP ×{{n}}"
+  },
+  "userActions": {
+    "demote": "Demote",
+    "demoteTitle": "Demote to user",
+    "makeAdmin": "Make admin",
+    "promoteTitle": "Promote to admin",
+    "password": "Password",
+    "resetPasswordTitle": "Reset password",
+    "manage": "Manage"
+  },
+  "pagination": {
+    "rowsPerPage": "Rows per page",
+    "range": "{{from}}–{{to}} of {{total}}"
+  },
+  "toasts": {
+    "nowAdmin": "{{user}} is now admin",
+    "demotedToUser": "{{user}} demoted to user",
+    "updateRoleFailed": "Could not update role",
+    "alreadyThisUser": "You are already this user",
+    "nowManaging": "Now managing as {{user}}",
+    "nowManagingDesc": "Every action you take affects this account until you exit."
+  },
+  "passwordReset": {
+    "title": "Reset password",
+    "description": "Set a new password for <strong>{{user}}</strong>. The user keeps their account; only the password changes.",
+    "newPasswordLabel": "New password",
+    "passwordPlaceholder": "Type a password or generate one",
+    "show": "Show",
+    "hide": "Hide",
+    "generate": "Generate",
+    "generateTitle": "Generate strong password",
+    "copyTitle": "Copy to clipboard",
+    "hint": "Minimum 6 characters. Share it with the user over a secure channel — it is not stored anywhere readable after this dialog closes.",
+    "savedNote": "Password updated. Copy it now if you have not — closing this dialog will discard the plaintext.",
+    "savePassword": "Save password",
+    "saveAgain": "Save again",
+    "minLengthError": "Password must be at least 6 characters",
+    "successTitle": "Password reset",
+    "successDesc": "New password set for {{user}}.",
+    "resetFailed": "Could not reset password",
+    "copyFailed": "Could not copy to clipboard"
+  },
+  "crash": {
+    "heading": "Crash reporting → Slack",
+    "noWebhook": "No webhook",
+    "webhookNotice": "<mono>SLACK_ERROR_WEBHOOK_URL</mono> is not set on the server. You can flip the toggles, but no messages will be delivered until the webhook is configured — and the test button will return a 503 in this state.",
+    "testDescription": "Sends a synthetic message to validate the integration. Runs independently of the toggles above.",
+    "sendTest": "Send test message",
+    "sending": "Sending…",
+    "testSuccess": "Test message delivered to Slack. If you don't see it in the channel, double-check that the webhook URL is bound to the right one.",
+    "testFailed": "Test failed: {{error}}",
+    "unknownError": "unknown error",
+    "updateToggleFailed": "Could not update toggle",
+    "errors": {
+      "loadConfigFailed": "Failed to load crash reporting config",
+      "testRequestFailed": "Test request failed"
+    },
+    "toggles": {
+      "boundary": {
+        "label": "React render crashes",
+        "hint": "A component throws during render (the classic full-screen error). Most production crashes fall into this bucket."
+      },
+      "rejection": {
+        "label": "Unhandled async errors",
+        "hint": "Rejected Promises with no .catch (window.onunhandledrejection). Useful for catching errors that would otherwise vanish silently."
+      },
+      "window": {
+        "label": "Other JS errors (window.error)",
+        "hint": "Sync errors thrown inside click/keydown handlers. Off by default because browser-extension noise can drown out real bugs."
+      }
+    }
+  },
+  "impersonation": {
+    "managingAs": "Managing as <strong>{{user}}</strong>. Every action affects this user.",
+    "exit": "Exit"
+  },
+  "usage": {
+    "lastActivity": "Last activity",
+    "updated": "Updated {{when}}",
+    "refresh": "Refresh usage",
+    "lastSeen": "Last seen",
+    "loadFailed": "Could not load usage",
+    "loading": "Loading usage…",
+    "noActivity": "No recorded activity yet.",
+    "counts": {
+      "environments": "Environments",
+      "history": "Sent requests",
+      "notes": "Notes",
+      "cards": "Memory cards",
+      "whiteboards": "Whiteboards",
+      "teams": "Teams",
+      "mcpTokens": "MCP tokens"
+    },
+    "tools": {
+      "heading": "Tools",
+      "colTool": "Tool",
+      "colItems": "Items",
+      "colActions": "Actions",
+      "colOps": "Ops",
+      "colLastUsed": "Last used",
+      "itemsTitle": "Things the user owns here: connections, boards, test cases…",
+      "actionsTitle": "Changes and operations recorded in the audit log (from the app and MCP)",
+      "opsTitle": "Entries in the tool's own history: queries, consumes, sent requests (reads included)"
+    },
+    "mcp": {
+      "heading": "MCP clients",
+      "none": "No MCP tokens.",
+      "noClient": "No client connected yet",
+      "token": "Token “{{name}}” · created {{date}}",
+      "neverUsed": "Never used"
+    },
+    "agents": {
+      "heading": "Memory cards by agent",
+      "byHand": "Written by hand"
+    },
+    "tool": {
+      "requests": "Collections & requests",
+      "history": "Sent requests",
+      "environments": "Environments",
+      "mocks": "Mock servers",
+      "notes": "Notes",
+      "memory": "Agent memory",
+      "whiteboards": "Whiteboards",
+      "qa": "Test management",
+      "loadtests": "Load tests",
+      "db": "Databases",
+      "kafka": "Kafka",
+      "s3": "S3",
+      "redis": "Redis",
+      "es": "Elasticsearch",
+      "k8s": "Kubernetes",
+      "grafana": "Grafana",
+      "rabbitmq": "RabbitMQ",
+      "graylog": "Graylog",
+      "mcp": "MCP",
+      "observability": "Observability",
+      "git": "Git / CI",
+      "ai": "AI / LLM",
+      "collab": "Workspaces & teams",
+      "devtools": "Dev tools",
+      "sync": "Desktop sync",
+      "other": "Other"
+    }
+  }
+}

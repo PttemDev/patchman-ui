@@ -1,0 +1,31 @@
+{
+  "public": "Public",
+  "kindCollection": "collection",
+  "kindEnvironment": "environment",
+  "publicDescPublic": "Access runs through the Editors / Viewers lists below. Any share code on this {{kind}} was revoked when it went public.",
+  "publicDescPrivate": "Only you (and people invited via share code) can see this {{kind}}. Turning on Public revokes the share code — the two paths are mutually exclusive.",
+  "editors": "Editors",
+  "editorsSubtitle": "Can edit + view",
+  "viewers": "Viewers",
+  "viewersSubtitle": "Can view only",
+  "addToList": "Add to a list",
+  "searchPlaceholder": "Search users, teams, or type 'everyone'...",
+  "roleEditor": "Editor",
+  "roleViewer": "Viewer",
+  "everyoneOption": "Everyone (all registered users)",
+  "teamSuffix": "team",
+  "everyoneHint": "Adding <b>Everyone</b> clears the rest of that list. You cannot mix Everyone with specific teams / users — the BE will block it.",
+  "makePrivateConfirm": "Make \"{{name}}\" private?",
+  "makePrivateBody": "All Editors and Viewers entries will be cleared. Individual share-link collaborators are not affected.",
+  "makePrivate": "Make Private",
+  "noOne": "No one",
+  "ownerBadge": "owner",
+  "errors": {
+    "makePublic": "Failed to make public",
+    "makePrivate": "Failed to make private",
+    "add": "Failed to add",
+    "remove": "Failed to remove"
+  },
+  "kindWhiteboard": "whiteboard",
+  "kindNote": "note"
+}

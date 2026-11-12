@@ -1,0 +1,197 @@
+{
+  "title": "Yönetim",
+  "subtitle": "Kullanıcılar, roller ve sistem kullanımı. Canlı veritabanı üzerinde çalışır.",
+  "backToApp": "Uygulamaya dön",
+  "accessDenied": {
+    "title": "Yönetici erişimi gerekli",
+    "description": "Hesabınızın yönetim paneline erişimi yok.",
+    "back": "PatchMan'e dön"
+  },
+  "errors": {
+    "loadFailed": "Yönetim verileri yüklenemedi"
+  },
+  "stats": {
+    "users": "Kullanıcılar",
+    "collections": "Koleksiyonlar",
+    "requests": "İstekler",
+    "workspaces": "Çalışma alanları",
+    "mockServers": "Mock sunucular",
+    "historyItems": "Geçmiş öğeleri",
+    "testCases": "Test senaryoları",
+    "gitlabLinks": "GitLab bağlantıları",
+    "newThisWeek": "+{{n}} bu hafta",
+    "routesOne": "{{n}} rota",
+    "routesOther": "{{n}} rota"
+  },
+  "usersTable": {
+    "heading": "Kullanıcılar",
+    "countOfTotal": "({{shown}} / {{total}})",
+    "searchPlaceholder": "Ada, e-postaya veya kimliğe göre ara…",
+    "colUser": "Kullanıcı",
+    "colRole": "Rol",
+    "colIntegrations": "Entegrasyonlar",
+    "colLastLogin": "Son giriş",
+    "colVersion": "Sürüm",
+    "versionTitle": "En son görülen istemci sürümü",
+    "colJoined": "Katıldı",
+    "loading": "Kullanıcılar yükleniyor…",
+    "noMatch": "Eşleşen kullanıcı yok.",
+    "never": "Hiç",
+    "lastSeen": "Son görülme {{date}}",
+    "colLastActivity": "Son etkinlik",
+    "lastActivityTitle": "En sonuncusu: uygulama açılışı, giriş, değişiklikler, gönderilen istekler, MCP kullanımı. Tüm araçlar için satırı genişletin.",
+    "toggleUsage": "Kullanımı göster veya gizle"
+  },
+  "roles": {
+    "admin": "Yönetici",
+    "user": "Kullanıcı"
+  },
+  "integrations": {
+    "gitlab": "GitLab",
+    "mcp": "MCP",
+    "mcpCount": "MCP ×{{n}}"
+  },
+  "userActions": {
+    "demote": "Düşür",
+    "demoteTitle": "Kullanıcıya düşür",
+    "makeAdmin": "Yönetici yap",
+    "promoteTitle": "Yöneticiliğe yükselt",
+    "password": "Parola",
+    "resetPasswordTitle": "Parolayı sıfırla",
+    "manage": "Yönet"
+  },
+  "pagination": {
+    "rowsPerPage": "Sayfa başına satır",
+    "range": "{{from}}–{{to}} / {{total}}"
+  },
+  "toasts": {
+    "nowAdmin": "{{user}} artık yönetici",
+    "demotedToUser": "{{user}} kullanıcıya düşürüldü",
+    "updateRoleFailed": "Rol güncellenemedi",
+    "alreadyThisUser": "Zaten bu kullanıcısınız",
+    "nowManaging": "Şimdi {{user}} olarak yönetiliyor",
+    "nowManagingDesc": "Çıkana kadar yaptığınız her işlem bu hesabı etkiler."
+  },
+  "passwordReset": {
+    "title": "Parolayı sıfırla",
+    "description": "<strong>{{user}}</strong> için yeni bir parola belirleyin. Kullanıcı hesabını korur; yalnızca parola değişir.",
+    "newPasswordLabel": "Yeni parola",
+    "passwordPlaceholder": "Bir parola yazın veya oluşturun",
+    "show": "Göster",
+    "hide": "Gizle",
+    "generate": "Oluştur",
+    "generateTitle": "Güçlü parola oluştur",
+    "copyTitle": "Panoya kopyala",
+    "hint": "En az 6 karakter. Kullanıcıyla güvenli bir kanal üzerinden paylaşın — bu iletişim kutusu kapandıktan sonra okunabilir bir yerde saklanmaz.",
+    "savedNote": "Parola güncellendi. Henüz kopyalamadıysanız şimdi kopyalayın — bu iletişim kutusunu kapatmak düz metni siler.",
+    "savePassword": "Parolayı kaydet",
+    "saveAgain": "Tekrar kaydet",
+    "minLengthError": "Parola en az 6 karakter olmalı",
+    "successTitle": "Parola sıfırlandı",
+    "successDesc": "{{user}} için yeni parola belirlendi.",
+    "resetFailed": "Parola sıfırlanamadı",
+    "copyFailed": "Panoya kopyalanamadı"
+  },
+  "crash": {
+    "heading": "Çökme raporlama → Slack",
+    "noWebhook": "Webhook yok",
+    "webhookNotice": "<mono>SLACK_ERROR_WEBHOOK_URL</mono> sunucuda ayarlı değil. Anahtarları açabilirsiniz, ancak webhook yapılandırılana kadar hiçbir mesaj iletilmez — ve bu durumda test düğmesi 503 döndürür.",
+    "testDescription": "Entegrasyonu doğrulamak için sentetik bir mesaj gönderir. Yukarıdaki anahtarlardan bağımsız çalışır.",
+    "sendTest": "Test mesajı gönder",
+    "sending": "Gönderiliyor…",
+    "testSuccess": "Test mesajı Slack'e iletildi. Kanalda görmüyorsanız, webhook URL'sinin doğru kanala bağlı olduğunu tekrar kontrol edin.",
+    "testFailed": "Test başarısız: {{error}}",
+    "unknownError": "bilinmeyen hata",
+    "updateToggleFailed": "Anahtar güncellenemedi",
+    "errors": {
+      "loadConfigFailed": "Çökme raporlama yapılandırması yüklenemedi",
+      "testRequestFailed": "Test isteği başarısız"
+    },
+    "toggles": {
+      "boundary": {
+        "label": "React render çökmeleri",
+        "hint": "Bir bileşen render sırasında hata fırlatır (klasik tam ekran hatası). Çoğu üretim çökmesi bu gruba girer."
+      },
+      "rejection": {
+        "label": "İşlenmeyen async hatalar",
+        "hint": ".catch olmayan reddedilen Promise'ler (window.onunhandledrejection). Aksi halde sessizce kaybolacak hataları yakalamak için kullanışlıdır."
+      },
+      "window": {
+        "label": "Diğer JS hataları (window.error)",
+        "hint": "click/keydown işleyicilerinde fırlatılan senkron hatalar. Tarayıcı eklentisi gürültüsü gerçek hataları boğabileceği için varsayılan olarak kapalıdır."
+      }
+    }
+  },
+  "impersonation": {
+    "managingAs": "<strong>{{user}}</strong> olarak yönetiliyor. Her işlem bu kullanıcıyı etkiler.",
+    "exit": "Çık"
+  },
+  "usage": {
+    "lastActivity": "Son etkinlik",
+    "updated": "{{when}} güncellendi",
+    "refresh": "Kullanımı yenile",
+    "lastSeen": "Son görülme",
+    "loadFailed": "Kullanım yüklenemedi",
+    "loading": "Kullanım yükleniyor…",
+    "noActivity": "Henüz kayıtlı etkinlik yok.",
+    "counts": {
+      "environments": "Ortamlar",
+      "history": "Gönderilen istekler",
+      "notes": "Notlar",
+      "cards": "Hafıza kartları",
+      "whiteboards": "Beyaz tahtalar",
+      "teams": "Ekipler",
+      "mcpTokens": "MCP token'ları"
+    },
+    "tools": {
+      "heading": "Araçlar",
+      "colTool": "Araç",
+      "colItems": "Öğeler",
+      "colActions": "Eylemler",
+      "colOps": "İşlemler",
+      "colLastUsed": "Son kullanım",
+      "itemsTitle": "Kullanıcının burada sahip olduğu şeyler: bağlantılar, tahtalar, test senaryoları…",
+      "actionsTitle": "Denetim kaydına yazılan değişiklikler ve işlemler (uygulamadan ve MCP'den)",
+      "opsTitle": "Aracın kendi geçmişindeki kayıtlar: sorgular, tüketimler, gönderilen istekler (okumalar dahil)"
+    },
+    "mcp": {
+      "heading": "MCP istemcileri",
+      "none": "MCP token'ı yok.",
+      "noClient": "Henüz bağlanan istemci yok",
+      "token": "Token “{{name}}” · oluşturuldu {{date}}",
+      "neverUsed": "Hiç kullanılmadı"
+    },
+    "agents": {
+      "heading": "Ajana göre hafıza kartları",
+      "byHand": "Elle yazıldı"
+    },
+    "tool": {
+      "requests": "Koleksiyonlar ve istekler",
+      "history": "Gönderilen istekler",
+      "environments": "Ortamlar",
+      "mocks": "Mock sunucular",
+      "notes": "Notlar",
+      "memory": "Ajan Hafızası",
+      "whiteboards": "Beyaz tahtalar",
+      "qa": "Test yönetimi",
+      "loadtests": "Yük testleri",
+      "db": "Veritabanları",
+      "kafka": "Kafka",
+      "s3": "S3",
+      "redis": "Redis",
+      "es": "Elasticsearch",
+      "k8s": "Kubernetes",
+      "grafana": "Grafana",
+      "rabbitmq": "RabbitMQ",
+      "graylog": "Graylog",
+      "mcp": "MCP",
+      "observability": "Gözlemlenebilirlik",
+      "git": "Git / CI",
+      "ai": "Yapay zekâ / LLM",
+      "collab": "Çalışma alanları ve ekipler",
+      "devtools": "Geliştirici araçları",
+      "sync": "Masaüstü senkronizasyonu",
+      "other": "Diğer"
+    }
+  }
+}

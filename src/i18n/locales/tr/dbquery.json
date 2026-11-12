@@ -1,0 +1,622 @@
+{
+  "units": {
+    "rowsWord": "satır",
+    "colsWord": "sütun",
+    "rowsOne": "{{count}} satır",
+    "rowsOther": "{{count}} satır",
+    "fieldsOne": "{{count}} alan",
+    "fieldsOther": "{{count}} alan",
+    "colsOne": "{{count}} sütun",
+    "colsOther": "{{count}} sütun",
+    "charsOne": "{{count}} karakter",
+    "charsOther": "{{count}} karakter",
+    "itemsOne": "{{count}} öğe",
+    "itemsOther": "{{count}} öğe"
+  },
+  "scope": {
+    "local": "Yerel",
+    "remote": "Uzak"
+  },
+  "role": {
+    "coowner": "ortak sahip",
+    "readonly": "salt okunur",
+    "read": "okuma"
+  },
+  "badges": {
+    "rw": "R+W",
+    "r": "R"
+  },
+  "connection": {
+    "kindFamily": "{{driver}} ailesi",
+    "editTitle": "Bağlantıyı düzenle",
+    "newTitle": "Yeni bağlantı",
+    "namePlaceholder": "prod-payments",
+    "description": "Kimlik bilgileri AES-256-GCM ile şifreli olarak saklanır. Parolayı göstermeden başka bir kullanıcıya salt okunur veya ortak sahip erişimi vermek için kenar çubuğundaki Paylaş düğmesini kullanın. Okuma-yazma modu (yazma/DML ifadeleri) bağlantının ⋯ menüsünden açılır.",
+    "defaultBackend": "Bu bağlantı için varsayılan arka uç",
+    "scopeLocalTitle": "Bu cihaz",
+    "scopeLocalDesc": "Sorgular veritabanına yerel makinenizden bağlanır. 127.0.0.1 / LAN üzerindeki sunucular için gereklidir.",
+    "scopeRemoteTitle": "PatchMan sunucusu",
+    "scopeRemoteDesc": "Sorgular veritabanına ekip arka ucundan bağlanır. VPN arkasındaki prod / staging için kullanın.",
+    "scopeNote": "Bağlantı HER İKİ arka uca da kaydedilir — kimlik bilgileri her BE'nin kendi anahtarıyla şifrelenir. Araç çubuğundaki Yerel/Uzak anahtarının varsayılan olarak hangisini kullanacağını seçin; daha sonra araç çubuğundan sorgu bazında değiştirebilirsiniz.",
+    "modeForm": "Form alanları",
+    "modeDsn": "Bağlantı dizesi",
+    "whatDoesThis": "Bu ne işe yarar?",
+    "dsnTooltip": "Bağlantı dizesi modu, açığa çıkarmadığımız parametreleri (TLS sertifikaları, channel_binding, özel kimlik doğrulama vb.) içeren tam bir DSN yapıştırmanıza olanak tanır. Aşağıdaki form alanları yalnızca bilgi amaçlıdır; BE dizeyi olduğu gibi kullanır.",
+    "connectionString": "Bağlantı dizesi",
+    "dsnKeepStored": "(saklananı korumak için boş bırakın)",
+    "dsnNote": "Şifreli saklanır (AES-256-GCM). Aşağıdaki Host/Port/Database yalnızca kenar çubuğu etiketi için tutulur; adreste kullanıcı adı ve şifre yoksa aşağıdakiler kullanılır. jdbc:postgresql:// adresleri de çalışır.",
+    "useAutoDsn": "Otomatik oluşturulan DSN'i kullan",
+    "host": "Host",
+    "hostPlaceholder": "db.foo.com",
+    "port": "Port",
+    "database": "Veritabanı",
+    "dbOptional": "(isteğe bağlı)",
+    "dbOptionalAll": "(isteğe bağlı — tüm veritabanlarına göz atmak için boş bırakın)",
+    "dbPlaceholderMongo": "patchman_demo (veya boş)",
+    "dbPlaceholderMysql": "payments (veya tüm veritabanları için boş)",
+    "dbPlaceholderPg": "payments",
+    "username": "Kullanıcı adı",
+    "password": "Parola",
+    "passwordKeep": "Parola (korumak için boş bırakın)",
+    "willConnectAs": "Şu şekilde bağlanacak",
+    "advanced": "Gelişmiş",
+    "optionsJson": "Seçenekler (JSON)",
+    "optionsHelp": "Sürücü bazında: Postgres ailesi <code>sslmode</code> / <code>application_name</code>; MySQL ailesi <code>tls</code> / <code>allowNativePasswords</code>; Mongo <code>authSource</code> / <code>authMechanism</code> / <code>replicaSet</code>.",
+    "connectionOk": "Bağlantı başarılı",
+    "testedVia": "{{backend}} üzerinden test edildi",
+    "testConnection": "Bağlantıyı test et",
+    "create": "Oluştur",
+    "testFailed": "Test başarısız",
+    "errOptionsJson": "Seçenekler geçerli JSON olmalıdır",
+    "errNameRequired": "Ad gerekli",
+    "errHostRequired": "Host gerekli",
+    "errDatabaseRequired": "Özel bir bağlantı dizesi sağlanmadıkça SQL bağlantıları için veritabanı gereklidir",
+    "errDsnEmpty": "Bağlantı dizesi boş — bir DSN yapıştırın veya form moduna geri dönün",
+    "errUpdateAllFailed": "Güncelleme tüm arka uçlarda başarısız oldu",
+    "partialUpdate": "{{ok}} üzerinde güncellendi; {{missed}} üzerinde başarısız oldu. Eşitlemek için Düzenle'den yeniden deneyin.",
+    "errCreateAllFailed": "Oluşturma tüm arka uçlarda başarısız oldu",
+    "partialCreate": "{{ok}} üzerinde kaydedildi; {{missed}} üzerinde başarısız oldu. Eksik tarafı yeniden denemek için Düzenle + Kaydet.",
+    "saveFailed": "Kaydetme başarısız",
+    "duplicateTitle": "Bağlantıyı çoğalt",
+    "duplicateDescription": "“{{name}}” bağlantısından yeni bir bağlantı oluşturur. Kayıtlı parola kopyalanır; paylaşım ve okuma-yazma modu kopyalanmaz.",
+    "copyName": "{{name}} (kopya)",
+    "passwordCopy": "Parola (boş = kopyalanır)",
+    "dsnCopyStored": "(boş = kopyalanır)",
+    "errCopyUnsupported": "Bu sunucu kayıtlı parolayı henüz kopyalayamıyor — kopyayı oluşturmak için parolayı girin.",
+    "copyPartial": "{{ok}} tarafında kopyalandı. {{missed}} sunucusu kayıtlı parolaları henüz kopyalayamıyor — güncellendikten sonra orada yeniden çoğaltın.",
+    "authSource": "Auth source",
+    "authSourceDefault": "{{db}} (varsayılan)",
+    "authSourceHelp": "Kullanıcının oluşturulduğu veritabanı; çoğunlukla admin.",
+    "replicaSet": "Replica set",
+    "replicaSetPlaceholder": "opsiyonel, ör. rs0",
+    "hostsHelpMongo": "Birden fazla host (replica set) için virgülle ayırın, ör. db1,db2:27018,db3. Portu yazılmayan host, Port alanındaki portu kullanır.",
+    "mongoAuthHint": "MongoDB kullanıcı adı ve şifreyi “{{db}}” veritabanında (Auth source) kontrol ediyor. Kullanıcı başka bir veritabanında oluşturulduysa Auth source'a onu yazın; değilse kullanıcı adı ya da şifre hatalı.",
+    "mongoAuth": "Kimlik doğrulama",
+    "mongoAuthScram": "Kullanıcı adı + şifre",
+    "mongoAuthLdap": "LDAP",
+    "mongoAuthAws": "AWS IAM",
+    "mongoAuthNone": "Yok",
+    "mongoAuthCustom": "Diğer: {{mech}}",
+    "mongoAuthHelp_scram": "Bir MongoDB kullanıcısı (SCRAM; SHA-256 ya da SHA-1'i sunucu seçer).",
+    "mongoAuthHelp_ldap": "MongoDB Enterprise ya da Atlas'ta bir LDAP / Active Directory kullanıcısı. Şifre olduğu gibi gönderilir, TLS ile kullanın.",
+    "mongoAuthHelp_aws": "Bir IAM erişim anahtarı. İkisini de boş bırakırsanız sorguları çalıştıran sunucunun IAM rolü ya da AWS ortam değişkenleri kullanılır.",
+    "mongoAuthHelp_none": "Erişim kontrolü olmayan sunucular için.",
+    "mongoAuthHelp_custom": "Advanced altında ayarlı (authMechanism).",
+    "awsAccessKey": "Access key ID",
+    "awsSecretKey": "Secret access key",
+    "authSourceDefaultThenAdmin": "{{db}}, olmazsa admin",
+    "authSourceFellBack": "Giriş “{{db}}” veritabanı üzerinden yapıldı, Auth source alanı buna ayarlandı.",
+    "mongoAuthHintBoth": "MongoDB kullanıcı adı ve şifreyi hem “{{db}}” hem “admin” veritabanında reddetti. Bilgileri kontrol edin ya da kullanıcının oluşturulduğu veritabanını Auth source'a yazın.",
+    "directFallback": "Replica set üyelerini {{members}} adlarıyla tanıtıyor ve bu sunucu bu adları çözemiyor; PatchMan doğrudan {{host}} adresine bağlandı. Bağlantı çalışır; otomatik failover için bu adların burada çözülmesi gerekir (DNS ya da /etc/hosts).",
+    "directFallbackSecondary": "{{host}} primary değil, yalnızca okuma yapılabilir.",
+    "mongoDnsHint": "Replica set üyelerinin adları bu sunucudan çözülemiyor. Adları DNS'e ya da /etc/hosts'a ekleyin veya tek bir host girin."
+  },
+  "panel": {
+    "refreshOff": "Kapalı",
+    "selectConnection": "Bir bağlantı seçin...",
+    "noConnectionsHint": "Henüz bağlantı yok. Veritabanı kenar çubuğu sekmesinden bir tane ekleyin.",
+    "autoRerunOn": "Otomatik yeniden çalıştır · {{sec}}sn",
+    "autoRerunOff": "Otomatik yeniden çalıştır: kapalı",
+    "autoRerunTooltip": "Aynı sorguyu sabit bir aralıkta yeniden çalıştırır — canlı izleme için kullanışlıdır. Varsayılan olarak kapalı. Etkinleştirildiğinde simge yeşile döner.",
+    "schema": "Şema",
+    "schemaTooltip": "Otomatik tamamlama en son veritabanını yansıtsın diye tabloları ve sütunları yeniden inceler.",
+    "rowLimit": "Satır limiti",
+    "rowLimitTooltip": "BE'nin kaç satır döndürdüğünü sınırlar. Boş = varsayılan ({{default}}).",
+    "scopeLocalAvail": "Bu makinede çalıştır. 127.0.0.1 / LAN veritabanları için gereklidir.",
+    "scopeLocalUnavail": "Kullanılamıyor — bu bağlantı yerel BE'ye yazılmadı. Yeniden denemek için Düzenle + Kaydet.",
+    "scopeRemoteAvail": "PatchMan sunucusunda çalıştır. Ekip arkadaşlarınızla tutarlı.",
+    "scopeRemoteUnavail": "Kullanılamıyor — bu bağlantı ekip BE'sine yazılmadı. Yeniden denemek için Düzenle + Kaydet.",
+    "scopeTooltip": "Bu sorguyu hangi arka ucun çalıştıracağı — yerel masaüstü BE'niz veya ekip sunucusu. İstek panelindeki anahtarı yansıtır.",
+    "cancelTooltip": "Çalışan sorguyu BE üzerinde iptal eder.",
+    "runQuery": "Sorguyu çalıştır",
+    "runTooltip": "{{via}} üzerinden {{target}} hedefine karşı çalıştırır. Salt okunur — yazmalar BE tarafından reddedilir.",
+    "selectedConnection": "seçili bağlantı",
+    "viaLocal": "yerel BE'niz",
+    "viaTeam": "ekip BE'si",
+    "beautify": "Güzelleştir",
+    "beautifyTooltip": "Editör metnini yerinde yeniden biçimlendirir — SQL anahtar sözcükleri büyük harfe çevrilir, yan tümceler kendi satırlarına ayrılır; Mongo argümanları düzenli yazdırılır. Kısayol: ⌘⇧F.",
+    "examples": "Örnekler",
+    "examplesTooltip": "Salt okunur sorgu tariflerinden oluşan bir defteri (SQL + Mongo) inceleyin. Editöre eklemek için birini seçin.",
+    "saveQuery": "Sorguyu kaydet",
+    "saveQueryTooltip": "Geçerli editör metnini kenar çubuğunda bu bağlantının altına sabitler. ⌘S.",
+    "statements": "İfadeler",
+    "recentRuns": "Son çalıştırmalar",
+    "now": "şimdi",
+    "running": "Çalışıyor…",
+    "cancelled": "İptal edildi",
+    "queryFailed": "Sorgu başarısız",
+    "emptyRun": "Sorguyu çalıştırmak için Cmd+Enter'a basın.",
+    "emptyPickConnection": "Başlamak için yukarıdan bir bağlantı seçin.",
+    "savedQueryDefault": "Kayıtlı sorgu"
+  },
+  "results": {
+    "truncated": "kısaltıldı",
+    "rowsRange": "satır {{start}}–{{end}}",
+    "prevPage": "Önceki sayfa",
+    "nextPage": "Sonraki sayfa · yalnızca satırlar kısaltıldığında kullanılabilir",
+    "viewTable": "Tablo",
+    "viewChart": "Grafik",
+    "viewPlan": "Plan",
+    "export": "Dışa aktar",
+    "largeTitle": "Büyük sonuç kümesi",
+    "largeBody": "Bu sonuç <mono>{{rows}}</mono> satır × <mono>{{cols}}</mono> sütun (<mono>{{cells}}</mono> hücre). Bu kadar hücreyi işlemek arayüzü yavaşlatabilir — dışa aktarmak genellikle daha hızlı ve üzerinde çalışması daha kolaydır.",
+    "exportCsvBtn": "CSV dışa aktar",
+    "exportExcelBtn": "Excel dışa aktar",
+    "showAnyway": "Yine de göster"
+  },
+  "table": {
+    "sortTitle": "Sıralamak için tıklayın · Çoklu sıralama için Shift+tıklayın",
+    "noRowsTitle": "Satır döndürülmedi",
+    "noRowsBody": "Sorgu başarıyla çalıştı ancak hiç sütun veya satır üretmedi.",
+    "noRowsCauses": "Yaygın nedenler: boş koleksiyon, eksik varsayılan veritabanı veya koleksiyon/tablo adında yazım hatası.",
+    "resizeTitle": "Yeniden boyutlandırmak için sürükleyin · sıfırlamak için çift tıklayın",
+    "filterPlaceholder": "Filtrele…",
+    "pushWhereLike": "Editöre WHERE LIKE olarak aktar",
+    "noMatch": "Geçerli filtrelerle eşleşen satır yok.",
+    "rightClickCell": "Bir hücreye sağ tıklayın",
+    "copyValue": "Değeri kopyala",
+    "showAsJson": "JSON olarak göster…",
+    "copyAs": "Şu şekilde kopyala…",
+    "copyPlain": "Düz metin",
+    "copyRowJson": "Satırı JSON olarak",
+    "copyRowInsert": "Satırı INSERT olarak",
+    "copyColumnName": "Sütun adı",
+    "filterByValue": "Bu değere göre filtrele",
+    "excludeValue": "Bu değeri hariç tut",
+    "filterNull": "NULL filtrele",
+    "filterNotNull": "NOT NULL filtrele",
+    "openReferenced": "Referans verilen satırı aç…",
+    "unfreezeColumn": "Sütunu çöz",
+    "freezeColumn": "Sütunu dondur"
+  },
+  "chart": {
+    "noData": "Grafiklenecek veri yok.",
+    "noNumeric": "Sayısal sütun bulunamadı. Grafikler en az bir sayısal sütuna ihtiyaç duyar.",
+    "label": "Grafik",
+    "bar": "Çubuk",
+    "line": "Çizgi",
+    "pie": "Pasta",
+    "rowLabel": "satır {{n}}"
+  },
+  "json": {
+    "format": "Biçim",
+    "pretty": "Düzenli",
+    "compact": "Sıkışık",
+    "copyAll": "Tümünü kopyala",
+    "noDocuments": "Belge yok.",
+    "docN": "belge {{n}}"
+  },
+  "summary": {
+    "aggregatePlaceholder": "Toplama sütunu…",
+    "noColumns": "Sütun yok",
+    "numeric": "Sayısal",
+    "all": "Tümü",
+    "count": "sayı",
+    "nonNull": "boş olmayan",
+    "sum": "toplam",
+    "avg": "ortalama",
+    "min": "min",
+    "max": "maks",
+    "distinct": "benzersiz"
+  },
+  "columns": {
+    "title": "Sütunlar",
+    "findPlaceholder": "Sütun bul…",
+    "showAll": "Tümünü göster",
+    "hideAll": "Tümünü gizle",
+    "reset": "Sıfırla",
+    "show": "Göster",
+    "hide": "Gizle",
+    "unfreeze": "Çöz",
+    "freezeLeft": "Sola dondur"
+  },
+  "stats": {
+    "title": "Sütun istatistikleri",
+    "distinct": "Benzersiz",
+    "nulls": "Boşlar",
+    "min": "Min",
+    "max": "Maks",
+    "avg": "Ort",
+    "sum": "Toplam",
+    "topValues": "En çok değerler",
+    "empty": "(boş)"
+  },
+  "cell": {
+    "title": "Hücre",
+    "rowN": "satır {{n}}",
+    "showAsJson": "JSON olarak göster",
+    "open": "Aç",
+    "metaLength": "uzunluk",
+    "metaSize": "boyut",
+    "metaDuration": "süre",
+    "metaValue": "değer",
+    "metaAsDate": "tarih olarak",
+    "metaIso": "iso",
+    "metaLocal": "yerel",
+    "metaRelative": "göreli",
+    "metaJsonSize": "json boyutu",
+    "metaKeys": "anahtarlar"
+  },
+  "row": {
+    "title": "Satır",
+    "prevRow": "Önceki satır",
+    "nextRow": "Sonraki satır",
+    "filterPlaceholder": "Alanları filtrele…",
+    "copyJson": "JSON olarak kopyala",
+    "copyInsert": "INSERT olarak kopyala"
+  },
+  "jsonModal": {
+    "deepParse": "İç içe JSON dizelerini derinlemesine ayrıştır",
+    "invalidJson": "Bu değer geçerli JSON değil — ham metin gösteriliyor.",
+    "valueNull": "Değer NULL.",
+    "notValidJson": "Geçerli JSON değil"
+  },
+  "explain": {
+    "fallback": "EXPLAIN görünümü bir JSON planı tanımadı. Postgres için <code>EXPLAIN (FORMAT JSON, ANALYZE) ...</code> deneyin.",
+    "kvPlan": "Plan",
+    "kvExec": "Yürütme",
+    "kvCost": "Maliyet",
+    "seqScan": "seq scan",
+    "cost": "maliyet",
+    "planRows": "plan ~{{count}} satır",
+    "actualRows": "gerçek {{count}} satır",
+    "pctTotal": "toplamın %{{pct}}'i",
+    "filter": "filtre",
+    "index": "indeks",
+    "hash": "hash"
+  },
+  "save": {
+    "title": "Sorguyu kaydet",
+    "description": "Geçerli editör metnini bu bağlantının altına sabitleyin, böylece daha sonra kenar çubuğundan yeniden çalıştırabilirsiniz.",
+    "namePlaceholder": "Günlük iade kontrolü",
+    "folder": "Klasör",
+    "folderOptional": "(isteğe bağlı · seçin veya yazın)",
+    "folderPlaceholder": "reports/daily",
+    "moreChips": "+{{count}} daha · aramak için yazın",
+    "moreTitle": "Geri kalanı aramak için yukarıdaki açılır listeye yazın",
+    "saveTo": "Şuraya kaydet",
+    "scopeLocalTitle": "Bu cihaz",
+    "scopeLocalDesc": "Bu tarayıcıda kalır. Çevrimdışı / giriş yapmadan çalışır.",
+    "scopeRemoteTitle": "Hesabım",
+    "scopeRemoteDesc": "Hesabınıza eşitlenir; tüm cihazlarda görünür.",
+    "notSignedIn": "Giriş yapılmadı",
+    "saving": "Kaydediliyor…"
+  },
+  "share": {
+    "title": "\"{{name}}\" paylaş",
+    "description": "Sorgular SİZİN adınıza çalışır — alıcılar bu bağlantıyı parolayı görmeden kullanır. Kişi başına bir rol seçin: <strong>Salt okunur</strong> yalnızca SELECT/find sorgularını çalıştırabilir; <strong>Ortak sahip</strong> tam denetim alır (düzenleme, yeniden paylaşma, silme, parolayı gösterme ve bu bağlantının okuma-yazma modu açıkken yazma ifadeleri çalıştırma).",
+    "grantAs": "Şu rolle ver",
+    "roleReadonly": "Salt okunur",
+    "roleCoowner": "Ortak sahip",
+    "coownerWarning": "Ortak sahipler bu bağlantı üzerinde tam denetime sahiptir — silme ve parolayı gösterme dahil. Yalnızca ikinci bir sahip olarak güveneceğiniz kişilere verin.",
+    "searchPlaceholder": "Kullanıcı veya ekip ara...",
+    "teamOption": "{{name}} · ekip",
+    "granted": "Verildi",
+    "noOne": "Kimse yok — yalnızca sahip",
+    "addFailed": "Ekleme başarısız"
+  },
+  "examples": {
+    "title": "Sorgu örnekleri",
+    "description": "Editöre ekleyebileceğiniz salt okunur tarifler. Bir sekme seçin, arayın, ardından sorgunuza aktarmak için <strong>Bunu kullan</strong> — veya herhangi bir parçacığı elle kopyalayın.",
+    "filterPlaceholder": "Başlığa, açıklamaya veya etikete göre filtrele…",
+    "badgeSql": "SQL ailesi",
+    "badgeMongo": "MongoDB",
+    "tabSql": "SQL (Postgres / MySQL / aile)",
+    "tabMongo": "MongoDB",
+    "noMatch": "Bu filtreyle eşleşen örnek yok.",
+    "useThis": "Bunu kullan",
+    "tip1": "⌘+Enter sorguyu çalıştırır · ⌘+S kaydeder · Çoklu sütun sıralaması için sütun başlığına Shift+tıklayın",
+    "tip2": "BE'nin kaç satır döndürdüğünü sınırlamak için Sorguyu çalıştır'ın yanındaki Satır limiti alanını kullanın (varsayılan 500).",
+    "tip3": "Bir hücreye sağ tıklayarak Kopyala / JSON olarak kopyala / \"Bu değere göre filtrele\" — WHERE yan tümcesini editöre geri aktarır.",
+    "sql": {
+      "basics": {
+        "title": "Temel işlemler",
+        "listRows": {
+          "title": "Satırları listele",
+          "desc": "Bir tablonun ilk N satırını çekin — hangi sütunların olduğunu görmenin en hızlı yolu."
+        },
+        "countRows": {
+          "title": "Satırları say",
+          "desc": "Yalnızca sayı — sonuç çok büyük olacağında kullanışlıdır."
+        },
+        "pickColumns": {
+          "title": "Belirli sütunları seç",
+          "desc": "Yalnızca ihtiyacınız olanı yansıtın — ızgarayı okunur tutar + veri aktarımını hızlandırır."
+        },
+        "distinctValues": {
+          "title": "Benzersiz değerler",
+          "desc": "Bir sütunun benzersiz değerleri — enum benzeri sütunlarda hızlı bir sağlık kontrolü."
+        }
+      },
+      "filtering": {
+        "title": "Filtreleme",
+        "equalityIn": {
+          "title": "Eşitlik + IN",
+          "desc": "Satırları tam eşleşme veya değer kümesiyle sınırlayın."
+        },
+        "patternMatch": {
+          "title": "Desen eşleştirme (LIKE / ILIKE)",
+          "desc": "Joker karakter / büyük-küçük harfe duyarsız (Postgres ILIKE) arama."
+        },
+        "dateRange": {
+          "title": "Tarih aralığı",
+          "desc": "İki tarih arasındaki satırlar — yer tutucuları değiştirin veya ortam şablonu için {{var}} kullanın."
+        },
+        "nullHandling": {
+          "title": "NULL işleme",
+          "desc": "Bir değeri eksik olan (veya olan) satırları bulun."
+        }
+      },
+      "aggregation": {
+        "title": "Toplama",
+        "groupByCount": {
+          "title": "GROUP BY + COUNT",
+          "desc": "Bir kategori sütununa göre özetleme — klasik \"duruma göre satır\" raporu."
+        },
+        "sumAvg": {
+          "title": "SUM / AVG / MIN / MAX",
+          "desc": "Bir para sütununda sayısal özetlemeler, HAVING filtresiyle."
+        },
+        "dailySeries": {
+          "title": "Günlük seri (date_trunc)",
+          "desc": "Bir zaman serisi grafiği için satırları günlere gruplayın."
+        }
+      },
+      "joins": {
+        "title": "Join'ler",
+        "innerJoin": {
+          "title": "INNER JOIN",
+          "desc": "İlişkili tabloları birleştirin — siparişler + müşteri alanları."
+        },
+        "leftJoin": {
+          "title": "İsteğe bağlı taraflı LEFT JOIN",
+          "desc": "Sağ taraf eksik olsa bile sol tablodaki satırları dahil edin."
+        },
+        "selfJoin": {
+          "title": "Öz-join",
+          "desc": "Yöneticileri + doğrudan raporlarını bulun."
+        }
+      },
+      "windows": {
+        "title": "Pencereler + CTE'ler",
+        "cte": {
+          "title": "CTE (WITH …)",
+          "desc": "Okunabilirlik için karmaşık bir sorguyu adlandırılmış adımlara bölün."
+        },
+        "rowNumber": {
+          "title": "Grup başına ROW_NUMBER()",
+          "desc": "Her kullanıcı içinde satırları numaralandırın — kullanıcı başına ilk sipariş vb."
+        },
+        "cumulativeSum": {
+          "title": "Kümülatif SUM",
+          "desc": "Gün başına gelirin toplam çalışan toplamı."
+        }
+      },
+      "jsonColumns": {
+        "title": "JSON sütunları (Postgres)",
+        "extractField": {
+          "title": "Bir alan çıkar",
+          "desc": "`->>` üst düzey bir anahtarı metin olarak okur. Sayısallar için bir dönüştürme ekleyin."
+        },
+        "filterJson": {
+          "title": "JSON içinde filtrele",
+          "desc": "Bir JSON yolunun içinde iç içe geçmiş bir değeri eşleştirin."
+        }
+      },
+      "inspection": {
+        "title": "İnceleme",
+        "explainAnalyze": {
+          "title": "EXPLAIN ANALYZE",
+          "desc": "Planlayıcının sorgunuz hakkında nasıl düşündüğünü görün — Plan görünümünde bir ağaç olarak gösterilir."
+        },
+        "listColumns": {
+          "title": "Bir tablonun sütunlarını listele",
+          "desc": "Kenar çubuğu otomatik tamamlama yetersiz kaldığında — tam information_schema dökümü."
+        },
+        "biggestTables": {
+          "title": "En büyük tablolar",
+          "desc": "Hızlı bir depolama sağlık kontrolü (Postgres)."
+        }
+      },
+      "templating": {
+        "title": "Şablonlama + çoklu ifade",
+        "envVars": {
+          "title": "Ortam değişkenleri",
+          "desc": "{{var}} yer tutucuları editörün üzerindeki parametre çubuğundan doldurulur."
+        },
+        "multiStatement": {
+          "title": "Çoklu ifade (N sonuç sekmesi döndürür)",
+          "desc": "Birkaç ifadeyi tek seferde çalıştırın — her biri kendi sonuç sekmesini alır."
+        }
+      }
+    },
+    "mongo": {
+      "addressForms": {
+        "title": "Adresleme biçimleri",
+        "currentDb": {
+          "title": "Geçerli DB · koleksiyon · find",
+          "desc": "Bağlantının varsayılan veritabanını kullanır. En kolay biçim."
+        },
+        "quotedCollection": {
+          "title": "Tırnaklı koleksiyon adı",
+          "desc": "Nokta, tire, boşluk içeren adlar için getCollection kullanın."
+        },
+        "switchDb": {
+          "title": "Başka bir veritabanına geç",
+          "desc": "getSiblingDB aynı istemcide adlandırılmış DB'ye geçer."
+        },
+        "crossDb": {
+          "title": "Çapraz DB kısayolu",
+          "desc": "db.<dbname>.<collection>.<op>(...) — getSiblingDB ile aynı, üç nokta."
+        },
+        "crossDbQuoted": {
+          "title": "Çapraz DB + tırnaklı koleksiyon",
+          "desc": "İkisi birden — en açık olanı, her zaman çalışır."
+        }
+      },
+      "filtering": {
+        "title": "Filtreleme",
+        "equalityProjection": {
+          "title": "Eşitlik + projeksiyon",
+          "desc": "Tek bir alana göre bulun. İkinci argüman hangi alanların geleceğini seçer."
+        },
+        "comparison": {
+          "title": "Karşılaştırma operatörleri",
+          "desc": "Sayısal + tarih aralıkları için $gt / $gte / $lt / $lte."
+        },
+        "inNin": {
+          "title": "IN / NIN kümeleri",
+          "desc": "$in, N değerden birini eşleştirir. Durum benzeri enum'lar için idealdir."
+        },
+        "regex": {
+          "title": "Regex arama",
+          "desc": "/…/i regex ile alt dize + büyük-küçük harfe duyarsız."
+        },
+        "fieldExists": {
+          "title": "Alan var mı",
+          "desc": "$exists eksik alanı null değerden ayırır."
+        },
+        "arrayMatch": {
+          "title": "Dizi öğesi eşleştirme",
+          "desc": "Dizisi belirli bir öğe içeren belgeleri bulun."
+        }
+      },
+      "chained": {
+        "title": "Zincirlenmiş shell değiştiricileri",
+        "limitSkipSort": {
+          "title": "Limit + skip + sort",
+          "desc": "Sayfalama + sıralama, tam olarak Mongo shell'in yaptığı gibi."
+        },
+        "projection": {
+          "title": ".project() ile projeksiyon",
+          "desc": "Yalnızca belirli alanları döndürün."
+        },
+        "countFetch": {
+          "title": "Getirmek yerine say",
+          "desc": ".count() arka planda countDocuments'a kısayol yapar."
+        }
+      },
+      "aggregations": {
+        "title": "Toplamalar",
+        "groupSum": {
+          "title": "Grupla + topla (kullanıcı başına gelir)",
+          "desc": "Tek bir pipeline'da en yüksek gelirli kullanıcılar."
+        },
+        "unwind": {
+          "title": "Diziyi aç + grupla",
+          "desc": "Gömülü bir diziyi düzleştirin ve özetleyin."
+        },
+        "dailySeries": {
+          "title": "Günlük seri (tarih gruplama)",
+          "desc": "Belgeleri güne göre gruplayın — grafikler için kullanışlıdır."
+        },
+        "lookup": {
+          "title": "Lookup (left join)",
+          "desc": "Siparişleri kullanıcılarla userId üzerinden birleştirin. Mongo'nun \"JOIN\"i."
+        }
+      },
+      "counts": {
+        "title": "Sayımlar + distinct",
+        "countDocuments": {
+          "title": "countDocuments",
+          "desc": "Filtreye uyan doğru sayım — büyük koleksiyonlarda daha yavaş."
+        },
+        "estimatedDocumentCount": {
+          "title": "estimatedDocumentCount",
+          "desc": "Hızlı, meta veri tabanlı sayım — bir filtre kabul etmez."
+        },
+        "distinctValues": {
+          "title": "Benzersiz değerler",
+          "desc": "Tüm ürünlerdeki benzersiz etiketler."
+        }
+      },
+      "singleDoc": {
+        "title": "Tek belge + anlık inceleme",
+        "findOne": {
+          "title": "findOne",
+          "desc": "Eşleşen tek bir belge çekin — yalnızca bir örneğe ihtiyacınız olduğunda kullanışlıdır."
+        },
+        "explainQuery": {
+          "title": "Bir sorguyu açıkla",
+          "desc": "Bir indeksin kullanılıp kullanılmadığını + tarama istatistiklerini görün."
+        }
+      }
+    }
+  },
+  "params": {
+    "label": "Parametreler"
+  },
+  "cellRender": {
+    "binary": "«ikili»"
+  },
+  "sidebar": {
+    "connections": "Bağlantılar",
+    "newConnection": "Yeni bağlantı",
+    "noConnections": "Henüz bağlantı yok",
+    "addFirst": "İlk bağlantınızı ekleyin",
+    "savedQueries": "Kayıtlı sorgular",
+    "rwTitle": "Okuma-yazma — yazma ifadelerine izin verilir",
+    "readonlyTitle": "Salt okunur",
+    "share": "Paylaş",
+    "rwMode": "Okuma-yazma modu",
+    "tables": "Tablolar",
+    "collections": "Koleksiyonlar",
+    "refreshSchema": "Şemayı yenile",
+    "filterTables": "Tabloları filtrele…",
+    "filterCollections": "Koleksiyonları filtrele…",
+    "filterColumns": "Sütunları filtrele…",
+    "filterFields": "Alanları filtrele…",
+    "emptySchema": "Boş şema",
+    "expandToLoad": "Yüklemek için genişletin",
+    "noMatchTables": "Eşleşen tablo yok",
+    "noMatchCollections": "Eşleşen koleksiyon yok",
+    "hideColumns": "Sütunları gizle",
+    "showColumns": "Sütunları göster",
+    "unknownType": "bilinmiyor",
+    "fieldType": "alan",
+    "noColumns": "Sütun yok",
+    "noMatchColumns": "Eşleşen sütun yok",
+    "noSavedQueries": "Kayıtlı sorgu yok",
+    "savedLocalTip": "Bu cihaza kaydedildi — bu tarayıcıda kalır.",
+    "savedRemoteTip": "Hesabınıza eşitlendi — tüm cihazlarda görünür.",
+    "copyQueryText": "Sorgu metnini kopyala",
+    "localSuffix": "(yerel)",
+    "deleteTitle": "\"{{name}}\" silinsin mi?",
+    "deleteDescription": "Bağlantı ve altındaki her kayıtlı sorgu / izin kaldırılır. Bu bağlantıya karşı açık sorgu sekmeleri bir sonraki çalıştırmalarında başarısız olur. Bu geri alınamaz.",
+    "toastModeFailTitle": "Mod değiştirilemedi",
+    "toastModeFailDesc": "Her arka uç değişikliği reddetti. Erişiminizi kontrol edip tekrar deneyin.",
+    "enabledRw": "Okuma-yazma etkinleştirildi",
+    "setReadonly": "Salt okunur yap",
+    "scopeBoth": "Her iki arka uçta saklanır. Araç çubuğundaki Yerel/Uzak anahtarı, çalıştırıcıyı sorgu bazında değiştirir.",
+    "scopeLocalOnly": "Yalnızca bu cihazda — PatchMan sunucusu son yazmayı kabul etmedi.",
+    "scopeRemoteOnly": "Yalnızca PatchMan sunucusunda — bu cihaz son yazmayı kabul etmedi.",
+    "defaultRunner": "Varsayılan çalıştırıcı: {{target}}.",
+    "runnerThisDevice": "bu cihaz",
+    "runnerServer": "PatchMan sunucusu",
+    "sharedCoowner": "Ortak sahip olarak sizinle paylaşıldı.",
+    "sharedReadonly": "Salt okunur paylaşıldı.",
+    "rwModeOn": "Okuma-yazma modu: yazma ifadelerine izin verilir.",
+    "roModeOff": "Salt okunur mod.",
+    "duplicate": "Çoğalt"
+  }
+}

@@ -1,0 +1,358 @@
+{
+  "title": "Servis haritası",
+  "conn": {
+    "titleNew": "Yeni gözlemlenebilirlik bağlantısı",
+    "titleEdit": "Gözlemlenebilirlik bağlantısını düzenle",
+    "description": "Bir APM / gözlemlenebilirlik aracına bağlanın. PatchMan, canlı servis haritasını çizmek için onun kimin kimi ne kadar çağırdığı bilgisini okur. Her şey salt okunur.",
+    "provider": "Araç",
+    "providerHelp": {
+      "coroot": "Coroot'un uygulama haritası ve eBPF metrikleri: uygulamalara dokunmadan her çağrı için istek/sn, hata ve gecikme.",
+      "prometheus": "Prometheus uyumlu her API (Prometheus, VictoriaMetrics, Thanos, Mimir). PatchMan coroot-node-agent, Istio, Linkerd, OpenTelemetry / Tempo servis grafiği ve Cilium Hubble metriklerini tanır.",
+      "jaeger": "Jaeger'ın bağımlılık grafiği: kim kimi ne sıklıkla çağırıyor (hata ve gecikme yok).",
+      "kiali": "Kiali'nin Istio trafik grafiği: her çağrı için istek/sn, hata oranı ve yanıt süresi.",
+      "signoz": "SigNoz'un servis bağımlılık grafiği: her çağrı için çağrı hızı, hata oranı ve gecikme.",
+      "datadog": "Tek bir env için Datadog APM servis bağımlılıkları (hangi servis hangisini çağırıyor; Datadog'un API'si çağrı bazında oran vermiyor)."
+    },
+    "name": "Ad",
+    "url": "URL",
+    "authKind": "Giriş",
+    "auth": {
+      "none": "Yok",
+      "basic": "Kullanıcı + şifre",
+      "bearer": "Token",
+      "apikey": "API anahtarı",
+      "session": "Oturum çerezi",
+      "login": "E-posta + şifre",
+      "datadog": "API + uygulama anahtarı"
+    },
+    "authHelp": {
+      "coroot": {
+        "bearer": "Önerilen: Viewer rolündeki bir servis hesabının API anahtarı (crt_…). Coroot'ta Settings → Users altından oluşturun.",
+        "login": "Bir Coroot kullanıcısının e-postası ve şifresi; PatchMan giriş yapar ve oturumu yeniler.",
+        "session": "SSO kullanıcıları için: tarayıcınızdaki coroot_session çerezini yapıştırın. 7 gün geçerlidir.",
+        "apikey": "Proje API anahtarı yalnızca metrikleri açar: Coroot'tan harita ve sağlık bilgisi gelmez. Not: ajanların veri gönderdiği anahtar da budur."
+      },
+      "datadog": {
+        "bearer": "Datadog: API + uygulama anahtarı ya da kişisel / servis erişim token'ı."
+      }
+    },
+    "authHelpGeneric": {
+      "none": "API açık (ya da ağınızın arkasında).",
+      "basic": "HTTP Basic kimlik doğrulaması.",
+      "bearer": "Authorization: Bearer <token> olarak gönderilir.",
+      "apikey": "Aracın API anahtarı başlığında gönderilir (Gelişmiş'ten değiştirilebilir).",
+      "session": "Tarayıcıdan yapıştırılan bir oturum çerezi.",
+      "login": "PatchMan giriş yapar ve oturumu tutar.",
+      "datadog": "İki anahtar da gerekli."
+    },
+    "email": "E-posta",
+    "username": "Kullanıcı adı",
+    "password": "Şifre",
+    "token": "Token",
+    "apiKey": "API anahtarı",
+    "appKey": "Uygulama anahtarı",
+    "session": "Oturum çerezi",
+    "sessionHelp": "coroot_session çerezinin değeri (tarayıcının geliştirici araçlarından).",
+    "scope": {
+      "project": "Proje",
+      "env": "Env",
+      "namespaces": "Namespace'ler"
+    },
+    "scopeHelp": {
+      "project": "Haritanın açılacağı Coroot projesi. Yeni bir bağlantıda projeler Test'ten sonra listelenir.",
+      "env": "Haritası çizilecek Datadog env'i, örn. prod.",
+      "namespaces": "Virgülle ayrılmış; boş = Kiali'nin gösterdiği tüm namespace'ler (en fazla 20)."
+    },
+    "corootProjectKey": "Proje API anahtarı (isteğe bağlı)",
+    "corootProjectKeyHelp": "PatchMan'in çağrı bazında hata ve gecikme için Coroot metriklerini doğrudan sorgulamasını sağlar. Olmadan da Coroot'un dashboard API'si üzerinden gelir.",
+    "optional": "İsteğe bağlı",
+    "backend": "Çalıştığı yer",
+    "backendLocal": "Bu bilgisayar",
+    "backendLocalDesc": "VPN / yerel ağdaki araçlara erişir.",
+    "backendRemote": "PatchMan sunucusu",
+    "backendRemoteDesc": "Ekibinizle paylaşılır; sunucunun erişebildiklerine ulaşır.",
+    "backendNoteSession": "Oturum çerezi tek bir backend'de yaşar, bu yüzden yalnızca oraya kaydedilir.",
+    "advanced": "Gelişmiş",
+    "headerName": "API anahtarı başlığı",
+    "headerNameHelp": "Aracın varsayılanı için boş bırakın.",
+    "insecure": "TLS doğrulamasını atla",
+    "insecureHelp": "Yalnızca güvendiğiniz kendinden imzalı sertifikalar için.",
+    "caCert": "CA sertifikası (PEM)",
+    "datadogNote": "URL olarak sitenizin API adresini girin, örn. AB için https://api.datadoghq.eu.",
+    "test": "Test et",
+    "create": "Oluştur",
+    "testOk": "Bağlandı",
+    "testVersion": "sürüm {{version}}",
+    "testUser": "{{user}} olarak giriş yapıldı",
+    "testFailed": "Test başarısız",
+    "saveFailed": "Bağlantı kaydedilemedi",
+    "errName": "Bir ad girin.",
+    "errUrl": "URL'yi girin.",
+    "errUsername": "Kullanıcı adını / e-postayı girin.",
+    "errEnv": "Env'i girin.",
+    "errPassword": "Şifreyi girin.",
+    "errToken": "Token'ı girin.",
+    "errApiKey": "API anahtarını girin.",
+    "errAppKey": "Uygulama anahtarını girin.",
+    "errSession": "Oturum çerezini yapıştırın.",
+    "keepStored": "•••••• (değişmedi)"
+  },
+  "notes": {
+    "family": "{{value}} metrikleri bulundu",
+    "no_service_metrics": "servisler arası metrik bulunamadı",
+    "family_error": "bir metrik ailesi başarısız: {{value}}",
+    "metrics_only": "yalnızca metrikler (Coroot'tan harita ve sağlık yok)",
+    "no_projects": "bu kullanıcı hiçbir proje görmüyor",
+    "project_key_ok": "proje API anahtarı çalışıyor",
+    "project_key_rejected": "proje API anahtarı reddedildi",
+    "services": "{{value}} servis",
+    "rates_only": "yalnızca çağrı oranları — hata ve gecikme yok",
+    "no_rates": "yalnızca bağımlılıklar — oran yok",
+    "env_required": "harita için env'i girin",
+    "coroot_red_unavailable": "çağrı bazında metrikler alınamadı: {{value}}",
+    "coroot_health_unavailable": "sağlık bilgisi alınamadı",
+    "namespaces_capped": "ilk {{value}} namespace",
+    "secrets_skipped": "{{value}} Secret referansı okunmadı (bağlantıda \"Secret'lardan host oku\"yu açın)",
+    "forbidden": "{{value}} listeleme izni yok",
+    "references_capped": "ilk {{value}} ConfigMap / Secret",
+    "prometheus_not_found": "kümede Prometheus bulunamadı",
+    "target": "Prometheus: {{value}}"
+  },
+  "share": {
+    "title": "{{name}} paylaş",
+    "description": "Eklediğiniz kişi ve ekipler bu bağlantı üzerinden servis haritası çizebilir. Kimlik bilgileri PatchMan'den çıkmaz.",
+    "identityWarning": "Aracı bu bağlantının giriş yapmış kullanıcısı olarak okurlar.",
+    "searchPlaceholder": "Kişi veya ekip ara…",
+    "roleRead": "Okuma",
+    "granted": "Erişimi olanlar",
+    "empty": "Henüz paylaşılmadı.",
+    "teamSuffix": "ekip",
+    "addFailed": "Paylaşılamadı"
+  },
+  "sidebar": {
+    "loading": "Yükleniyor…",
+    "empty": "Henüz gözlemlenebilirlik bağlantısı yok.",
+    "sessionBadge": "oturum",
+    "actions": "İşlemler",
+    "openMap": "Servis haritasını aç",
+    "openSite": "{{provider}}'ı aç",
+    "share": "Paylaş",
+    "deleteTitle": "{{name}} silinsin mi?",
+    "deleteDescription": "Bağlantı ve paylaşımları kaldırılır. Onu kullanan açık haritalar güncellenmez."
+  },
+  "rail": {
+    "newConnection": "Yeni bağlantı",
+    "newGrafana": "Grafana bağlantısı",
+    "newGraylog": "Graylog bağlantısı",
+    "newObservability": "Gözlemlenebilirlik / APM bağlantısı",
+    "observability": "Gözlemlenebilirlik"
+  },
+  "sources": {
+    "pick": "Kaynak seç",
+    "kubernetes": "Kubernetes",
+    "noK8s": "Yok",
+    "context": "Context",
+    "defaultContext": "Varsayılan",
+    "namespaces": "Namespace'ler",
+    "allNamespaces": "İzin verilenlerin hepsi",
+    "clusterProm": "Küme Prometheus'u",
+    "clusterPromHelp": "Kümenin kendi Prometheus'undan da trafik metriklerini oku (Istio, Linkerd, Hubble, OpenTelemetry).",
+    "observability": "Gözlemlenebilirlik",
+    "noObservability": "Henüz gözlemlenebilirlik bağlantısı yok.",
+    "addObservability": "Bağlantı ekle",
+    "backend": "Haritayı oluşturan",
+    "backend_auto": "Otomatik",
+    "backend_local": "Bu bilgisayar",
+    "backend_remote": "Sunucu",
+    "apply": "Haritayı göster"
+  },
+  "toolbar": {
+    "range": "Zaman aralığı",
+    "refresh": "Otomatik yenileme",
+    "reload": "Şimdi yenile",
+    "search": "Ara  /",
+    "filters": "Filtreler",
+    "motion": "Animasyon",
+    "view": "Görünüm",
+    "map": "Harita",
+    "table": "Tablo",
+    "fit": "Ekrana sığdır (F)",
+    "export": "Whiteboard'a ekle",
+    "namespaces": "Namespace'ler",
+    "group": "Grupla",
+    "groupHint": "Her namespace'i tek bir node'a katla ({{count}} node üzerinde otomatik). Açmak için namespace'e çift tıkla.",
+    "searchHint": "Enter: ilk eşleşmeye odaklan"
+  },
+  "range": {
+    "5m": "5 dk",
+    "15m": "15 dk",
+    "1h": "1 saat",
+    "6h": "6 saat",
+    "24h": "24 saat"
+  },
+  "refresh": {
+    "off": "Yenileme yok",
+    "s30": "30 sn'de bir",
+    "m1": "Dakikada bir",
+    "m5": "5 dk'da bir"
+  },
+  "filters": {
+    "hideSystem": "Sistem bileşenlerini gizle",
+    "onlyErrors": "Yalnızca hatalı çağrılar",
+    "hideIsolated": "Bağlantısızları gizle",
+    "trafficOnly": "Yalnızca trafiği olan bağlantılar",
+    "show": "Göster"
+  },
+  "motion": {
+    "full": "Tam",
+    "calm": "Sade",
+    "off": "Kapalı"
+  },
+  "hud": {
+    "rps": "İstek/sn",
+    "errors": "Hata",
+    "services": "Node",
+    "calls": "Çağrı",
+    "callsHint": "Trafik verisi olan / tümü",
+    "updated": "{{time}} güncellendi",
+    "sourceOk": "Çalışıyor",
+    "grouped": "{{count}} namespace katlandı — açmak için birine çift tıkla"
+  },
+  "sourceName": {
+    "config": "Kubernetes yapılandırması",
+    "cluster-prometheus": "Küme Prometheus'u"
+  },
+  "empty": {
+    "title": "Canlı servis haritası çiz",
+    "text": "Bir Kubernetes bağlantısı ve/veya bir gözlemlenebilirlik bağlantısı seçin (Coroot, Prometheus, Jaeger, Kiali, SigNoz, Datadog)."
+  },
+  "loading": {
+    "title": "Harita oluşturuluyor…",
+    "text": "Her kaynaktan workload'lar, yapılandırma ve trafik okunuyor."
+  },
+  "error": {
+    "title": "Harita oluşturulamadı"
+  },
+  "emptyGraph": {
+    "title": "Çizilecek bir şey yok",
+    "text": "Hiçbir servis eşleşmedi. Yukarıdaki kaynak notlarına bakın ya da filtreleri gevşetin."
+  },
+  "card": {
+    "noTraffic": "trafik verisi yok",
+    "conn": "PatchMan bağlantısı var",
+    "rps": "istek/sn"
+  },
+  "health": {
+    "ok": "Sağlıklı",
+    "warning": "Uyarı",
+    "critical": "Kritik",
+    "unknown": "Bilinmiyor"
+  },
+  "kind": {
+    "service": "Servis",
+    "datastore": "Veri deposu",
+    "messaging": "Mesajlaşma",
+    "external": "Dış",
+    "ingress": "Ingress"
+  },
+  "flow": {
+    "request": "istek",
+    "publish": "yayınlıyor",
+    "consume": "tüketiyor"
+  },
+  "evidence": {
+    "env": "Env",
+    "configMap": "ConfigMap",
+    "secret": "Secret",
+    "ingress": "Ingress",
+    "coroot": "Coroot"
+  },
+  "detail": {
+    "title": "Ayrıntılar",
+    "rps": "İstek/sn",
+    "errors": "Hata",
+    "p95": "p95",
+    "replicas": "{{value}} hazır",
+    "openConnection": "{{name}} aç",
+    "openK8s": "Kubernetes'te aç",
+    "openCoroot": "Coroot'ta aç",
+    "address": "Adres",
+    "services": "Servisler",
+    "images": "Image'lar",
+    "sources": "Kaynaklar",
+    "calls": "Çağırdıkları",
+    "calledBy": "Çağıranlar",
+    "conns": "{{count}} açık bağlantı",
+    "declaredOnly": "Yapılandırmada tanımlı — trafiği gözlenmedi.",
+    "evidence": "Bulunduğu yer",
+    "evidenceNote": "Yalnızca anahtar adları ve çıkarılan host:port gösterilir — değerler asla.",
+    "namespaceGroup": "Namespace · {{count}} node",
+    "foldedCalls": "{{count}} çağrı",
+    "expand": "Namespace'i aç",
+    "collapse": "{{name}} katla",
+    "focus": "Odakla",
+    "focusHops": "Yalnızca {{count}} adım uzaklığa kadar olanlar",
+    "onlyNamespace": "Sadece bu namespace",
+    "members": "Node'lar",
+    "colTarget": "Çağrılan",
+    "colCaller": "Çağıran",
+    "colProtocol": "Protokol",
+    "colRps": "İstek/sn",
+    "colErrors": "Hata",
+    "colErrorsHint": "Başarısız çağrıların oranı: 5xx, failed ya da gRPC hatası (4xx sayılmaz)",
+    "openCall": "Bu çağrının detayını göster",
+    "goToNode": "{{name}} node'una git",
+    "responses": "Yanıtlar",
+    "responsesNote": "Kaynağın bildirdiği şekilde, durum başına istek/sn. Yalnızca 5xx, failed ve gRPC hataları hata sayılır.",
+    "colNode": "Node",
+    "openMember": "Namespace'i aç ve {{name}} göster",
+    "p95Worst": "p95 (en kötü)",
+    "errorsFrom": "Hatalar nereden geliyor",
+    "colErrRps": "Hata/sn",
+    "errRpsHint": "Bu çağrıda saniyede başarısız olan istek sayısı",
+    "colShare": "Pay",
+    "foldedInto": "Haritada {{name}} içine katlı",
+    "hiddenByFilters": "Filtreler ya da namespace seçimi yüzünden gizli — toplamlara yine de dahil"
+  },
+  "table": {
+    "from": "Kaynak",
+    "to": "Hedef",
+    "protocol": "Protokol",
+    "rps": "İstek/sn",
+    "errors": "Hata",
+    "p95": "p95",
+    "sources": "Kaynaklar",
+    "conns": "{{count}} bağlantı",
+    "empty": "Çağrı yok."
+  },
+  "export": {
+    "failed": "Harita whiteboard'a eklenemedi",
+    "capped": "Whiteboard'a ilk {{count}} node eklendi."
+  },
+  "ns": {
+    "search": "Namespace ara…",
+    "all": "Tüm namespace'ler",
+    "only": "Sadece",
+    "outside": "(namespace dışı)",
+    "contextHint": "Seçilen namespace'lerin başka yerlerde çağırdıkları ya da onları çağıranlar haritada soluk olarak kalır."
+  },
+  "group": {
+    "outside": "Namespace dışı",
+    "nodes": "{{count}} node",
+    "datastores": "{{count}} DB",
+    "messaging": "{{count}} MQ",
+    "open": "Bu namespace'i açmak için çift tıkla"
+  },
+  "focus": {
+    "clear": "Tüm haritayı göster (Esc)"
+  },
+  "status": {
+    "unknown": "Ajan yanıtı tanıyamadı — hata sayılmaz",
+    "failed": "Başarısız: bağlantı hatası, zaman aşımı ya da hata yanıtı",
+    "ok": "Başarılı",
+    "grpc": "gRPC hatası",
+    "5xx": "Sunucu hatası",
+    "4xx": "İstemci hatası — hata sayılmaz",
+    "3xx": "Yönlendirme"
+  }
+}

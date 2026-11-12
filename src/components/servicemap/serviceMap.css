@@ -1,0 +1,125 @@
+/* Service map tokens. Protocol classes use the validated categorical slots
+   1–3 (blue / orange / aqua — passes all-pairs CVD in both modes); health and
+   errors use the reserved status palette, always paired with an icon + label. */
+.sm-root {
+  --sm-http: #2a78d6;
+  --sm-msg: #eb6834;
+  --sm-data: #1baf7a;
+  --sm-ok: #0ca30c;
+  --sm-warn: #fab219;
+  --sm-crit: #d03b3b;
+  --sm-unknown: #8a8985;
+  --sm-accent: #6250d6;
+  --sm-edge: rgba(60, 64, 72, 0.32);
+  --sm-edge-dim: rgba(60, 64, 72, 0.14);
+  --sm-surface: #f6f7f9;
+  --sm-grid: rgba(20, 30, 50, 0.07);
+  --sm-card: rgba(255, 255, 255, 0.82);
+  --sm-card-solid: #ffffff;
+  --sm-card-border: rgba(20, 30, 50, 0.12);
+  --sm-text: #0b0b0b;
+  --sm-text-2: #52514e;
+}
+.dark .sm-root {
+  --sm-http: #3987e5;
+  --sm-msg: #d95926;
+  --sm-data: #199e70;
+  --sm-ok: #0ca30c;
+  --sm-warn: #fab219;
+  --sm-crit: #d03b3b;
+  --sm-unknown: #6f6e69;
+  --sm-accent: #9085e9;
+  --sm-edge: rgba(160, 190, 255, 0.22);
+  --sm-edge-dim: rgba(160, 190, 255, 0.08);
+  --sm-surface: #070b14;
+  --sm-grid: rgba(120, 160, 255, 0.07);
+  --sm-card: rgba(14, 20, 34, 0.72);
+  --sm-card-solid: #0f1626;
+  --sm-card-border: rgba(140, 170, 255, 0.16);
+  --sm-text: #f0efec;
+  --sm-text-2: #a9adb8;
+}
+
+.sm-root .react-flow {
+  --xy-background-color: transparent;
+  --xy-minimap-background-color: color-mix(in oklab, var(--sm-surface) 85%, transparent);
+  --xy-minimap-mask-background-color: color-mix(in oklab, var(--sm-surface) 55%, transparent);
+  --xy-controls-button-background-color: var(--sm-card);
+  --xy-controls-button-border-color: var(--sm-card-border);
+  --xy-controls-button-color: var(--sm-text-2);
+  --xy-controls-button-background-color-hover: color-mix(in oklab, var(--sm-card) 70%, var(--sm-accent));
+}
+.sm-root .react-flow__node { cursor: pointer; }
+.sm-root .react-flow__attribution { display: none; }
+
+/* Deep surface: radial vignette + faint perspective grid. */
+.sm-stage {
+  background:
+    radial-gradient(ellipse at 50% 40%, color-mix(in oklab, var(--sm-accent) 10%, transparent) 0%, transparent 60%),
+    radial-gradient(ellipse at 50% 120%, color-mix(in oklab, var(--sm-http) 12%, transparent) 0%, transparent 55%),
+    var(--sm-surface);
+}
+.sm-grid-floor {
+  position: absolute;
+  inset: 45% -20% -10% -20%;
+  background-image:
+    linear-gradient(var(--sm-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--sm-grid) 1px, transparent 1px);
+  background-size: 48px 48px;
+  transform: perspective(700px) rotateX(62deg);
+  transform-origin: 50% 0;
+  mask-image: linear-gradient(to bottom, transparent, black 30%, transparent 95%);
+  pointer-events: none;
+}
+
+.sm-card {
+  background: var(--sm-card);
+  border: 1px solid var(--sm-card-border);
+  backdrop-filter: blur(10px) saturate(1.2);
+  -webkit-backdrop-filter: blur(10px) saturate(1.2);
+  box-shadow: 0 8px 24px -12px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  transition: opacity 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease, transform 0.25s ease;
+}
+.sm-card[data-selected='true'] {
+  border-color: var(--sm-accent);
+  box-shadow: 0 0 0 1px var(--sm-accent), 0 0 28px -4px color-mix(in oklab, var(--sm-accent) 70%, transparent);
+}
+.sm-card[data-health='critical'] {
+  border-color: color-mix(in oklab, var(--sm-crit) 70%, transparent);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .sm-root[data-motion='on'] .sm-card[data-health='critical'] { animation: sm-breathe 2.4s ease-in-out infinite; }
+  .sm-root[data-motion='on'] .sm-new { animation: sm-new 2.2s ease-out 1; }
+}
+@keyframes sm-breathe {
+  0%, 100% { box-shadow: 0 0 0 0 color-mix(in oklab, var(--sm-crit) 0%, transparent), 0 8px 24px -12px rgba(0, 0, 0, 0.35); }
+  50% { box-shadow: 0 0 22px 2px color-mix(in oklab, var(--sm-crit) 45%, transparent), 0 8px 24px -12px rgba(0, 0, 0, 0.35); }
+}
+@keyframes sm-new {
+  0% { box-shadow: 0 0 0 2px var(--sm-ok), 0 0 30px 4px color-mix(in oklab, var(--sm-ok) 60%, transparent); }
+  100% { box-shadow: 0 8px 24px -12px rgba(0, 0, 0, 0.35); }
+}
+
+.sm-ring-glow { filter: drop-shadow(0 0 4px var(--sm-glow)); }
+
+/* A folded namespace: a stack of cards. */
+.sm-card.sm-group {
+  box-shadow:
+    4px 4px 0 -1px var(--sm-card-solid), 4px 4px 0 0 var(--sm-card-border),
+    8px 8px 0 -1px var(--sm-card-solid), 8px 8px 0 0 var(--sm-card-border),
+    0 8px 24px -12px rgba(0, 0, 0, 0.35);
+}
+
+/* Dense maps: glass, glows and breathing cost a repaint per card per frame
+   while panning — trade them for flat, opaque cards. */
+.sm-root[data-dense='true'] .sm-card {
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  background: var(--sm-card-solid);
+  transition: none;
+}
+.sm-root[data-dense='true'] .sm-ring-glow { filter: none; }
+.sm-root[data-dense='true'] .sm-card[data-health='critical'] { animation: none; }
+
+/* The detail panel reads like a card but stays legible over a busy map. */
+.sm-panel { background: color-mix(in oklab, var(--sm-surface) 95%, transparent); }

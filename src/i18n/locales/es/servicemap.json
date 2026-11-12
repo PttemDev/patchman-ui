@@ -1,0 +1,358 @@
+{
+  "title": "Mapa de servicios",
+  "conn": {
+    "titleNew": "Nueva conexión de observabilidad",
+    "titleEdit": "Editar conexión de observabilidad",
+    "description": "Conecta un backend de APM u observabilidad. PatchMan lee quién llama a quién (y cuánto) para dibujar el mapa de servicios en vivo. Todo es de solo lectura.",
+    "provider": "Backend",
+    "providerHelp": {
+      "coroot": "El mapa de aplicaciones de Coroot y sus métricas eBPF: peticiones/s, errores y latencia por llamada, sin tocar tus aplicaciones.",
+      "prometheus": "Cualquier API compatible con Prometheus (Prometheus, VictoriaMetrics, Thanos, Mimir). PatchMan reconoce métricas de coroot-node-agent, Istio, Linkerd, el grafo de servicios de OpenTelemetry / Tempo y Cilium Hubble.",
+      "jaeger": "El grafo de dependencias de Jaeger: quién llama a quién y con qué frecuencia (sin errores ni latencia).",
+      "kiali": "El grafo de tráfico Istio de Kiali: peticiones/s, tasa de error y tiempo de respuesta por llamada.",
+      "signoz": "El grafo de dependencias de SigNoz: tasa de llamadas, tasa de error y latencia por llamada.",
+      "datadog": "Dependencias de servicios de Datadog APM para un env (qué servicio llama a cuál; la API de Datadog no da tasas por llamada)."
+    },
+    "name": "Nombre",
+    "url": "URL",
+    "authKind": "Inicio de sesión",
+    "auth": {
+      "none": "Ninguno",
+      "basic": "Usuario + contraseña",
+      "bearer": "Token",
+      "apikey": "Clave de API",
+      "session": "Cookie de sesión",
+      "login": "Correo + contraseña",
+      "datadog": "Clave de API + de aplicación"
+    },
+    "authHelp": {
+      "coroot": {
+        "bearer": "Recomendado: una clave de API de una cuenta de servicio Viewer (crt_…). Créala en Coroot en Settings → Users.",
+        "login": "El correo y la contraseña de un usuario de Coroot; PatchMan inicia sesión y renueva la sesión.",
+        "session": "Para usuarios SSO: pega la cookie coroot_session de tu navegador. Dura 7 días.",
+        "apikey": "Una clave de API de proyecto solo da acceso a métricas: sin mapa ni salud de Coroot. Nota: es también la clave con la que los agentes envían datos."
+      },
+      "datadog": {
+        "bearer": "Datadog: clave de API + de aplicación, o un token de acceso personal / de servicio."
+      }
+    },
+    "authHelpGeneric": {
+      "none": "La API está abierta (o detrás de tu red).",
+      "basic": "Autenticación HTTP Basic.",
+      "bearer": "Se envía como Authorization: Bearer <token>.",
+      "apikey": "Se envía en la cabecera de clave de API del proveedor (cámbiala en Avanzado).",
+      "session": "Una cookie de sesión pegada desde tu navegador.",
+      "login": "PatchMan inicia sesión y mantiene la sesión.",
+      "datadog": "Se necesitan ambas claves."
+    },
+    "email": "Correo",
+    "username": "Usuario",
+    "password": "Contraseña",
+    "token": "Token",
+    "apiKey": "Clave de API",
+    "appKey": "Clave de aplicación",
+    "session": "Cookie de sesión",
+    "sessionHelp": "El valor de la cookie coroot_session (desde las herramientas de desarrollo del navegador).",
+    "scope": {
+      "project": "Proyecto",
+      "env": "Env",
+      "namespaces": "Namespaces"
+    },
+    "scopeHelp": {
+      "project": "El proyecto de Coroot con el que se abre el mapa. En una conexión nueva, los proyectos aparecen después de Probar.",
+      "env": "El env de Datadog a mapear, p. ej. prod.",
+      "namespaces": "Separados por comas; vacío = todos los namespaces que muestra Kiali (hasta 20)."
+    },
+    "corootProjectKey": "Clave de API del proyecto (opcional)",
+    "corootProjectKeyHelp": "Permite a PatchMan consultar directamente las métricas de Coroot para errores y latencia por llamada. Sin ella llegan por la API de paneles de Coroot, que también funciona.",
+    "optional": "Opcional",
+    "backend": "Se ejecuta en",
+    "backendLocal": "Este equipo",
+    "backendLocalDesc": "Llega a backends de tu VPN / red local.",
+    "backendRemote": "Servidor de PatchMan",
+    "backendRemoteDesc": "Compartido con tu equipo; llega a lo que alcanza el servidor.",
+    "backendNoteSession": "Una cookie de sesión vive en un solo backend, así que solo se guarda allí.",
+    "advanced": "Avanzado",
+    "headerName": "Cabecera de la clave de API",
+    "headerNameHelp": "Déjala vacía para usar la del proveedor.",
+    "insecure": "Omitir la verificación TLS",
+    "insecureHelp": "Solo para certificados autofirmados de confianza.",
+    "caCert": "Certificado de CA (PEM)",
+    "datadogNote": "Usa como URL el host de API de tu sitio, p. ej. https://api.datadoghq.eu para la UE.",
+    "test": "Probar",
+    "create": "Crear",
+    "testOk": "Conectado",
+    "testVersion": "versión {{version}}",
+    "testUser": "sesión iniciada como {{user}}",
+    "testFailed": "La prueba falló",
+    "saveFailed": "No se pudo guardar la conexión",
+    "errName": "Escribe un nombre.",
+    "errUrl": "Escribe la URL.",
+    "errUsername": "Escribe el usuario / correo.",
+    "errEnv": "Escribe el env.",
+    "errPassword": "Escribe la contraseña.",
+    "errToken": "Escribe el token.",
+    "errApiKey": "Escribe la clave de API.",
+    "errAppKey": "Escribe la clave de aplicación.",
+    "errSession": "Pega la cookie de sesión.",
+    "keepStored": "•••••• (sin cambios)"
+  },
+  "notes": {
+    "family": "métricas de {{value}} encontradas",
+    "no_service_metrics": "no se encontraron métricas entre servicios",
+    "family_error": "falló una familia de métricas: {{value}}",
+    "metrics_only": "solo métricas (sin mapa ni salud de Coroot)",
+    "no_projects": "este usuario no ve ningún proyecto",
+    "project_key_ok": "la clave de API del proyecto funciona",
+    "project_key_rejected": "la clave de API del proyecto fue rechazada",
+    "services": "{{value}} servicios",
+    "rates_only": "solo tasas de llamadas: sin errores ni latencia",
+    "no_rates": "solo dependencias: sin tasas",
+    "env_required": "indica el env para dibujar un mapa",
+    "coroot_red_unavailable": "métricas por llamada no disponibles: {{value}}",
+    "coroot_health_unavailable": "salud no disponible",
+    "namespaces_capped": "primeros {{value}} namespaces",
+    "secrets_skipped": "{{value}} referencias a Secrets sin leer (activa \"Leer hosts de los Secrets\" en la conexión)",
+    "forbidden": "sin permiso para listar {{value}}",
+    "references_capped": "primeros {{value}} ConfigMaps / Secrets",
+    "prometheus_not_found": "no se encontró Prometheus en el clúster",
+    "target": "Prometheus: {{value}}"
+  },
+  "share": {
+    "title": "Compartir {{name}}",
+    "description": "Las personas y equipos que añadas pueden dibujar mapas de servicios con esta conexión. Las credenciales nunca salen de PatchMan.",
+    "identityWarning": "Leerán el backend como el usuario con el que está iniciada esta conexión.",
+    "searchPlaceholder": "Buscar personas o equipos…",
+    "roleRead": "Lectura",
+    "granted": "Tienen acceso",
+    "empty": "Aún no se ha compartido.",
+    "teamSuffix": "equipo",
+    "addFailed": "No se pudo compartir"
+  },
+  "sidebar": {
+    "loading": "Cargando…",
+    "empty": "Aún no hay conexiones de observabilidad.",
+    "sessionBadge": "sesión",
+    "actions": "Acciones",
+    "openMap": "Abrir mapa de servicios",
+    "openSite": "Abrir {{provider}}",
+    "share": "Compartir",
+    "deleteTitle": "¿Eliminar {{name}}?",
+    "deleteDescription": "Se eliminan la conexión y sus permisos compartidos. Los mapas abiertos que la usan dejan de actualizarse."
+  },
+  "rail": {
+    "newConnection": "Nueva conexión",
+    "newGrafana": "Conexión de Grafana",
+    "newGraylog": "Conexión de Graylog",
+    "newObservability": "Conexión de observabilidad / APM",
+    "observability": "Observabilidad"
+  },
+  "sources": {
+    "pick": "Elegir fuentes",
+    "kubernetes": "Kubernetes",
+    "noK8s": "Ninguno",
+    "context": "Contexto",
+    "defaultContext": "Predeterminado",
+    "namespaces": "Namespaces",
+    "allNamespaces": "Todos los permitidos",
+    "clusterProm": "Prometheus del clúster",
+    "clusterPromHelp": "Leer también métricas de tráfico del Prometheus del propio clúster (Istio, Linkerd, Hubble, OpenTelemetry).",
+    "observability": "Observabilidad",
+    "noObservability": "Aún no hay conexiones de observabilidad.",
+    "addObservability": "Añadir una conexión",
+    "backend": "Construir el mapa en",
+    "backend_auto": "Automático",
+    "backend_local": "Este equipo",
+    "backend_remote": "Servidor",
+    "apply": "Mostrar mapa"
+  },
+  "toolbar": {
+    "range": "Intervalo",
+    "refresh": "Actualización automática",
+    "reload": "Actualizar ahora",
+    "search": "Buscar  /",
+    "filters": "Filtros",
+    "motion": "Animación",
+    "view": "Vista",
+    "map": "Mapa",
+    "table": "Tabla",
+    "fit": "Ajustar a la pantalla (F)",
+    "export": "Añadir a una pizarra",
+    "namespaces": "Namespaces",
+    "group": "Agrupar",
+    "groupHint": "Pliega cada namespace en un solo nodo (automático por encima de {{count}} nodos). Haz doble clic en un namespace para abrirlo.",
+    "searchHint": "Intro: enfocar la primera coincidencia"
+  },
+  "range": {
+    "5m": "5 min",
+    "15m": "15 min",
+    "1h": "1 hora",
+    "6h": "6 horas",
+    "24h": "24 horas"
+  },
+  "refresh": {
+    "off": "Sin actualizar",
+    "s30": "Cada 30 s",
+    "m1": "Cada minuto",
+    "m5": "Cada 5 min"
+  },
+  "filters": {
+    "hideSystem": "Ocultar componentes del sistema",
+    "onlyErrors": "Solo llamadas con errores",
+    "hideIsolated": "Ocultar los no conectados",
+    "trafficOnly": "Solo enlaces con tráfico",
+    "show": "Mostrar"
+  },
+  "motion": {
+    "full": "Completa",
+    "calm": "Suave",
+    "off": "Desactivada"
+  },
+  "hud": {
+    "rps": "Peticiones/s",
+    "errors": "Errores",
+    "services": "Nodos",
+    "calls": "Llamadas",
+    "callsHint": "Con datos de tráfico / todas",
+    "updated": "actualizado {{time}}",
+    "sourceOk": "Funciona",
+    "grouped": "{{count}} namespaces plegados — doble clic en uno para abrirlo"
+  },
+  "sourceName": {
+    "config": "Configuración de Kubernetes",
+    "cluster-prometheus": "Prometheus del clúster"
+  },
+  "empty": {
+    "title": "Dibuja un mapa de servicios en vivo",
+    "text": "Elige una conexión de Kubernetes y/o una de observabilidad (Coroot, Prometheus, Jaeger, Kiali, SigNoz, Datadog)."
+  },
+  "loading": {
+    "title": "Construyendo el mapa…",
+    "text": "Leyendo workloads, configuración y tráfico de cada fuente."
+  },
+  "error": {
+    "title": "No se pudo construir el mapa"
+  },
+  "emptyGraph": {
+    "title": "Nada que dibujar",
+    "text": "Ningún servicio coincide. Revisa las notas de las fuentes o relaja los filtros."
+  },
+  "card": {
+    "noTraffic": "sin datos de tráfico",
+    "conn": "Tiene una conexión de PatchMan",
+    "rps": "pet/s"
+  },
+  "health": {
+    "ok": "Correcto",
+    "warning": "Aviso",
+    "critical": "Crítico",
+    "unknown": "Desconocido"
+  },
+  "kind": {
+    "service": "Servicio",
+    "datastore": "Almacén de datos",
+    "messaging": "Mensajería",
+    "external": "Externo",
+    "ingress": "Ingress"
+  },
+  "flow": {
+    "request": "petición",
+    "publish": "publica",
+    "consume": "consume"
+  },
+  "evidence": {
+    "env": "Env",
+    "configMap": "ConfigMap",
+    "secret": "Secret",
+    "ingress": "Ingress",
+    "coroot": "Coroot"
+  },
+  "detail": {
+    "title": "Detalles",
+    "rps": "Peticiones/s",
+    "errors": "Errores",
+    "p95": "p95",
+    "replicas": "{{value}} listas",
+    "openConnection": "Abrir {{name}}",
+    "openK8s": "Abrir en Kubernetes",
+    "openCoroot": "Abrir en Coroot",
+    "address": "Dirección",
+    "services": "Servicios",
+    "images": "Imágenes",
+    "sources": "Fuentes",
+    "calls": "Llama a",
+    "calledBy": "Lo llaman",
+    "conns": "{{count}} conexiones abiertas",
+    "declaredOnly": "Declarado en la configuración: no se observó tráfico.",
+    "evidence": "Encontrado en",
+    "evidenceNote": "Solo se muestran nombres de claves y el host:puerto extraído, nunca valores.",
+    "namespaceGroup": "Namespace · {{count}} nodos",
+    "foldedCalls": "{{count}} llamadas",
+    "expand": "Abrir namespace",
+    "collapse": "Plegar {{name}}",
+    "focus": "Enfocar",
+    "focusHops": "Solo lo que está a {{count}} salto(s)",
+    "onlyNamespace": "Solo este namespace",
+    "members": "Nodos",
+    "colTarget": "Llama a",
+    "colCaller": "Llamante",
+    "colProtocol": "Protocolo",
+    "colRps": "Pet/s",
+    "colErrors": "Errores",
+    "colErrorsHint": "Proporción de llamadas fallidas: 5xx, failed o un error gRPC (los 4xx no cuentan)",
+    "openCall": "Ver el detalle de esta llamada",
+    "goToNode": "Ir a {{name}}",
+    "responses": "Respuestas",
+    "responsesNote": "Peticiones/s por estado según la fuente. Solo 5xx, failed y errores gRPC cuentan como errores.",
+    "colNode": "Nodo",
+    "openMember": "Abrir el namespace y mostrar {{name}}",
+    "p95Worst": "p95 (peor)",
+    "errorsFrom": "De dónde vienen los errores",
+    "colErrRps": "Err/s",
+    "errRpsHint": "Peticiones fallidas por segundo en esta llamada",
+    "colShare": "Parte",
+    "foldedInto": "Plegado en {{name}} en el mapa",
+    "hiddenByFilters": "Oculto por los filtros o la selección de namespaces — sigue contando en los totales"
+  },
+  "table": {
+    "from": "Origen",
+    "to": "Destino",
+    "protocol": "Protocolo",
+    "rps": "Peticiones/s",
+    "errors": "Errores",
+    "p95": "p95",
+    "sources": "Fuentes",
+    "conns": "{{count}} conexiones",
+    "empty": "Sin llamadas."
+  },
+  "export": {
+    "failed": "No se pudo añadir el mapa a una pizarra",
+    "capped": "La pizarra recibió los primeros {{count}} nodos."
+  },
+  "ns": {
+    "search": "Filtrar namespaces…",
+    "all": "Todos los namespaces",
+    "only": "Solo",
+    "outside": "(fuera de namespaces)",
+    "contextHint": "Lo que los namespaces elegidos llaman, o lo que los llama, en otros sitios sigue en el mapa, atenuado."
+  },
+  "group": {
+    "outside": "Fuera de namespaces",
+    "nodes": "{{count}} nodos",
+    "datastores": "{{count}} BD",
+    "messaging": "{{count}} MQ",
+    "open": "Doble clic para abrir este namespace"
+  },
+  "focus": {
+    "clear": "Mostrar el mapa completo (Esc)"
+  },
+  "status": {
+    "unknown": "El agente no reconoció la respuesta — no cuenta como error",
+    "failed": "Fallida: error de conexión, tiempo agotado o respuesta de error",
+    "ok": "Correcta",
+    "grpc": "Error gRPC",
+    "5xx": "Error del servidor",
+    "4xx": "Error del cliente — no cuenta como error",
+    "3xx": "Redirección"
+  }
+}

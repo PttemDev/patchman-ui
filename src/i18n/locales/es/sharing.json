@@ -1,0 +1,31 @@
+{
+  "public": "Público",
+  "kindCollection": "la colección",
+  "kindEnvironment": "el entorno",
+  "publicDescPublic": "El acceso se gestiona mediante las listas de Editores / Lectores de abajo. Cualquier share code en {{kind}} se revocó al hacerse público.",
+  "publicDescPrivate": "Solo tú (y las personas invitadas mediante un share code) puedes ver {{kind}}. Al activar Público se revoca el share code: las dos vías son mutuamente excluyentes.",
+  "editors": "Editores",
+  "editorsSubtitle": "Puede editar y ver",
+  "viewers": "Lectores",
+  "viewersSubtitle": "Solo puede ver",
+  "addToList": "Añadir a una lista",
+  "searchPlaceholder": "Busca usuarios, equipos o escribe 'everyone'...",
+  "roleEditor": "Editor",
+  "roleViewer": "Lector",
+  "everyoneOption": "Todos (todos los usuarios registrados)",
+  "teamSuffix": "equipo",
+  "everyoneHint": "Añadir <b>Todos</b> borra el resto de esa lista. No puedes combinar Todos con equipos / usuarios específicos: el backend lo bloqueará.",
+  "makePrivateConfirm": "¿Hacer privado \"{{name}}\"?",
+  "makePrivateBody": "Se borrarán todas las entradas de Editores y Lectores. Los colaboradores individuales por share-link no se ven afectados.",
+  "makePrivate": "Hacer privado",
+  "noOne": "Nadie",
+  "ownerBadge": "propietario",
+  "errors": {
+    "makePublic": "Error al hacer público",
+    "makePrivate": "Error al hacer privado",
+    "add": "Error al añadir",
+    "remove": "Error al eliminar"
+  },
+  "kindWhiteboard": "pizarra",
+  "kindNote": "nota"
+}

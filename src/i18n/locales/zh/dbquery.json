@@ -1,0 +1,622 @@
+{
+  "units": {
+    "rowsWord": "行",
+    "colsWord": "列",
+    "rowsOne": "{{count}} 行",
+    "rowsOther": "{{count}} 行",
+    "fieldsOne": "{{count}} 个字段",
+    "fieldsOther": "{{count}} 个字段",
+    "colsOne": "{{count}} 列",
+    "colsOther": "{{count}} 列",
+    "charsOne": "{{count}} 字符",
+    "charsOther": "{{count}} 字符",
+    "itemsOne": "{{count}} 项",
+    "itemsOther": "{{count}} 项"
+  },
+  "scope": {
+    "local": "本地",
+    "remote": "远程"
+  },
+  "role": {
+    "coowner": "共同所有者",
+    "readonly": "只读",
+    "read": "读取"
+  },
+  "badges": {
+    "rw": "R+W",
+    "r": "R"
+  },
+  "connection": {
+    "kindFamily": "{{driver}} 系列",
+    "editTitle": "编辑连接",
+    "newTitle": "新建连接",
+    "namePlaceholder": "prod-payments",
+    "description": "凭据以 AES-256-GCM 静态加密存储。使用侧边栏上的共享按钮，可在不泄露密码的情况下向其他用户授予只读或共同所有者访问权限。读写模式（写入/DML 语句）从连接的 ⋯ 菜单中切换。",
+    "defaultBackend": "此连接的默认后端",
+    "scopeLocalTitle": "此设备",
+    "scopeLocalDesc": "查询从你的本地计算机连接数据库。127.0.0.1 / 局域网上的主机需要此选项。",
+    "scopeRemoteTitle": "PatchMan 服务器",
+    "scopeRemoteDesc": "查询从团队后端连接数据库。用于 VPN 后的生产 / 预发布环境。",
+    "scopeNote": "连接会保存到两个后端——凭据使用各 BE 自己的密钥加密。选择工具栏上的本地/远程开关默认使用哪一个；之后可从工具栏按查询切换。",
+    "modeForm": "表单字段",
+    "modeDsn": "连接字符串",
+    "whatDoesThis": "这有什么用？",
+    "dsnTooltip": "连接字符串模式允许你粘贴完整的 DSN，包含任何我们未提供的参数（TLS 证书、channel_binding、自定义认证等）。下方的表单字段仅供参考；BE 会原样使用该字符串。",
+    "connectionString": "连接字符串",
+    "dsnKeepStored": "（留空以保留已存储的）",
+    "dsnNote": "加密存储（AES-256-GCM）。下方的 Host/Port/Database 仅用于侧边栏标签；连接串中没有用户名和密码时，会使用下方填写的。也支持 jdbc:postgresql:// 连接串。",
+    "useAutoDsn": "使用自动生成的 DSN",
+    "host": "主机",
+    "hostPlaceholder": "db.foo.com",
+    "port": "端口",
+    "database": "数据库",
+    "dbOptional": "（可选）",
+    "dbOptionalAll": "（可选——留空以浏览所有数据库）",
+    "dbPlaceholderMongo": "patchman_demo（或留空）",
+    "dbPlaceholderMysql": "payments（或留空以使用所有数据库）",
+    "dbPlaceholderPg": "payments",
+    "username": "用户名",
+    "password": "密码",
+    "passwordKeep": "密码（留空以保留）",
+    "willConnectAs": "将以此身份连接",
+    "advanced": "高级",
+    "optionsJson": "选项（JSON）",
+    "optionsHelp": "按驱动：Postgres 系列 <code>sslmode</code> / <code>application_name</code>；MySQL 系列 <code>tls</code> / <code>allowNativePasswords</code>；Mongo <code>authSource</code> / <code>authMechanism</code> / <code>replicaSet</code>。",
+    "connectionOk": "连接正常",
+    "testedVia": "通过 {{backend}} 测试",
+    "testConnection": "测试连接",
+    "create": "创建",
+    "testFailed": "测试失败",
+    "errOptionsJson": "选项必须是有效的 JSON",
+    "errNameRequired": "名称为必填项",
+    "errHostRequired": "主机为必填项",
+    "errDatabaseRequired": "除非提供自定义连接字符串，否则 SQL 连接需要填写数据库",
+    "errDsnEmpty": "连接字符串为空——请粘贴 DSN 或切换回表单模式",
+    "errUpdateAllFailed": "在所有后端上更新失败",
+    "partialUpdate": "已在 {{ok}} 上更新；在 {{missed}} 上失败。从编辑中重试以同步。",
+    "errCreateAllFailed": "在所有后端上创建失败",
+    "partialCreate": "已在 {{ok}} 上保存；在 {{missed}} 上失败。再次编辑 + 保存以重试缺失的一侧。",
+    "saveFailed": "保存失败",
+    "duplicateTitle": "复制连接",
+    "duplicateDescription": "基于“{{name}}”创建新连接。会复制已存储的密码；共享设置和读写模式不会复制。",
+    "copyName": "{{name}}（副本）",
+    "passwordCopy": "密码（留空则复制）",
+    "dsnCopyStored": "（留空则复制）",
+    "errCopyUnsupported": "此服务器暂不支持复制已存储的密码——请输入密码以创建副本。",
+    "copyPartial": "已在 {{ok}} 上复制。{{missed}} 服务器暂不支持复制已存储的密码——更新后请在那里重新复制。",
+    "authSource": "认证数据库 (authSource)",
+    "authSourceDefault": "{{db}}（默认）",
+    "authSourceHelp": "创建该用户的数据库，通常是 admin。",
+    "replicaSet": "副本集 (replicaSet)",
+    "replicaSetPlaceholder": "可选，例如 rs0",
+    "hostsHelpMongo": "多个主机（副本集）用逗号分隔，例如 db1,db2:27018,db3。未写端口的主机使用“端口”中的值。",
+    "mongoAuthHint": "MongoDB 在“{{db}}”数据库（认证数据库）中校验用户名和密码。如果该用户创建在其他数据库中，请在认证数据库中填写它；否则就是用户名或密码不正确。",
+    "mongoAuth": "身份验证",
+    "mongoAuthScram": "用户名 + 密码",
+    "mongoAuthLdap": "LDAP",
+    "mongoAuthAws": "AWS IAM",
+    "mongoAuthNone": "无",
+    "mongoAuthCustom": "其他：{{mech}}",
+    "mongoAuthHelp_scram": "MongoDB 用户（SCRAM；由服务器选择 SHA-256 或 SHA-1）。",
+    "mongoAuthHelp_ldap": "MongoDB Enterprise 或 Atlas 上的 LDAP / Active Directory 用户。密码按原样发送，请配合 TLS 使用。",
+    "mongoAuthHelp_aws": "IAM 访问密钥。两项都留空则使用执行查询的后端的 IAM 角色或 AWS 环境变量。",
+    "mongoAuthHelp_none": "用于未启用访问控制的服务器。",
+    "mongoAuthHelp_custom": "已在“高级”中设置（authMechanism）。",
+    "awsAccessKey": "Access key ID",
+    "awsSecretKey": "Secret access key",
+    "authSourceDefaultThenAdmin": "{{db}}，不行则 admin",
+    "authSourceFellBack": "已通过“{{db}}”数据库登录，认证数据库已设为它。",
+    "mongoAuthHintBoth": "MongoDB 在“{{db}}”和“admin”中都拒绝了该用户名和密码。请检查它们，或在认证数据库中填写创建该用户的数据库。",
+    "directFallback": "副本集以 {{members}} 这些名称公布其成员，而此后端无法解析这些名称，因此 PatchMan 直接连接到了 {{host}}。连接可用；如需自动故障转移，请让这些名称在这里可解析（DNS 或 /etc/hosts）。",
+    "directFallbackSecondary": "{{host}} 不是主节点，因此只能读取。",
+    "mongoDnsHint": "无法从此后端解析副本集成员的名称。请将它们添加到 DNS 或 /etc/hosts，或只填写一个主机。"
+  },
+  "panel": {
+    "refreshOff": "关闭",
+    "selectConnection": "选择一个连接...",
+    "noConnectionsHint": "尚无连接。请从数据库侧边栏选项卡添加一个。",
+    "autoRerunOn": "自动重跑 · {{sec}}秒",
+    "autoRerunOff": "自动重跑：关闭",
+    "autoRerunTooltip": "以固定间隔重新运行同一查询——便于实时监控。默认关闭。启用时图标变为绿色。",
+    "schema": "架构",
+    "schemaTooltip": "重新自省表和列，使自动补全反映最新的数据库。",
+    "rowLimit": "行数限制",
+    "rowLimitTooltip": "限制 BE 返回的行数。留空 = 默认（{{default}}）。",
+    "scopeLocalAvail": "在此计算机上运行。127.0.0.1 / 局域网数据库需要此选项。",
+    "scopeLocalUnavail": "不可用——此连接未写入本地 BE。编辑 + 保存以重试。",
+    "scopeRemoteAvail": "在 PatchMan 服务器上运行。与团队成员保持一致。",
+    "scopeRemoteUnavail": "不可用——此连接未写入团队 BE。编辑 + 保存以重试。",
+    "scopeTooltip": "由哪个后端运行此查询——你的本地桌面 BE 还是团队服务器。与请求面板的开关一致。",
+    "cancelTooltip": "在 BE 上中止正在运行的查询。",
+    "runQuery": "运行查询",
+    "runTooltip": "通过 {{via}} 对 {{target}} 执行。只读——写入会被 BE 拒绝。",
+    "selectedConnection": "所选连接",
+    "viaLocal": "你的本地 BE",
+    "viaTeam": "团队 BE",
+    "beautify": "美化",
+    "beautifyTooltip": "就地重新格式化编辑器文本——SQL 关键字大写、子句各占一行；Mongo 参数美化打印。快捷键：⌘⇧F。",
+    "examples": "示例",
+    "examplesTooltip": "浏览只读查询配方手册（SQL + Mongo）。选择一个插入编辑器。",
+    "saveQuery": "保存查询",
+    "saveQueryTooltip": "将当前编辑器文本固定到侧边栏中此连接下。⌘S。",
+    "statements": "语句",
+    "recentRuns": "最近运行",
+    "now": "现在",
+    "running": "正在运行…",
+    "cancelled": "已取消",
+    "queryFailed": "查询失败",
+    "emptyRun": "按 Cmd+Enter 运行查询。",
+    "emptyPickConnection": "在上方选择一个连接以开始。",
+    "savedQueryDefault": "已保存查询"
+  },
+  "results": {
+    "truncated": "已截断",
+    "rowsRange": "行 {{start}}–{{end}}",
+    "prevPage": "上一页",
+    "nextPage": "下一页 · 仅在行被截断时可用",
+    "viewTable": "表格",
+    "viewChart": "图表",
+    "viewPlan": "计划",
+    "export": "导出",
+    "largeTitle": "大型结果集",
+    "largeBody": "此结果为 <mono>{{rows}}</mono> 行 × <mono>{{cols}}</mono> 列（<mono>{{cells}}</mono> 个单元格）。渲染这么多单元格可能使界面变慢——导出通常更快且更易处理。",
+    "exportCsvBtn": "导出 CSV",
+    "exportExcelBtn": "导出 Excel",
+    "showAnyway": "仍然显示"
+  },
+  "table": {
+    "sortTitle": "点击排序 · Shift+点击进行多列排序",
+    "noRowsTitle": "未返回任何行",
+    "noRowsBody": "查询执行成功，但未产生任何列或行。",
+    "noRowsCauses": "常见原因：集合为空、缺少默认数据库，或集合/表名有拼写错误。",
+    "resizeTitle": "拖动以调整大小 · 双击以重置",
+    "filterPlaceholder": "筛选…",
+    "pushWhereLike": "作为 WHERE LIKE 推送到编辑器",
+    "noMatch": "没有行与当前筛选条件匹配。",
+    "rightClickCell": "右键点击单元格",
+    "copyValue": "复制值",
+    "showAsJson": "显示为 JSON…",
+    "copyAs": "复制为…",
+    "copyPlain": "纯文本",
+    "copyRowJson": "行作为 JSON",
+    "copyRowInsert": "行作为 INSERT",
+    "copyColumnName": "列名",
+    "filterByValue": "按此值筛选",
+    "excludeValue": "排除此值",
+    "filterNull": "筛选 NULL",
+    "filterNotNull": "筛选 NOT NULL",
+    "openReferenced": "打开引用的行…",
+    "unfreezeColumn": "取消冻结列",
+    "freezeColumn": "冻结列"
+  },
+  "chart": {
+    "noData": "没有可绘制的数据。",
+    "noNumeric": "未找到数值列。图表至少需要一个数值列。",
+    "label": "图表",
+    "bar": "柱状图",
+    "line": "折线图",
+    "pie": "饼图",
+    "rowLabel": "第 {{n}} 行"
+  },
+  "json": {
+    "format": "格式",
+    "pretty": "美化",
+    "compact": "紧凑",
+    "copyAll": "全部复制",
+    "noDocuments": "没有文档。",
+    "docN": "文档 {{n}}"
+  },
+  "summary": {
+    "aggregatePlaceholder": "聚合列…",
+    "noColumns": "没有列",
+    "numeric": "数值",
+    "all": "全部",
+    "count": "计数",
+    "nonNull": "非空",
+    "sum": "求和",
+    "avg": "平均",
+    "min": "最小",
+    "max": "最大",
+    "distinct": "去重"
+  },
+  "columns": {
+    "title": "列",
+    "findPlaceholder": "查找列…",
+    "showAll": "全部显示",
+    "hideAll": "全部隐藏",
+    "reset": "重置",
+    "show": "显示",
+    "hide": "隐藏",
+    "unfreeze": "取消冻结",
+    "freezeLeft": "冻结在左侧"
+  },
+  "stats": {
+    "title": "列统计",
+    "distinct": "去重",
+    "nulls": "空值",
+    "min": "最小",
+    "max": "最大",
+    "avg": "平均",
+    "sum": "求和",
+    "topValues": "热门值",
+    "empty": "（空）"
+  },
+  "cell": {
+    "title": "单元格",
+    "rowN": "第 {{n}} 行",
+    "showAsJson": "显示为 JSON",
+    "open": "打开",
+    "metaLength": "长度",
+    "metaSize": "大小",
+    "metaDuration": "时长",
+    "metaValue": "值",
+    "metaAsDate": "作为日期",
+    "metaIso": "iso",
+    "metaLocal": "本地",
+    "metaRelative": "相对",
+    "metaJsonSize": "json 大小",
+    "metaKeys": "键"
+  },
+  "row": {
+    "title": "行",
+    "prevRow": "上一行",
+    "nextRow": "下一行",
+    "filterPlaceholder": "筛选字段…",
+    "copyJson": "复制为 JSON",
+    "copyInsert": "复制为 INSERT"
+  },
+  "jsonModal": {
+    "deepParse": "深度解析嵌套的 JSON 字符串",
+    "invalidJson": "此值不是有效的 JSON——显示原始文本。",
+    "valueNull": "值为 NULL。",
+    "notValidJson": "无效的 JSON"
+  },
+  "explain": {
+    "fallback": "EXPLAIN 视图未识别出 JSON 计划。对于 Postgres，请尝试 <code>EXPLAIN (FORMAT JSON, ANALYZE) ...</code>。",
+    "kvPlan": "计划",
+    "kvExec": "执行",
+    "kvCost": "成本",
+    "seqScan": "seq scan",
+    "cost": "成本",
+    "planRows": "计划约 {{count}} 行",
+    "actualRows": "实际 {{count}} 行",
+    "pctTotal": "占总量的 {{pct}}%",
+    "filter": "筛选",
+    "index": "索引",
+    "hash": "hash"
+  },
+  "save": {
+    "title": "保存查询",
+    "description": "将当前编辑器文本固定到此连接下，以便之后从侧边栏重新运行。",
+    "namePlaceholder": "每日退款检查",
+    "folder": "文件夹",
+    "folderOptional": "（可选 · 选择或输入）",
+    "folderPlaceholder": "reports/daily",
+    "moreChips": "+{{count}} 更多 · 输入以搜索",
+    "moreTitle": "在上方下拉列表中输入以搜索其余项",
+    "saveTo": "保存到",
+    "scopeLocalTitle": "此设备",
+    "scopeLocalDesc": "保留在此浏览器中。离线 / 未登录也可用。",
+    "scopeRemoteTitle": "我的账户",
+    "scopeRemoteDesc": "同步到你的账户；跨设备可见。",
+    "notSignedIn": "未登录",
+    "saving": "正在保存…"
+  },
+  "share": {
+    "title": "共享 \"{{name}}\"",
+    "description": "查询以你的身份运行——接收者使用此连接但看不到密码。为每个人选择一个角色：<strong>只读</strong> 只能运行 SELECT/find 查询；<strong>共同所有者</strong> 获得完全控制权（编辑、重新共享、删除、显示密码，以及在此连接的读写模式开启时运行写入语句）。",
+    "grantAs": "授予为",
+    "roleReadonly": "只读",
+    "roleCoowner": "共同所有者",
+    "coownerWarning": "共同所有者对此连接拥有完全控制权——包括删除它和显示密码。仅授予你信任并可作为第二所有者的人。",
+    "searchPlaceholder": "搜索用户或团队...",
+    "teamOption": "{{name}} · 团队",
+    "granted": "已授予",
+    "noOne": "无人——仅所有者",
+    "addFailed": "添加失败"
+  },
+  "examples": {
+    "title": "查询示例",
+    "description": "可插入编辑器的只读配方。选择一个选项卡、搜索，然后 <strong>使用此项</strong> 以填充你的查询——或手动复制任意片段。",
+    "filterPlaceholder": "按标题、描述或标签筛选…",
+    "badgeSql": "SQL 系列",
+    "badgeMongo": "MongoDB",
+    "tabSql": "SQL（Postgres / MySQL / 系列）",
+    "tabMongo": "MongoDB",
+    "noMatch": "没有示例与此筛选条件匹配。",
+    "useThis": "使用此项",
+    "tip1": "⌘+Enter 运行查询 · ⌘+S 保存 · Shift+点击列标题进行多列排序",
+    "tip2": "使用运行查询旁边的行数限制字段来限制 BE 返回的行数（默认 500）。",
+    "tip3": "右键点击单元格可进行 复制 / 复制为 JSON / \"按此值筛选\"——将 WHERE 子句推回编辑器。",
+    "sql": {
+      "basics": {
+        "title": "基础",
+        "listRows": {
+          "title": "列出行",
+          "desc": "拉取表的前 N 行——查看有哪些列的最快方式。"
+        },
+        "countRows": {
+          "title": "统计行数",
+          "desc": "仅统计数量——当结果会很庞大时很有用。"
+        },
+        "pickColumns": {
+          "title": "选择特定列",
+          "desc": "只投影你需要的内容——保持网格可读并加快传输。"
+        },
+        "distinctValues": {
+          "title": "去重值",
+          "desc": "某列的唯一值——对类枚举列的快速健全性检查。"
+        }
+      },
+      "filtering": {
+        "title": "过滤",
+        "equalityIn": {
+          "title": "相等 + IN",
+          "desc": "按精确匹配或值集合限制行。"
+        },
+        "patternMatch": {
+          "title": "模式匹配（LIKE / ILIKE）",
+          "desc": "通配符 / 不区分大小写（Postgres ILIKE）查找。"
+        },
+        "dateRange": {
+          "title": "日期范围",
+          "desc": "两个日期之间的行——替换占位符或使用 {{var}} 进行环境模板化。"
+        },
+        "nullHandling": {
+          "title": "NULL 处理",
+          "desc": "查找缺少（或拥有）某个值的行。"
+        }
+      },
+      "aggregation": {
+        "title": "聚合",
+        "groupByCount": {
+          "title": "GROUP BY + COUNT",
+          "desc": "按类别列汇总——经典的\"按状态统计行数\"报表。"
+        },
+        "sumAvg": {
+          "title": "SUM / AVG / MIN / MAX",
+          "desc": "对金额列进行数值汇总，带 HAVING 筛选。"
+        },
+        "dailySeries": {
+          "title": "每日序列（date_trunc）",
+          "desc": "将行按天分桶，用于时间序列图表。"
+        }
+      },
+      "joins": {
+        "title": "连接查询",
+        "innerJoin": {
+          "title": "INNER JOIN",
+          "desc": "组合相关表——订单 + 客户字段。"
+        },
+        "leftJoin": {
+          "title": "带可选侧的 LEFT JOIN",
+          "desc": "即使右侧缺失也包含左表的行。"
+        },
+        "selfJoin": {
+          "title": "自连接",
+          "desc": "查找经理 + 其直接下属。"
+        }
+      },
+      "windows": {
+        "title": "窗口函数 + CTE",
+        "cte": {
+          "title": "CTE（WITH …）",
+          "desc": "将复杂查询拆分为命名步骤以提高可读性。"
+        },
+        "rowNumber": {
+          "title": "每组 ROW_NUMBER()",
+          "desc": "在每个用户内对行编号——每个用户的首个订单等。"
+        },
+        "cumulativeSum": {
+          "title": "累计 SUM",
+          "desc": "每天收入的运行总计。"
+        }
+      },
+      "jsonColumns": {
+        "title": "JSON 列（Postgres）",
+        "extractField": {
+          "title": "提取字段",
+          "desc": "`->>` 将顶层键读取为文本。数值需添加类型转换。"
+        },
+        "filterJson": {
+          "title": "在 JSON 内过滤",
+          "desc": "匹配嵌套在 JSON 路径内的某个值。"
+        }
+      },
+      "inspection": {
+        "title": "检查",
+        "explainAnalyze": {
+          "title": "EXPLAIN ANALYZE",
+          "desc": "查看规划器如何看待你的查询——在计划视图中以树形显示。"
+        },
+        "listColumns": {
+          "title": "列出表的列",
+          "desc": "当侧边栏自动补全不够用时——完整的 information_schema 转储。"
+        },
+        "biggestTables": {
+          "title": "最大的表",
+          "desc": "快速的存储健康检查（Postgres）。"
+        }
+      },
+      "templating": {
+        "title": "模板 + 多语句",
+        "envVars": {
+          "title": "环境变量",
+          "desc": "{{var}} 占位符由编辑器上方的参数栏填充。"
+        },
+        "multiStatement": {
+          "title": "多语句（返回 N 个结果选项卡）",
+          "desc": "一次运行多条语句——每条都获得自己的结果选项卡。"
+        }
+      }
+    },
+    "mongo": {
+      "addressForms": {
+        "title": "寻址方式",
+        "currentDb": {
+          "title": "当前 DB · 集合 · find",
+          "desc": "使用连接的默认数据库。最简单的方式。"
+        },
+        "quotedCollection": {
+          "title": "带引号的集合名",
+          "desc": "对含点、连字符、空格的名称使用 getCollection。"
+        },
+        "switchDb": {
+          "title": "切换到另一个数据库",
+          "desc": "getSiblingDB 在同一客户端上跳转到指定的 DB。"
+        },
+        "crossDb": {
+          "title": "跨库简写",
+          "desc": "db.<dbname>.<collection>.<op>(...) — 与 getSiblingDB 相同，三个点。"
+        },
+        "crossDbQuoted": {
+          "title": "跨库 + 带引号的集合",
+          "desc": "两者兼具——最明确，始终有效。"
+        }
+      },
+      "filtering": {
+        "title": "过滤",
+        "equalityProjection": {
+          "title": "相等 + 投影",
+          "desc": "按单个字段查找。第二个参数选择返回哪些字段。"
+        },
+        "comparison": {
+          "title": "比较运算符",
+          "desc": "用于数值 + 日期范围的 $gt / $gte / $lt / $lte。"
+        },
+        "inNin": {
+          "title": "IN / NIN 集合",
+          "desc": "$in 匹配 N 个值之一。适合状态型枚举。"
+        },
+        "regex": {
+          "title": "正则搜索",
+          "desc": "通过 /…/i 正则进行子串 + 不区分大小写匹配。"
+        },
+        "fieldExists": {
+          "title": "字段存在",
+          "desc": "$exists 区分缺失字段与 null 值。"
+        },
+        "arrayMatch": {
+          "title": "数组元素匹配",
+          "desc": "查找数组包含给定元素的文档。"
+        }
+      },
+      "chained": {
+        "title": "链式 shell 修饰符",
+        "limitSkipSort": {
+          "title": "Limit + skip + sort",
+          "desc": "分页 + 排序，与 Mongo shell 的做法完全一致。"
+        },
+        "projection": {
+          "title": "通过 .project() 投影",
+          "desc": "只返回特定字段。"
+        },
+        "countFetch": {
+          "title": "计数而非获取",
+          "desc": ".count() 在底层短路到 countDocuments。"
+        }
+      },
+      "aggregations": {
+        "title": "聚合",
+        "groupSum": {
+          "title": "分组 + 求和（每用户收入）",
+          "desc": "在单个 pipeline 中获取收入最高的用户。"
+        },
+        "unwind": {
+          "title": "展开数组 + 分组",
+          "desc": "展平嵌入的数组并进行汇总。"
+        },
+        "dailySeries": {
+          "title": "每日序列（日期分桶）",
+          "desc": "按天分组文档——便于图表。"
+        },
+        "lookup": {
+          "title": "Lookup（left join）",
+          "desc": "按 userId 将订单与用户联接。Mongo 的\"JOIN\"。"
+        }
+      },
+      "counts": {
+        "title": "计数 + distinct",
+        "countDocuments": {
+          "title": "countDocuments",
+          "desc": "遵循筛选条件的精确计数——在超大集合上较慢。"
+        },
+        "estimatedDocumentCount": {
+          "title": "estimatedDocumentCount",
+          "desc": "基于元数据的快速计数——不接受筛选条件。"
+        },
+        "distinctValues": {
+          "title": "去重值",
+          "desc": "所有产品中的唯一标签。"
+        }
+      },
+      "singleDoc": {
+        "title": "单文档 + 临时检查",
+        "findOne": {
+          "title": "findOne",
+          "desc": "拉取单个匹配文档——当你只需要一个示例时很有用。"
+        },
+        "explainQuery": {
+          "title": "解释查询",
+          "desc": "查看是否使用索引 + 扫描统计。"
+        }
+      }
+    }
+  },
+  "params": {
+    "label": "参数"
+  },
+  "cellRender": {
+    "binary": "«二进制»"
+  },
+  "sidebar": {
+    "connections": "连接",
+    "newConnection": "新建连接",
+    "noConnections": "尚无连接",
+    "addFirst": "添加你的第一个连接",
+    "savedQueries": "已保存查询",
+    "rwTitle": "读写——允许写入语句",
+    "readonlyTitle": "只读",
+    "share": "共享",
+    "rwMode": "读写模式",
+    "tables": "表",
+    "collections": "集合",
+    "refreshSchema": "刷新架构",
+    "filterTables": "筛选表…",
+    "filterCollections": "筛选集合…",
+    "filterColumns": "筛选列…",
+    "filterFields": "筛选字段…",
+    "emptySchema": "空架构",
+    "expandToLoad": "展开以加载",
+    "noMatchTables": "没有匹配的表",
+    "noMatchCollections": "没有匹配的集合",
+    "hideColumns": "隐藏列",
+    "showColumns": "显示列",
+    "unknownType": "未知",
+    "fieldType": "字段",
+    "noColumns": "没有列",
+    "noMatchColumns": "没有匹配的列",
+    "noSavedQueries": "没有已保存查询",
+    "savedLocalTip": "已保存到此设备——保留在此浏览器中。",
+    "savedRemoteTip": "已同步到你的账户——跨设备可见。",
+    "copyQueryText": "复制查询文本",
+    "localSuffix": "（本地）",
+    "deleteTitle": "删除 \"{{name}}\"？",
+    "deleteDescription": "该连接及其下的每个已保存查询 / 授权都会被移除。针对此连接的活动查询选项卡在下次运行时将失败。此操作无法撤消。",
+    "toastModeFailTitle": "无法更改模式",
+    "toastModeFailDesc": "所有后端都拒绝了此更改。请检查你的访问权限并重试。",
+    "enabledRw": "已启用读写",
+    "setReadonly": "设为只读",
+    "scopeBoth": "存储在两个后端上。工具栏的本地/远程开关按查询切换运行者。",
+    "scopeLocalOnly": "仅在此设备上——PatchMan 服务器未接受上次写入。",
+    "scopeRemoteOnly": "仅在 PatchMan 服务器上——此设备未接受上次写入。",
+    "defaultRunner": "默认运行者：{{target}}。",
+    "runnerThisDevice": "此设备",
+    "runnerServer": "PatchMan 服务器",
+    "sharedCoowner": "以共同所有者身份与你共享。",
+    "sharedReadonly": "以只读方式共享。",
+    "rwModeOn": "读写模式：允许写入语句。",
+    "roModeOff": "只读模式。",
+    "duplicate": "复制"
+  }
+}

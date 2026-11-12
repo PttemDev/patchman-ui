@@ -1,0 +1,58 @@
+{
+  "title": "Collection Runner",
+  "description": "Run all requests in a collection sequentially and view the results.",
+  "localOnly": "The collection runner is only available when you are signed in — it needs the backend to orchestrate iterations, capture results, and persist runs. Sign in to use this feature.",
+  "fields": {
+    "collection": "Collection",
+    "selectCollection": "Select a collection",
+    "environment": "Environment",
+    "noEnvironment": "No environment",
+    "active": "(active)"
+  },
+  "tabs": {
+    "options": "Options",
+    "dataDriven": "Data-Driven"
+  },
+  "options": {
+    "iterations": "Iterations",
+    "delay": "Delay between requests (ms)"
+  },
+  "data": {
+    "variableSets": "Variable sets (JSON array)",
+    "loadFromFile": "Load from file",
+    "iterationCountOne": "{{count}} iteration will run",
+    "iterationCountOther": "{{count}} iterations will run",
+    "firstRow": "First row:",
+    "hint": "Each object in the array represents one iteration with its own variable set. Variables will be substituted in request URLs, headers, and body."
+  },
+  "validation": {
+    "notArray": "Data must be a JSON array",
+    "empty": "Array must contain at least one item",
+    "itemNotObject": "Item at index {{index}} must be a JSON object",
+    "invalidJson": "Invalid JSON",
+    "readFailed": "Failed to read file"
+  },
+  "progress": {
+    "running": "Running collection..."
+  },
+  "run": {
+    "running": "Running...",
+    "runCollection": "Run Collection",
+    "invalidData": "Invalid JSON data: {{message}}",
+    "invalidDataGeneric": "Invalid JSON data",
+    "failed": "Failed to run collection",
+    "retryFailed": "Failed to retry"
+  },
+  "results": {
+    "runFailed": "Run Failed",
+    "tryAgain": "Try Again",
+    "total": "Total",
+    "passed": "Passed",
+    "failed": "Failed",
+    "duration": "Duration",
+    "untitledRequest": "Untitled Request",
+    "responseBody": "Response body:",
+    "retryFailedCount": "Retry Failed ({{count}})",
+    "runAgain": "Run Again"
+  }
+}

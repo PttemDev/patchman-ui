@@ -1,0 +1,33 @@
+{
+  "groups": {
+    "requests": "请求",
+    "collections": "集合",
+    "connections": "连接",
+    "history": "历史",
+    "environments": "环境",
+    "testcases": "测试用例",
+    "mock": "Mock 服务器",
+    "notes": "笔记"
+  },
+  "scopes": {
+    "all": "全部",
+    "requests": "请求",
+    "collections": "集合",
+    "connections": "连接"
+  },
+  "triggerTitle": "搜索请求、集合和连接",
+  "triggerText": "搜索请求、集合、连接…",
+  "placeholder": "搜索请求、集合、连接…",
+  "dialogTitle": "全局搜索",
+  "idle": {
+    "title": "在请求、集合和连接中搜索",
+    "hint": "开始输入 — 使用 ↑ ↓ 移动，Enter 打开，Esc 关闭"
+  },
+  "noResults": {
+    "title": "未找到结果",
+    "hint": "尝试其他搜索词或范围"
+  },
+  "variablesCountOne": "{{n}} 个变量",
+  "variablesCountOther": "{{n}} 个变量",
+  "durationMs": "{{n}}ms"
+}

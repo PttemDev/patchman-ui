@@ -1,0 +1,40 @@
+{
+  "title": "WebSocket",
+  "status": {
+    "disconnected": "已断开",
+    "connecting": "连接中",
+    "connected": "已连接",
+    "error": "错误"
+  },
+  "urlPlaceholder": "ws://localhost:8080/ws",
+  "headers": "请求头",
+  "headerNamePlaceholder": "请求头名称",
+  "headerValuePlaceholder": "值",
+  "messagesCount": "消息 ({{n}})",
+  "emptyTitle": "暂无消息",
+  "emptyHintConnected": "发送消息或等待接收消息",
+  "emptyHintDisconnected": "连接以开始收发消息",
+  "sent": "已发送",
+  "received": "已接收",
+  "binaryBadge": "二进制",
+  "binaryDataPreview": "[二进制数据：{{n}} 字节]",
+  "messageKind": {
+    "text": "文本",
+    "binary": "二进制"
+  },
+  "binaryFormat": {
+    "hex": "Hex",
+    "base64": "Base64",
+    "utf8": "UTF-8"
+  },
+  "copyHex": "复制 Hex",
+  "copyBase64": "复制 Base64",
+  "composePlaceholderConnected": "输入消息...（Ctrl+Enter 发送）",
+  "composePlaceholderDisconnected": "连接以开始发送消息",
+  "errors": {
+    "connectionError": "WebSocket 连接错误",
+    "closedUnexpectedly": "连接意外关闭（代码：{{code}}）",
+    "connectFailed": "连接失败",
+    "sendFailed": "消息发送失败"
+  }
+}

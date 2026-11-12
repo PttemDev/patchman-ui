@@ -1,0 +1,432 @@
+{
+  "panel": {
+    "unknownTool": "Herramienta desconocida."
+  },
+  "sidebar": {
+    "utilities": "Utilidades",
+    "openInNewTab": "Abrir en pestaña nueva"
+  },
+  "tools": {
+    "jsonDiff": { "label": "JSON Diff", "description": "Comparar dos bloques JSON/texto en paralelo" },
+    "jwt": { "label": "JWT", "description": "Decodificar, verificar + firmar JSON Web Tokens" },
+    "base64": { "label": "Base64", "description": "Codificar / decodificar texto + archivos" },
+    "url": { "label": "URL Codificar/Decodificar", "description": "Codificación / decodificación por porcentaje" },
+    "timestamp": { "label": "Marca de tiempo", "description": "Epoch ↔ fecha, zonas horarias" },
+    "uuid": { "label": "UUID / ULID", "description": "Generar identificadores" },
+    "hash": { "label": "Hash", "description": "SHA-1 / SHA-256 / SHA-512" },
+    "regex": { "label": "Regex", "description": "Probar + biblioteca de patrones comunes" },
+    "jsConsole": { "label": "Consola JS", "description": "Ejecutar JavaScript en un entorno aislado" },
+    "snippets": { "label": "Recetario", "description": "Fragmentos correctos para tareas mal hechas a menudo" },
+    "mockData": { "label": "Datos ficticios", "description": "Generar datos falsos — JSON / CSV / SQL / NDJSON" },
+    "dns": { "label": "Kit DNS", "description": "Consultas DNS — A/AAAA/MX/TXT/NS/CNAME/SRV/PTR + inversa" },
+    "webAudit": { "label": "Auditoría web", "description": "Comprobaciones de SEO + calidad web (sin navegador)" }
+  },
+  "copy": {
+    "toClipboard": "Copiado al portapapeles",
+    "failed": "Error al copiar",
+    "copiedLabel": "{{label}} copiado",
+    "all": "Copiar todo"
+  },
+  "actions": {
+    "clear": "Limpiar",
+    "generate": "Generar",
+    "download": "Descargar",
+    "run": "Ejecutar",
+    "now": "Ahora",
+    "sample": "Ejemplo"
+  },
+  "units": {
+    "charsBytes": "{{chars}} caracteres · {{bytes}} bytes"
+  },
+  "placeholders": {
+    "empty": "(vacío)",
+    "undefined": "undefined"
+  },
+  "datetime": {
+    "time": "Hora",
+    "weekday": {
+      "mon": "Lu",
+      "tue": "Ma",
+      "wed": "Mi",
+      "thu": "Ju",
+      "fri": "Vi",
+      "sat": "Sá",
+      "sun": "Do"
+    }
+  },
+  "base64": {
+    "intro": "Conversor bidireccional en vivo — edita un lado y el otro se actualiza al instante (seguro con UTF-8).",
+    "urlSafe": "URL-safe",
+    "plainText": "Texto plano",
+    "textPlaceholder": "¡Hola, mundo!",
+    "paneLabel": "Base64",
+    "paneLabelUrlSafe": "Base64 (url-safe)",
+    "invalid": "No es base64 válido — comprueba si hay caracteres extraños.",
+    "invalidUrlSafeHint": "No es base64 válido — comprueba si hay caracteres extraños o activa URL-safe si usa - y _.",
+    "fileToBase64": "Archivo → base64",
+    "dropIdle": "Suelta un archivo o haz clic para explorar",
+    "dropActive": "Suelta para cargar",
+    "dropHint": "El panel Base64 de arriba se llena con los bytes codificados.",
+    "readError": "No se pudo leer el archivo"
+  },
+  "hash": {
+    "text": "Texto",
+    "uppercaseHex": "Hex en mayúsculas",
+    "textPlaceholder": "Escribe o pega texto para calcular el hash en vivo…",
+    "hashFile": "Calcular hash de un archivo",
+    "fileDescription": "Calcula una suma de comprobación criptográfica de cualquier archivo — útil para verificar descargas o detectar cambios. El archivo se lee localmente en tu navegador; no se sube nada.",
+    "dropAria": "Suelta un archivo aquí, o haz clic para explorar",
+    "dropText": "Suelta un archivo aquí, o <1>haz clic para explorar</1>",
+    "hashing": "calculando…",
+    "hashError": "No se pudo calcular el hash del archivo",
+    "md5Note": "MD5 se omite intencionadamente — la Web Crypto API del navegador no lo admite. Los hashes se calculan localmente con crypto.subtle.digest."
+  },
+  "uuid": {
+    "count": "Cantidad (1–100)",
+    "generateV4": "Generar v4",
+    "nilUuid": "UUID nulo",
+    "uppercase": "Mayúsculas",
+    "hyphens": "Guiones",
+    "uuidV4Label": "UUID v4",
+    "ulidLabel": "ULID",
+    "sortable": "ordenable",
+    "regenerate": "Regenerar",
+    "footer": "v4 usa crypto.randomUUID(); ULID = marca de tiempo de 48 bits + 80 bits de aleatoriedad."
+  },
+  "jsonDiff": {
+    "formatBoth": "Formatear ambos",
+    "swapSides": "Intercambiar lados",
+    "ignoreWhitespace": "Ignorar espacios",
+    "original": "Original",
+    "modified": "Modificado",
+    "neitherValid": "Ningún lado es JSON válido",
+    "leftInvalid": "El lado izquierdo no es JSON válido",
+    "rightInvalid": "El lado derecho no es JSON válido",
+    "diffingAsText": "— comparando como texto plano."
+  },
+  "url": {
+    "component": "Componente",
+    "fullUrl": "URL completa",
+    "componentDesc": "encodeURIComponent — escapa caracteres reservados como & = ? / para que un valor sea seguro dentro de un parámetro de consulta.",
+    "fullDesc": "encodeURI — preserva la estructura de la URL (: / ? & = # se mantienen), para codificar una URL completa.",
+    "decodedRaw": "Decodificado (crudo)",
+    "encoded": "Codificado",
+    "cantDecode": "No se puede decodificar — comprueba los escapes %",
+    "liveBidirectional": "En vivo & bidireccional — edita un panel y el otro se actualiza automáticamente.",
+    "breakdown": "Desglose de URL (decodificado)",
+    "origin": "origen",
+    "path": "ruta",
+    "key": "Clave",
+    "valueDecoded": "Valor (decodificado)",
+    "noQueryParams": "Sin parámetros de consulta."
+  },
+  "timestamp": {
+    "timezone": "Zona horaria",
+    "resetToLocal": "Restablecer a local",
+    "nowEpoch": "ahora: {{epoch}}",
+    "epochOrDate": "Epoch o cadena de fecha",
+    "inputPlaceholder": "1516239022, 1516239022000 o 2026-07-24T12:00:00Z",
+    "parseError": "No se pudo analizar como epoch o fecha.",
+    "unixSeconds": "Unix (segundos)",
+    "unixMillis": "Unix (milisegundos)",
+    "iso8601Utc": "ISO 8601 (UTC)",
+    "relative": "Relativo",
+    "local": "Local",
+    "inZone": "En {{zone}}",
+    "dateToEpoch": "Fecha → epoch",
+    "isoSyncHint": "Elige una fecha arriba o escribe ISO 8601 aquí — ambos se mantienen sincronizados.",
+    "invalidDate": "No es una cadena de fecha válida."
+  },
+  "dns": {
+    "hostPlaceholder": "Nombre de host o IP — example.com o 8.8.8.8",
+    "serverPlaceholder": "Servidor DNS personalizado (opcional) — 1.1.1.1",
+    "lookup": "Consultar",
+    "records": "Registros",
+    "all": "Todos",
+    "none": "Ninguno",
+    "ipNudge": "Parece una IP — activa PTR para la consulta inversa",
+    "lookupFailed": "Error en la consulta",
+    "resolving": "Resolviendo…",
+    "emptyState": "Introduce un nombre de host o IP, elige tipos de registro y pulsa <1>Consultar</1>.",
+    "resolverLabel": "resolutor",
+    "recordCountOne": "{{count}} registro",
+    "recordCountOther": "{{count}} registros",
+    "typeRecords": "registros {{type}}",
+    "noRecords": "Sin registros.",
+    "footer": "Resuelto en el servidor mediante un resolutor DNS real (miekg/dns), por lo que cada registro lleva su TTL y SOA/CAA están disponibles. PTR es una consulta inversa — introduce una IP para usarla."
+  },
+  "jwt": {
+    "tokenPlaceholder": "Pega un JWT (header.payload.signature)",
+    "encoded": "Codificado",
+    "expired": "Caducado",
+    "notYetValid": "Aún no válido",
+    "validTime": "Válido (tiempo)",
+    "noExpiryClaim": "Sin claim de caducidad",
+    "header": "ENCABEZADO",
+    "headerSub": "(algoritmo & tipo de token)",
+    "payload": "CARGA ÚTIL",
+    "payloadSub": "(claims / datos)",
+    "beautify": "Embellecer",
+    "beautifyJson": "Embellecer JSON",
+    "verifySignature": "VERIFICAR FIRMA",
+    "algorithm": "Algoritmo",
+    "secret": "Secreto",
+    "secretPlaceholder": "Secreto compartido HMAC",
+    "hsHint": "Editar el secreto, el encabezado o la carga útil vuelve a firmar el token en vivo.",
+    "publicKey": "Clave pública (PEM, SPKI)",
+    "rsHint": "RS256 aquí es solo verificación — editar encabezado/carga útil no puede volver a firmar sin una clave privada.",
+    "signatureVerified": "Firma verificada",
+    "invalidSignature": "Firma no válida",
+    "unsigned": "Sin firmar — sin segmento de firma",
+    "enterSecret": "Introduce un secreto para verificar la firma",
+    "enterPublicKey": "Introduce una clave pública para verificar la firma",
+    "unsupportedAlg": "Algoritmo no admitido: {{alg}}",
+    "verificationFailed": "Error de verificación.",
+    "signingFailed": "Error al firmar.",
+    "headerInvalidJson": "El encabezado no es JSON válido.",
+    "payloadInvalidJson": "La carga útil no es JSON válida.",
+    "decode": {
+      "tooFewSegments": "Un JWT tiene al menos dos segmentos separados por puntos (header.payload).",
+      "decodeFailed": "No se pudo decodificar el token con base64url."
+    }
+  },
+  "regex": {
+    "commonPatterns": "Patrones comunes",
+    "pattern": "Patrón",
+    "testString": "Cadena de prueba",
+    "testPlaceholder": "Escribe o pega texto para probar…",
+    "matches": "Coincidencias",
+    "noTestString": "Sin cadena de prueba.",
+    "matchCountOne": "{{count}} coincidencia",
+    "matchCountOther": "{{count}} coincidencias",
+    "cappedAt": "(limitado a {{max}})",
+    "andMore": "…y {{count}} más.",
+    "replaceWith": "Reemplazar con",
+    "result": "Resultado",
+    "invalidLabel": "Regex no válida",
+    "invalidFallback": "Expresión regular no válida.",
+    "invalidReplacement": "Reemplazo no válido.",
+    "flag": {
+      "g": "Global: encuentra todas las coincidencias, no solo la primera",
+      "i": "Ignorar mayúsculas/minúsculas",
+      "m": "Multilínea: ^ y $ coinciden en saltos de línea",
+      "s": "Dotall: . también coincide con saltos de línea",
+      "u": "Unicode: habilita las clases \\p{…} y Unicode completo",
+      "y": "Sticky: coincide solo empezando en lastIndex"
+    }
+  },
+  "snippets": {
+    "commonMistake": "Error común:",
+    "copied": "Fragmento copiado"
+  },
+  "mockData": {
+    "title": "Datos ficticios",
+    "rows": "Filas",
+    "sqlInsert": "SQL insert",
+    "tablePlaceholder": "tabla",
+    "copiedDesc": "{{count}} filas como {{format}}",
+    "schemaFieldsOne": "Esquema · {{count}} campo",
+    "schemaFieldsOther": "Esquema · {{count}} campos",
+    "field": "Campo",
+    "fieldNamePlaceholder": "nombre del campo",
+    "noFields": "Sin campos — añade uno para empezar.",
+    "output": "Salida",
+    "outputRowsOne": "· {{count}} fila",
+    "outputRowsOther": "· {{count}} filas",
+    "values": "· ~{{count}} valores",
+    "emptyState": "Define tu esquema y pulsa <1>Generar</1>.",
+    "listPlaceholder": "a, b, c",
+    "constantPlaceholder": "constante",
+    "opt": {
+      "min": "mín",
+      "max": "máx",
+      "dec": "dec",
+      "blank": "% vacío",
+      "from": "desde",
+      "to": "hasta",
+      "list": "lista",
+      "value": "valor"
+    },
+    "group": {
+      "Basic": "Básico",
+      "Number": "Número",
+      "Person": "Persona",
+      "Location": "Ubicación",
+      "Commerce": "Comercio",
+      "Time": "Tiempo",
+      "Text": "Texto",
+      "Custom": "Personalizado"
+    },
+    "fieldType": {
+      "rowNumber": "Número de fila",
+      "uuid": "UUID",
+      "boolean": "Booleano",
+      "integer": "Entero",
+      "decimal": "Decimal",
+      "firstName": "Nombre",
+      "lastName": "Apellido",
+      "fullName": "Nombre completo",
+      "email": "Correo",
+      "username": "Nombre de usuario",
+      "phone": "Teléfono",
+      "city": "Ciudad",
+      "country": "País",
+      "ipv4": "IPv4",
+      "company": "Empresa",
+      "url": "URL",
+      "color": "Color (hex)",
+      "date": "Fecha",
+      "datetime": "Fecha-hora (ISO)",
+      "word": "Palabra",
+      "sentence": "Frase",
+      "paragraph": "Párrafo",
+      "enum": "Enum (elegir de lista)",
+      "constant": "Constante"
+    }
+  },
+  "jsConsole": {
+    "stop": "Detener",
+    "runHint": "⌘/Ctrl + Enter para ejecutar",
+    "console": "Consola",
+    "consoleEmpty": "La salida aparece aquí. Aislado — sin DOM, sin acceso a la app.",
+    "dragResize": "Arrastra para redimensionar",
+    "variables": "Variables",
+    "varsEmpty": "Las variables de nivel superior aparecen aquí tras una ejecución.",
+    "stopped": "⏹ Detenido.",
+    "timedOut": "⏱ La ejecución agotó el tiempo tras {{seconds}}s — worker terminado.",
+    "workerError": "Error del worker"
+  },
+  "webAudit": {
+    "urlPlaceholder": "example.com",
+    "followRedirects": "Seguir redirecciones",
+    "auditing": "Auditando…",
+    "auditFailed": "Error en la auditoría",
+    "emptyState": "Introduce una URL y pulsa <1>Ejecutar</1>.",
+    "errorCountOne": "{{count}} error",
+    "errorCountOther": "{{count}} errores",
+    "warningCountOne": "{{count}} advertencia",
+    "warningCountOther": "{{count}} advertencias",
+    "okCount": "{{count}} ok",
+    "infoCount": "{{count}} info",
+    "checkCountOne": "{{count}} comprobación",
+    "checkCountOther": "{{count}} comprobaciones",
+    "typeCountOne": "{{count}} tipo",
+    "typeCountOther": "{{count}} tipos",
+    "hopCountOne": "{{count}} salto",
+    "hopCountOther": "{{count}} saltos",
+    "chars": "{{count}} caracteres",
+    "imagesTotal": "{{count}} en total",
+    "imagesMissingAlt": "{{count}} sin alt",
+    "socialMeta": "{{og}} OG · {{twitter}} Twitter",
+    "openGraph": "Open Graph",
+    "noOpenGraph": "Sin etiquetas Open Graph.",
+    "noTwitter": "Sin etiquetas Twitter.",
+    "noJsonLd": "No se encontró JSON-LD.",
+    "none": "ninguna",
+    "robotsPresent": "robots.txt presente",
+    "robotsSitemap": "robots.txt declara un sitemap",
+    "sitemapPresent": "sitemap.xml presente",
+    "noRedirects": "Sin redirecciones.",
+    "footer": "Obtenido + analizado en el servidor (sin navegador). El contenido renderizado con JavaScript no se evalúa — las comprobaciones se ejecutan sobre la respuesta HTML sin procesar.",
+    "severity": {
+      "error": "error",
+      "warn": "adv",
+      "ok": "ok",
+      "info": "info"
+    },
+    "section": {
+      "seo": "SEO",
+      "social": "Social",
+      "structuredData": "Datos estructurados",
+      "performance": "Rendimiento",
+      "securityHeaders": "Encabezados de seguridad",
+      "crawlability": "Rastreabilidad",
+      "redirectChain": "Cadena de redirecciones"
+    },
+    "kv": {
+      "title": "Título",
+      "metaDesc": "Meta descr.",
+      "canonical": "Canonical",
+      "robotsMeta": "Robots meta",
+      "lang": "Idioma",
+      "viewport": "Viewport",
+      "images": "Imágenes",
+      "hreflang": "Hreflang",
+      "compression": "Compresión",
+      "htmlSize": "Tamaño HTML",
+      "h1": "H1 ({{count}})"
+    }
+  },
+  "regexLib": {
+    "cat": {
+      "validation": "Validación",
+      "extraction": "Extracción"
+    },
+    "emailPragmatic": { "name": "Correo (pragmático)", "description": "Comprobación práctica de correo — no RFC 5322 completo." },
+    "emailStrict": { "name": "Correo (más estricto)", "description": "Conjunto de caracteres local/dominio restringido con un TLD de 2+ letras." },
+    "passwordStrong": { "name": "Contraseña (8+, mayús, minús, dígito, especial)", "description": "Mín. 8 caracteres con al menos una minúscula, mayúscula, dígito y carácter especial." },
+    "passwordMedium": { "name": "Contraseña (8+, mayús, minús, dígito)", "description": "Mín. 8 caracteres con al menos una minúscula, mayúscula y dígito." },
+    "fullName": { "name": "Nombre completo (Ad Soyad, Unicode)", "description": "Dos o más palabras Unicode (admite letras turcas); permite espacios, apóstrofos y guiones." },
+    "urlHttp": { "name": "URL (http/https)", "description": "URL http o https absoluta." },
+    "slug": { "name": "Slug", "description": "Slug de URL en minúsculas — palabras unidas por guiones simples." },
+    "uuidV4": { "name": "UUID (v4)", "description": "UUID versión 4 RFC 4122." },
+    "hexColor": { "name": "Color hex", "description": "Color hex de 3 o 6 dígitos con # inicial." },
+    "ipv4": { "name": "IPv4", "description": "Dirección IPv4 de cuatro octetos (0–255 por octeto)." },
+    "isoDate": { "name": "Fecha ISO (YYYY-MM-DD)", "description": "Fecha de calendario en formato YYYY-MM-DD." },
+    "time24h": { "name": "Hora (24h HH:MM)", "description": "Hora en formato de 24 horas, HH:MM." },
+    "phoneTr": { "name": "Teléfono turco", "description": "Número GSM turco, prefijo +90/0 y espacios opcionales." },
+    "phoneE164": { "name": "Teléfono (E.164)", "description": "Número de teléfono internacional en formato E.164." },
+    "tcKimlik": { "name": "ID turco (TC Kimlik No, solo formato)", "description": "11 dígitos, que no empiezan por 0 (solo comprobación de formato, sin checksum)." },
+    "iban": { "name": "IBAN (genérico)", "description": "IBAN genérico — 2 letras de país, 2 dígitos de control, 11–30 alfanuméricos." },
+    "numbers": { "name": "Números (entero/decimal)", "description": "Enteros y decimales, con un signo menos inicial opcional." },
+    "words": { "name": "Palabras", "description": "Tokens de palabra — letras, dígitos y guion bajo." },
+    "hashtags": { "name": "Hashtags", "description": "Hashtags como #tema." },
+    "mentions": { "name": "Menciones", "description": "Menciones como @usuario." },
+    "htmlTags": { "name": "Etiquetas HTML", "description": "Etiquetas HTML de apertura y cierre." },
+    "dupWord": { "name": "Palabra duplicada", "description": "Una palabra repetida de inmediato, capturada en el grupo 1." }
+  },
+  "snippetsLib": {
+    "cat": {
+      "dateTime": "Fecha y hora",
+      "auth": "Auth y tokens",
+      "encoding": "Codificación",
+      "data": "Datos y fiabilidad"
+    },
+    "time-parse": {
+      "title": "Analizar y formatear marcas de tiempo (con zona horaria)",
+      "pitfall": "Analizar cadenas de reloj de pared en la zona local del servidor, o formatear sin zona — desplaza las horas silenciosamente entre el DST y las máquinas."
+    },
+    "epoch-convert": {
+      "title": "Convertir epoch ↔ fecha",
+      "pitfall": "Mezclar segundos y milisegundos — un error silencioso de 1000× que te lleva a 1970 o al año 52000."
+    },
+    "jwt-verify": {
+      "title": "Verificar un JWT",
+      "pitfall": "Decodificar sin verificar la firma, aceptar alg:none, no fijar el algoritmo (confusión de claves RS→HS) u omitir exp/aud/iss."
+    },
+    "password-hash": {
+      "title": "Hashear y verificar contraseñas",
+      "pitfall": "Hashear contraseñas con SHA-256/MD5 — son demasiado rápidos. Usa un KDF lento y con sal (bcrypt / scrypt / argon2)."
+    },
+    "hmac-verify": {
+      "title": "Verificar una firma HMAC",
+      "pitfall": "Comparar firmas con == / bytes.Equal filtra tiempo. Usa una comparación de tiempo constante."
+    },
+    "secure-token": {
+      "title": "Generar un token aleatorio seguro",
+      "pitfall": "math/rand · Math.random() · random.random() NO son criptográficamente seguros — nunca los uses para tokens, IDs o secretos."
+    },
+    "base64url": {
+      "title": "Codificar / decodificar base64url",
+      "pitfall": "El base64 estándar usa relleno + / y =, que se rompen en URLs y JWTs. Estos usan base64url (- _) sin relleno."
+    },
+    "sql-param": {
+      "title": "Consulta SQL parametrizada",
+      "pitfall": "Construir SQL con concatenación de cadenas / format = inyección SQL. Usa siempre marcadores y deja que el controlador vincule los valores."
+    },
+    "retry-backoff": {
+      "title": "Reintentar con retroceso exponencial + jitter",
+      "pitfall": "Los reintentos a intervalo fijo saturan un servidor con problemas. Usa retroceso exponencial con jitter, limita el retardo y acota el total de intentos."
+    }
+  }
+}

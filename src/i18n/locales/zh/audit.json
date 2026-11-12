@@ -1,0 +1,22 @@
+{
+  "tabs": {
+    "auditLogs": "审计日志",
+    "activity": "活动"
+  },
+  "logs": {
+    "countOne": "{{count}} 条日志",
+    "countOther": "{{count}} 条日志",
+    "empty": "暂无审计日志"
+  },
+  "activity": {
+    "countOne": "{{count}} 条活动",
+    "countOther": "{{count}} 条活动",
+    "empty": "暂无近期活动"
+  },
+  "time": {
+    "justNow": "刚刚",
+    "minutesAgo": "{{count}} 分钟前",
+    "hoursAgo": "{{count}} 小时前",
+    "daysAgo": "{{count}} 天前"
+  }
+}

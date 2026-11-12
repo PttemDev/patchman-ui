@@ -1,0 +1,113 @@
+{
+  "renderError": {
+    "body": "La aplicación tuvo un error de renderizado. Copia el informe del cuadro de diálogo y pégalo en <mono>#patchman-support</mono>, luego vuelve a cargar para continuar.",
+    "tryAgain": "Intentar de nuevo",
+    "reload": "Recargar la aplicación"
+  },
+  "scopePicker": {
+    "localAvailable": "Ejecutar en esta máquina. Necesario para endpoints 127.0.0.1 / LAN.",
+    "localUnavailable": "No disponible: esta conexión no se escribió en el BE local. Edita + Guarda para reintentar.",
+    "remoteAvailable": "Ejecutar en el servidor de PatchMan. Coherente con los compañeros / prod detrás de la red del servidor.",
+    "remoteUnavailable": "No disponible: esta conexión no se escribió en el BE del equipo. Edita + Guarda para reintentar.",
+    "tooltip": "Qué backend ejecuta este {{noun}}: tu BE de escritorio local o el servidor del equipo."
+  },
+  "commandPalette": {
+    "title": "Paleta de comandos",
+    "placeholder": "Escribe un comando...",
+    "empty": "No se encontraron comandos",
+    "emptyHint": "Prueba otro término de búsqueda",
+    "navigate": "Navegar",
+    "select": "Seleccionar",
+    "toggleHint": "K para alternar"
+  },
+  "commandCategories": {
+    "Request": "Solicitud",
+    "Navigation": "Navegación",
+    "Environment": "Entorno",
+    "Tools": "Herramientas",
+    "View": "Vista"
+  },
+  "commands": {
+    "newTab": "Nueva pestaña de solicitud",
+    "sendRequest": "Enviar solicitud",
+    "saveToCollection": "Guardar en colección",
+    "generateCode": "Generar código",
+    "closeTab": "Cerrar pestaña actual",
+    "goCollections": "Ir a colecciones",
+    "goHistory": "Ir al historial",
+    "goQa": "Ir a QA",
+    "goMock": "Ir a servidores mock",
+    "switchToTab": "Cambiar a: {{name}}",
+    "newRequest": "Nueva solicitud",
+    "switchToEnv": "Cambiar a: {{name}}",
+    "clearEnv": "Borrar entorno",
+    "manageEnv": "Gestionar entornos",
+    "collectionRunner": "Ejecutor de colecciones",
+    "importSwagger": "Importar Swagger / OpenAPI",
+    "importCollection": "Importar JSON de colección",
+    "importPostman": "Importar desde Postman",
+    "switchToDark": "Cambiar a modo oscuro",
+    "switchToLight": "Cambiar a modo claro",
+    "toggleSidebar": "Alternar barra lateral"
+  },
+  "dbBanner": {
+    "blockedTitle": "Otra pestaña está bloqueando la actualización",
+    "blockedBody": "Otra pestaña de esta aplicación aún ejecuta el esquema anterior. Cierra las otras pestañas, vuelve aquí y recarga la página.",
+    "incompatibleTitle": "La base de datos local es incompatible con el nuevo esquema",
+    "incompatibleBody": "IndexedDB contiene una versión anterior que no se pudo actualizar. Restablecer la base de datos local lo soluciona, pero se eliminarán los cambios locales que no se hayan sincronizado.",
+    "openFailedTitle": "No se pudo abrir la base de datos local",
+    "openFailedBody": "IndexedDB no se pudo abrir. Prueba a recargar la página; si el problema persiste, puedes restablecer la base de datos local (se eliminarán los cambios locales sin sincronizar).",
+    "reloadPage": "Recargar página",
+    "resetDb": "Restablecer base de datos local",
+    "resetting": "Restableciendo…"
+  },
+  "errorReport": {
+    "source": {
+      "render": "Error de renderizado",
+      "action": "Error de acción",
+      "async": "Error asíncrono",
+      "default": "Error"
+    },
+    "title": "Algo salió mal",
+    "description": "{{source}}: la aplicación aún puede ser utilizable, pero informa de esto para que podamos corregirlo.",
+    "messageLabel": "Mensaje",
+    "stackLabel": "Traza de pila",
+    "forwarded": "Este error se ha reenviado al equipo automáticamente. Copia el informe de abajo y pégalo en <mono>{{channel}}</mono> si quieres añadir contexto.",
+    "resetHint": "Si el mismo error vuelve a aparecer en cada inicio, puedes restablecer tu sesión local. Esto solo borra los datos almacenados en caché en este dispositivo: tus espacios de trabajo remotos, colecciones y otros datos no se ven afectados. Puede que tengas que iniciar sesión de nuevo.",
+    "resetting": "Restableciendo…",
+    "resetConfirm": "Haz clic de nuevo para confirmar",
+    "resetLocal": "Restablecer sesión local",
+    "dismiss": "Descartar",
+    "copyReport": "Copiar informe"
+  },
+  "connect": {
+    "title": "Conéctate a tu servidor",
+    "description": "PatchMan necesita un servidor para iniciar sesión y sincronizar tus datos. Introduce la URL de tu servidor o continúa sin conexión.",
+    "urlPlaceholder": "https://tu-servidor/api",
+    "connectButton": "Conectar",
+    "offlineButton": "Continuar sin conexión",
+    "invalidUrl": "Introduce una URL http(s):// completa",
+    "offlineHint": "El modo sin conexión usa solo este dispositivo: sin cuenta ni sincronización.",
+    "connecting": "Conectando…",
+    "unreachable": "No se pudo conectar con ese servidor. Comprueba la URL e inténtalo de nuevo.",
+    "notPatchman": "Esa URL no es un servidor de PatchMan.",
+    "incompatibleAppOld": "Este servidor requiere una versión más reciente de la app. Actualiza PatchMan.",
+    "incompatibleBackendOld": "Este servidor es demasiado antiguo para esta app. Pide a un administrador que lo actualice.",
+    "incompatibleTitle": "Servidor no compatible",
+    "incompatibleDescription": "El servidor actual no es compatible con esta versión de la app. Conecta un servidor compatible o continúa sin conexión.",
+    "switchedNotice": "Se cambió de {{from}} a {{to}}: el servidor anterior no es compatible con esta versión de la app.",
+    "dismiss": "Descartar"
+  },
+  "tray": {
+    "show": "Mostrar PatchMan",
+    "newRequest": "Nueva solicitud",
+    "settings": "Configuración",
+    "checkUpdates": "Buscar actualizaciones…",
+    "quit": "Salir de PatchMan"
+  },
+  "quitConfirm": {
+    "title": "¿Salir de PatchMan?",
+    "description": "Las solicitudes en curso se detendrán.",
+    "confirm": "Salir"
+  }
+}

@@ -1,0 +1,7 @@
+[toolchain]
+# Pin to 1.88. On 1.95 the same build produces an 8x larger binary and
+# 4.5GB monomorphized rlibs that overflow macOS's Mach-O archive limits.
+# 1.88 is the last toolchain we've confirmed produces a ~100MB DMG for this
+# dep graph (tauri + updater + reqwest + rustls). Bump only after testing
+# a full release build end-to-end.
+channel = "1.88"

@@ -1,0 +1,11 @@
+{
+  "version": "0.0.0",
+  "notes": "PatchMan 0.0.0",
+  "pub_date": "2026-01-01T00:00:00.000Z",
+  "platforms": {
+    "darwin-aarch64": {
+      "signature": "<contents of PatchMan-latest.app.tar.gz.sig>",
+      "url": "https://downloads.example.com/patchman/PatchMan-latest.app.tar.gz"
+    }
+  }
+}

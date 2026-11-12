@@ -1,0 +1,622 @@
+{
+  "units": {
+    "rowsWord": "rows",
+    "colsWord": "cols",
+    "rowsOne": "{{count}} row",
+    "rowsOther": "{{count}} rows",
+    "fieldsOne": "{{count}} field",
+    "fieldsOther": "{{count}} fields",
+    "colsOne": "{{count}} col",
+    "colsOther": "{{count}} cols",
+    "charsOne": "{{count}} char",
+    "charsOther": "{{count}} chars",
+    "itemsOne": "{{count}} item",
+    "itemsOther": "{{count}} items"
+  },
+  "scope": {
+    "local": "Local",
+    "remote": "Remote"
+  },
+  "role": {
+    "coowner": "co-owner",
+    "readonly": "read-only",
+    "read": "read"
+  },
+  "badges": {
+    "rw": "R+W",
+    "r": "R"
+  },
+  "connection": {
+    "kindFamily": "{{driver}} family",
+    "editTitle": "Edit connection",
+    "newTitle": "New connection",
+    "namePlaceholder": "prod-payments",
+    "description": "Credentials are encrypted at rest with AES-256-GCM. Use the Share button on the sidebar to grant read-only or co-owner access to another user without revealing the password. Read-write mode (write/DML statements) is toggled from the connection's ⋯ menu.",
+    "defaultBackend": "Default backend for this connection",
+    "scopeLocalTitle": "This device",
+    "scopeLocalDesc": "Queries dial the DB from your local machine. Required for hosts on 127.0.0.1 / your LAN.",
+    "scopeRemoteTitle": "PatchMan server",
+    "scopeRemoteDesc": "Queries dial the DB from the team backend. Use for prod / staging behind VPN.",
+    "scopeNote": "The connection is saved to BOTH backends — credentials get encrypted with each BE's own key. Pick which one the toolbar Local/Remote toggle defaults to; you can flip per-query later from the toolbar.",
+    "modeForm": "Form fields",
+    "modeDsn": "Connection string",
+    "whatDoesThis": "What does this do?",
+    "dsnTooltip": "Connection-string mode lets you paste a full DSN with any params we don't surface (TLS certs, channel_binding, custom auth, etc.). The form fields below stay informational; the BE uses the string as-is.",
+    "connectionString": "Connection string",
+    "dsnKeepStored": "(leave blank to keep the stored one)",
+    "dsnNote": "Stored encrypted (AES-256-GCM). Host/Port/Database below are kept for the sidebar label only; Username and Password are used when the string has none. jdbc:postgresql:// strings work too.",
+    "useAutoDsn": "Use auto-built DSN",
+    "host": "Host",
+    "hostPlaceholder": "db.foo.com",
+    "port": "Port",
+    "database": "Database",
+    "dbOptional": "(optional)",
+    "dbOptionalAll": "(optional — leave blank to browse all databases)",
+    "dbPlaceholderMongo": "patchman_demo (or blank)",
+    "dbPlaceholderMysql": "payments (or blank for all databases)",
+    "dbPlaceholderPg": "payments",
+    "username": "Username",
+    "password": "Password",
+    "passwordKeep": "Password (leave blank to keep)",
+    "willConnectAs": "Will connect as",
+    "advanced": "Advanced",
+    "optionsJson": "Options (JSON)",
+    "optionsHelp": "Per-driver: Postgres family <code>sslmode</code> / <code>application_name</code>; MySQL family <code>tls</code> / <code>allowNativePasswords</code>; Mongo <code>authSource</code> / <code>authMechanism</code> / <code>replicaSet</code>.",
+    "connectionOk": "Connection OK",
+    "testedVia": "Tested via {{backend}}",
+    "testConnection": "Test connection",
+    "create": "Create",
+    "testFailed": "Test failed",
+    "errOptionsJson": "Options must be valid JSON",
+    "errNameRequired": "Name is required",
+    "errHostRequired": "Host is required",
+    "errDatabaseRequired": "Database is required for SQL connections unless a custom connection string is provided",
+    "errDsnEmpty": "Connection string is empty — paste a DSN or switch back to form mode",
+    "errUpdateAllFailed": "Update failed on every backend",
+    "partialUpdate": "Updated on {{ok}}; failed on {{missed}}. Retry from Edit to sync.",
+    "errCreateAllFailed": "Create failed on every backend",
+    "partialCreate": "Saved on {{ok}}; failed on {{missed}}. Edit + Save again to retry the missing side.",
+    "saveFailed": "Save failed",
+    "duplicateTitle": "Duplicate connection",
+    "duplicateDescription": "Creates a new connection from “{{name}}”. The stored password is copied; sharing and read-write mode are not.",
+    "copyName": "{{name}} (copy)",
+    "passwordCopy": "Password (blank = copied)",
+    "dsnCopyStored": "(blank = copied)",
+    "errCopyUnsupported": "This server can’t copy the stored password yet — enter the password to create the copy.",
+    "copyPartial": "Copied on {{ok}}. The {{missed}} server can’t copy stored passwords yet — duplicate there again once it’s updated.",
+    "authSource": "Auth source",
+    "authSourceDefault": "{{db}} (default)",
+    "authSourceHelp": "The database the user was created in — often admin.",
+    "replicaSet": "Replica set",
+    "replicaSetPlaceholder": "optional, e.g. rs0",
+    "hostsHelpMongo": "Several hosts (replica set): separate them with commas, e.g. db1,db2:27018,db3. A host without a port uses Port.",
+    "mongoAuthHint": "MongoDB checks the user name and password against the “{{db}}” database (Auth source). If the user was created in another database, enter that one in Auth source; otherwise the user name or password is wrong.",
+    "mongoAuth": "Authentication",
+    "mongoAuthScram": "Username + password",
+    "mongoAuthLdap": "LDAP",
+    "mongoAuthAws": "AWS IAM",
+    "mongoAuthNone": "None",
+    "mongoAuthCustom": "Other: {{mech}}",
+    "mongoAuthHelp_scram": "A MongoDB user (SCRAM; the server picks SHA-256 or SHA-1).",
+    "mongoAuthHelp_ldap": "An LDAP / Active Directory user, on MongoDB Enterprise or Atlas. The password is sent as is, so use it over TLS.",
+    "mongoAuthHelp_aws": "An IAM access key. Leave both blank to use the IAM role or AWS environment of the backend that runs the queries.",
+    "mongoAuthHelp_none": "For a server without access control.",
+    "mongoAuthHelp_custom": "Set under Advanced (authMechanism).",
+    "awsAccessKey": "Access key ID",
+    "awsSecretKey": "Secret access key",
+    "authSourceDefaultThenAdmin": "{{db}}, then admin",
+    "authSourceFellBack": "Signed in through the “{{db}}” database, so Auth source is now set to it.",
+    "mongoAuthHintBoth": "MongoDB rejected the user name and password both in “{{db}}” and in “admin”. Check them, or enter the database the user was created in as Auth source.",
+    "directFallback": "The replica set announces its members as {{members}}, names this backend cannot resolve, so PatchMan connected straight to {{host}}. That works; for automatic failover, make those names resolvable here (DNS or /etc/hosts).",
+    "directFallbackSecondary": "{{host}} is not the primary, so only reads work.",
+    "mongoDnsHint": "The replica set's member names cannot be resolved from this backend. Add them to DNS or /etc/hosts, or enter just one host."
+  },
+  "panel": {
+    "refreshOff": "Off",
+    "selectConnection": "Select a connection...",
+    "noConnectionsHint": "No connections yet. Add one from the Database sidebar tab.",
+    "autoRerunOn": "Auto-rerun · {{sec}}s",
+    "autoRerunOff": "Auto-rerun: off",
+    "autoRerunTooltip": "Re-runs the same query at a fixed interval — handy for live monitoring. Off by default. The icon turns green when enabled.",
+    "schema": "Schema",
+    "schemaTooltip": "Re-introspects tables & columns so autocomplete reflects the latest DB.",
+    "rowLimit": "Row limit",
+    "rowLimitTooltip": "Caps how many rows the BE returns. Empty = default ({{default}}).",
+    "scopeLocalAvail": "Run on this machine. Required for 127.0.0.1 / LAN DBs.",
+    "scopeLocalUnavail": "Not available — this connection wasn't written to the local BE. Edit + Save to retry.",
+    "scopeRemoteAvail": "Run on the PatchMan server. Consistent with teammates.",
+    "scopeRemoteUnavail": "Not available — this connection wasn't written to the team BE. Edit + Save to retry.",
+    "scopeTooltip": "Which backend runs this query — your local desktop BE or the team server. Mirrors the request-panel toggle.",
+    "cancelTooltip": "Aborts the running query on the BE.",
+    "runQuery": "Run query",
+    "runTooltip": "Executes against {{target}} via {{via}}. Read-only — writes rejected by the BE.",
+    "selectedConnection": "the selected connection",
+    "viaLocal": "your local BE",
+    "viaTeam": "the team BE",
+    "beautify": "Beautify",
+    "beautifyTooltip": "Reformats the editor text in place — SQL keywords upper-cased, clauses on their own lines; Mongo args pretty-printed. Shortcut: ⌘⇧F.",
+    "examples": "Examples",
+    "examplesTooltip": "Browse a cookbook of read-only query recipes (SQL + Mongo). Pick one to drop into the editor.",
+    "saveQuery": "Save query",
+    "saveQueryTooltip": "Pins the current editor text under this connection in the sidebar. ⌘S.",
+    "statements": "Statements",
+    "recentRuns": "Recent runs",
+    "now": "now",
+    "running": "Running…",
+    "cancelled": "Cancelled",
+    "queryFailed": "Query failed",
+    "emptyRun": "Press Cmd+Enter to run the query.",
+    "emptyPickConnection": "Pick a connection above to get started.",
+    "savedQueryDefault": "Saved query"
+  },
+  "results": {
+    "truncated": "truncated",
+    "rowsRange": "rows {{start}}–{{end}}",
+    "prevPage": "Previous page",
+    "nextPage": "Next page · only available when rows are truncated",
+    "viewTable": "Table",
+    "viewChart": "Chart",
+    "viewPlan": "Plan",
+    "export": "Export",
+    "largeTitle": "Large result set",
+    "largeBody": "This result is <mono>{{rows}}</mono> rows × <mono>{{cols}}</mono> columns (<mono>{{cells}}</mono> cells). Rendering this many cells can slow the UI — exporting is usually faster and easier to work with.",
+    "exportCsvBtn": "Export CSV",
+    "exportExcelBtn": "Export Excel",
+    "showAnyway": "Show anyway"
+  },
+  "table": {
+    "sortTitle": "Click to sort · Shift+click for multi-sort",
+    "noRowsTitle": "No rows returned",
+    "noRowsBody": "The query executed successfully but produced no columns or rows.",
+    "noRowsCauses": "Common causes: empty collection, missing default database, or a typo in the collection/table name.",
+    "resizeTitle": "Drag to resize · double-click to reset",
+    "filterPlaceholder": "Filter…",
+    "pushWhereLike": "Push as WHERE LIKE to the editor",
+    "noMatch": "No rows match the current filters.",
+    "rightClickCell": "Right-click a cell",
+    "copyValue": "Copy value",
+    "showAsJson": "Show as JSON…",
+    "copyAs": "Copy as…",
+    "copyPlain": "Plain text",
+    "copyRowJson": "Row as JSON",
+    "copyRowInsert": "Row as INSERT",
+    "copyColumnName": "Column name",
+    "filterByValue": "Filter by this value",
+    "excludeValue": "Exclude this value",
+    "filterNull": "Filter NULL",
+    "filterNotNull": "Filter NOT NULL",
+    "openReferenced": "Open referenced row…",
+    "unfreezeColumn": "Unfreeze column",
+    "freezeColumn": "Freeze column"
+  },
+  "chart": {
+    "noData": "No data to chart.",
+    "noNumeric": "No numeric columns found. Charts need at least one numeric column.",
+    "label": "Chart",
+    "bar": "Bar",
+    "line": "Line",
+    "pie": "Pie",
+    "rowLabel": "row {{n}}"
+  },
+  "json": {
+    "format": "Format",
+    "pretty": "Pretty",
+    "compact": "Compact",
+    "copyAll": "Copy all",
+    "noDocuments": "No documents.",
+    "docN": "doc {{n}}"
+  },
+  "summary": {
+    "aggregatePlaceholder": "Aggregate column…",
+    "noColumns": "No columns",
+    "numeric": "Numeric",
+    "all": "All",
+    "count": "count",
+    "nonNull": "non-null",
+    "sum": "sum",
+    "avg": "avg",
+    "min": "min",
+    "max": "max",
+    "distinct": "distinct"
+  },
+  "columns": {
+    "title": "Columns",
+    "findPlaceholder": "Find column…",
+    "showAll": "Show all",
+    "hideAll": "Hide all",
+    "reset": "Reset",
+    "show": "Show",
+    "hide": "Hide",
+    "unfreeze": "Unfreeze",
+    "freezeLeft": "Freeze left"
+  },
+  "stats": {
+    "title": "Column stats",
+    "distinct": "Distinct",
+    "nulls": "Nulls",
+    "min": "Min",
+    "max": "Max",
+    "avg": "Avg",
+    "sum": "Sum",
+    "topValues": "Top values",
+    "empty": "(empty)"
+  },
+  "cell": {
+    "title": "Cell",
+    "rowN": "row {{n}}",
+    "showAsJson": "Show as JSON",
+    "open": "Open",
+    "metaLength": "length",
+    "metaSize": "size",
+    "metaDuration": "duration",
+    "metaValue": "value",
+    "metaAsDate": "as date",
+    "metaIso": "iso",
+    "metaLocal": "local",
+    "metaRelative": "relative",
+    "metaJsonSize": "json size",
+    "metaKeys": "keys"
+  },
+  "row": {
+    "title": "Row",
+    "prevRow": "Previous row",
+    "nextRow": "Next row",
+    "filterPlaceholder": "Filter fields…",
+    "copyJson": "Copy as JSON",
+    "copyInsert": "Copy as INSERT"
+  },
+  "jsonModal": {
+    "deepParse": "Deep-parse nested JSON strings",
+    "invalidJson": "This value isn't valid JSON — showing the raw text.",
+    "valueNull": "Value is NULL.",
+    "notValidJson": "Not valid JSON"
+  },
+  "explain": {
+    "fallback": "EXPLAIN view didn't recognize a JSON plan. Try <code>EXPLAIN (FORMAT JSON, ANALYZE) ...</code> for Postgres.",
+    "kvPlan": "Plan",
+    "kvExec": "Exec",
+    "kvCost": "Cost",
+    "seqScan": "seq scan",
+    "cost": "cost",
+    "planRows": "plan ~{{count}} rows",
+    "actualRows": "actual {{count}} rows",
+    "pctTotal": "{{pct}}% of total",
+    "filter": "filter",
+    "index": "index",
+    "hash": "hash"
+  },
+  "save": {
+    "title": "Save query",
+    "description": "Pin the current editor text under this connection so you can re-run it later from the sidebar.",
+    "namePlaceholder": "Daily refund check",
+    "folder": "Folder",
+    "folderOptional": "(optional · pick or type)",
+    "folderPlaceholder": "reports/daily",
+    "moreChips": "+{{count}} more · type to search",
+    "moreTitle": "Type to search the rest in the dropdown above",
+    "saveTo": "Save to",
+    "scopeLocalTitle": "This device",
+    "scopeLocalDesc": "Stays in this browser. Works offline / without login.",
+    "scopeRemoteTitle": "My account",
+    "scopeRemoteDesc": "Syncs to your account; visible across devices.",
+    "notSignedIn": "Not signed in",
+    "saving": "Saving…"
+  },
+  "share": {
+    "title": "Share \"{{name}}\"",
+    "description": "Queries run as YOU — recipients use this connection without seeing the password. Pick a role per person: <strong>Read-only</strong> can run SELECT/find queries only; <strong>Co-owner</strong> gets full control (edit, re-share, delete, reveal the password, and run write statements when this connection's read-write mode is on).",
+    "grantAs": "Grant as",
+    "roleReadonly": "Read-only",
+    "roleCoowner": "Co-owner",
+    "coownerWarning": "Co-owners have full control of this connection — including deleting it and revealing the password. Grant only to people you'd trust as a second owner.",
+    "searchPlaceholder": "Search users or teams...",
+    "teamOption": "{{name}} · team",
+    "granted": "Granted",
+    "noOne": "No one — owner only",
+    "addFailed": "Add failed"
+  },
+  "examples": {
+    "title": "Query examples",
+    "description": "Read-only recipes you can drop into the editor. Pick a tab, search, then <strong>Use this</strong> to seed your query — or copy any snippet manually.",
+    "filterPlaceholder": "Filter by title, description, or tag…",
+    "badgeSql": "SQL family",
+    "badgeMongo": "MongoDB",
+    "tabSql": "SQL (Postgres / MySQL / family)",
+    "tabMongo": "MongoDB",
+    "noMatch": "No examples match this filter.",
+    "useThis": "Use this",
+    "tip1": "⌘+Enter runs the query · ⌘+S saves it · Shift+click a column header for multi-column sort",
+    "tip2": "Use the Row limit field next to Run query to cap how many rows the BE returns (default 500).",
+    "tip3": "Right-click a cell for Copy / Copy as JSON / \"Filter by this value\" — pushes the WHERE clause back into the editor.",
+    "sql": {
+      "basics": {
+        "title": "Basics",
+        "listRows": {
+          "title": "List rows",
+          "desc": "Pull the first N rows of a table — fastest way to see what columns exist."
+        },
+        "countRows": {
+          "title": "Count rows",
+          "desc": "Just the count — useful when the result would be huge."
+        },
+        "pickColumns": {
+          "title": "Pick specific columns",
+          "desc": "Project only what you need — keeps the grid readable + speeds up wire transfer."
+        },
+        "distinctValues": {
+          "title": "Distinct values",
+          "desc": "Unique values of a column — quick sanity check on enum-like columns."
+        }
+      },
+      "filtering": {
+        "title": "Filtering",
+        "equalityIn": {
+          "title": "Equality + IN",
+          "desc": "Limit rows by exact-match or set-of-values."
+        },
+        "patternMatch": {
+          "title": "Pattern match (LIKE / ILIKE)",
+          "desc": "Wildcard / case-insensitive (Postgres ILIKE) lookup."
+        },
+        "dateRange": {
+          "title": "Date range",
+          "desc": "Rows between two dates — replace the placeholders or use {{var}} for env templating."
+        },
+        "nullHandling": {
+          "title": "NULL handling",
+          "desc": "Find rows missing (or having) a value."
+        }
+      },
+      "aggregation": {
+        "title": "Aggregation",
+        "groupByCount": {
+          "title": "GROUP BY + COUNT",
+          "desc": "Rollup by a category column — the canonical \"rows per status\" report."
+        },
+        "sumAvg": {
+          "title": "SUM / AVG / MIN / MAX",
+          "desc": "Numeric rollups on a money column, with a HAVING filter."
+        },
+        "dailySeries": {
+          "title": "Daily series (date_trunc)",
+          "desc": "Bucket rows into days for a time-series chart."
+        }
+      },
+      "joins": {
+        "title": "Joins",
+        "innerJoin": {
+          "title": "INNER JOIN",
+          "desc": "Combine related tables — orders + customer fields."
+        },
+        "leftJoin": {
+          "title": "LEFT JOIN with optional side",
+          "desc": "Include rows from the left table even if the right side is missing."
+        },
+        "selfJoin": {
+          "title": "Self-join",
+          "desc": "Find managers + their direct reports."
+        }
+      },
+      "windows": {
+        "title": "Windows + CTEs",
+        "cte": {
+          "title": "CTE (WITH …)",
+          "desc": "Break a complex query into named steps for readability."
+        },
+        "rowNumber": {
+          "title": "ROW_NUMBER() per group",
+          "desc": "Number rows within each user — first order per user, etc."
+        },
+        "cumulativeSum": {
+          "title": "Cumulative SUM",
+          "desc": "Running total of revenue per day."
+        }
+      },
+      "jsonColumns": {
+        "title": "JSON columns (Postgres)",
+        "extractField": {
+          "title": "Extract a field",
+          "desc": "`->>` reads a top-level key as text. Add a cast for numerics."
+        },
+        "filterJson": {
+          "title": "Filter inside JSON",
+          "desc": "Match a value nested inside a JSON path."
+        }
+      },
+      "inspection": {
+        "title": "Inspection",
+        "explainAnalyze": {
+          "title": "EXPLAIN ANALYZE",
+          "desc": "See how the planner thinks about your query — surfaced as a tree in the Plan view."
+        },
+        "listColumns": {
+          "title": "List columns of a table",
+          "desc": "When the sidebar autocomplete isn't enough — full information_schema dump."
+        },
+        "biggestTables": {
+          "title": "Biggest tables",
+          "desc": "Quick storage health check (Postgres)."
+        }
+      },
+      "templating": {
+        "title": "Templating + multi-statement",
+        "envVars": {
+          "title": "Environment variables",
+          "desc": "{{var}} placeholders are filled from the params bar above the editor."
+        },
+        "multiStatement": {
+          "title": "Multi-statement (returns N result tabs)",
+          "desc": "Run several statements in one go — each gets its own result tab."
+        }
+      }
+    },
+    "mongo": {
+      "addressForms": {
+        "title": "Address forms",
+        "currentDb": {
+          "title": "Current DB · collection · find",
+          "desc": "Uses the connection's default database. Easiest form."
+        },
+        "quotedCollection": {
+          "title": "Quoted collection name",
+          "desc": "Use getCollection for names with dots, dashes, spaces."
+        },
+        "switchDb": {
+          "title": "Switch to another database",
+          "desc": "getSiblingDB hops to the named DB on the same client."
+        },
+        "crossDb": {
+          "title": "Cross-DB shorthand",
+          "desc": "db.<dbname>.<collection>.<op>(...) — same as getSiblingDB, three dots."
+        },
+        "crossDbQuoted": {
+          "title": "Cross-DB + quoted collection",
+          "desc": "Both at once — most explicit, always works."
+        }
+      },
+      "filtering": {
+        "title": "Filtering",
+        "equalityProjection": {
+          "title": "Equality + projection",
+          "desc": "Find by a single field. Second arg picks which fields come back."
+        },
+        "comparison": {
+          "title": "Comparison operators",
+          "desc": "$gt / $gte / $lt / $lte for numeric + date ranges."
+        },
+        "inNin": {
+          "title": "IN / NIN sets",
+          "desc": "$in matches one of N values. Nice for status-style enums."
+        },
+        "regex": {
+          "title": "Regex search",
+          "desc": "Substring + case-insensitive via /…/i regex."
+        },
+        "fieldExists": {
+          "title": "Field exists",
+          "desc": "$exists differentiates missing field from null value."
+        },
+        "arrayMatch": {
+          "title": "Array element match",
+          "desc": "Find docs whose array contains a given element."
+        }
+      },
+      "chained": {
+        "title": "Chained shell modifiers",
+        "limitSkipSort": {
+          "title": "Limit + skip + sort",
+          "desc": "Pagination + ordering, exactly the way the Mongo shell does it."
+        },
+        "projection": {
+          "title": "Projection via .project()",
+          "desc": "Return only specific fields."
+        },
+        "countFetch": {
+          "title": "Count instead of fetch",
+          "desc": ".count() short-circuits to countDocuments under the hood."
+        }
+      },
+      "aggregations": {
+        "title": "Aggregations",
+        "groupSum": {
+          "title": "Group + sum (revenue per user)",
+          "desc": "Top-revenue users in a single pipeline."
+        },
+        "unwind": {
+          "title": "Unwind array + group",
+          "desc": "Flatten an embedded array and roll it up."
+        },
+        "dailySeries": {
+          "title": "Daily series (date bucketing)",
+          "desc": "Group documents by day — handy for charts."
+        },
+        "lookup": {
+          "title": "Lookup (left join)",
+          "desc": "Join orders with users on userId. Mongo's \"JOIN\"."
+        }
+      },
+      "counts": {
+        "title": "Counts + distinct",
+        "countDocuments": {
+          "title": "countDocuments",
+          "desc": "Accurate count that respects the filter — slower on huge collections."
+        },
+        "estimatedDocumentCount": {
+          "title": "estimatedDocumentCount",
+          "desc": "Fast metadata-driven count — does not accept a filter."
+        },
+        "distinctValues": {
+          "title": "Distinct values",
+          "desc": "Unique tags across all products."
+        }
+      },
+      "singleDoc": {
+        "title": "Single doc + ad hoc inspection",
+        "findOne": {
+          "title": "findOne",
+          "desc": "Pull a single matching doc — useful when you only need one example."
+        },
+        "explainQuery": {
+          "title": "Explain a query",
+          "desc": "See whether an index is used + scan stats."
+        }
+      }
+    }
+  },
+  "params": {
+    "label": "Params"
+  },
+  "cellRender": {
+    "binary": "«binary»"
+  },
+  "sidebar": {
+    "connections": "Connections",
+    "newConnection": "New connection",
+    "noConnections": "No connections yet",
+    "addFirst": "Add your first connection",
+    "savedQueries": "Saved queries",
+    "rwTitle": "Read-write — write statements allowed",
+    "readonlyTitle": "Read-only",
+    "share": "Share",
+    "rwMode": "Read-write mode",
+    "tables": "Tables",
+    "collections": "Collections",
+    "refreshSchema": "Refresh schema",
+    "filterTables": "Filter tables…",
+    "filterCollections": "Filter collections…",
+    "filterColumns": "Filter columns…",
+    "filterFields": "Filter fields…",
+    "emptySchema": "Empty schema",
+    "expandToLoad": "Expand to load",
+    "noMatchTables": "No matching tables",
+    "noMatchCollections": "No matching collections",
+    "hideColumns": "Hide columns",
+    "showColumns": "Show columns",
+    "unknownType": "unknown",
+    "fieldType": "field",
+    "noColumns": "No columns",
+    "noMatchColumns": "No matching columns",
+    "noSavedQueries": "No saved queries",
+    "savedLocalTip": "Saved on this device — stays in this browser.",
+    "savedRemoteTip": "Synced to your account — visible across devices.",
+    "copyQueryText": "Copy query text",
+    "localSuffix": "(local)",
+    "deleteTitle": "Delete \"{{name}}\"?",
+    "deleteDescription": "The connection and every saved query / grant under it are removed. Active query tabs against this connection will fail their next run. This cannot be undone.",
+    "toastModeFailTitle": "Could not change mode",
+    "toastModeFailDesc": "Every backend rejected the change. Check your access and try again.",
+    "enabledRw": "Enabled read-write",
+    "setReadonly": "Set read-only",
+    "scopeBoth": "Stored on both backends. Toolbar Local/Remote toggle flips the runner per query.",
+    "scopeLocalOnly": "Only on this device — the PatchMan server didn't accept the last write.",
+    "scopeRemoteOnly": "Only on the PatchMan server — this device didn't accept the last write.",
+    "defaultRunner": "Default runner: {{target}}.",
+    "runnerThisDevice": "this device",
+    "runnerServer": "the PatchMan server",
+    "sharedCoowner": "Shared with you as co-owner.",
+    "sharedReadonly": "Shared read-only.",
+    "rwModeOn": "Read-write mode: write statements allowed.",
+    "roModeOff": "Read-only mode.",
+    "duplicate": "Duplicate"
+  }
+}

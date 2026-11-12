@@ -1,0 +1,12 @@
+{
+  "title": "Yorumlar",
+  "authorFallback": "Kullanıcı",
+  "empty": "Henüz yorum yok. İlk yorumu siz ekleyin.",
+  "placeholder": "Yorum ekleyin...",
+  "relativeTime": {
+    "justNow": "az önce",
+    "minutesAgo": "{{n}} dk önce",
+    "hoursAgo": "{{n}} sa önce",
+    "daysAgo": "{{n}} gün önce"
+  }
+}

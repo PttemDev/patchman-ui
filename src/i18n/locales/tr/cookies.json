@@ -1,0 +1,48 @@
+{
+  "title": "Çerezler",
+  "filterPlaceholder": "Etki alanı veya ada göre filtrele...",
+  "noDomain": "(etki alanı yok)",
+  "empty": {
+    "title": "Kayıtlı çerez yok",
+    "hint": "API yanıtlarındaki çerezler burada görünür veya bunları elle ekleyin."
+  },
+  "noMatch": {
+    "title": "Filtrenizle eşleşen çerez yok",
+    "hint": "Farklı bir arama terimi deneyin."
+  },
+  "domainCountOne": "{{n}} etki alanı",
+  "domainCountOther": "{{n}} etki alanı",
+  "cookieCountOne": "{{n}} çerez",
+  "cookieCountOther": "{{n}} çerez",
+  "summary": "{{domains}} · {{cookies}}",
+  "deleteDomainTitle": "{{domain}} için tüm çerezleri sil",
+  "expiry": {
+    "session": "Oturum",
+    "expired": "Süresi doldu"
+  },
+  "errors": {
+    "load": "Çerezler yüklenemedi",
+    "add": "Çerez eklenemedi",
+    "delete": "Çerez silinemedi",
+    "deleteDomain": "Etki alanı çerezleri silinemedi",
+    "clear": "Çerezler temizlenemedi"
+  },
+  "add": {
+    "title": "Çerez Ekle",
+    "description": "Çerez kavanozuna elle çerez ekleyin.",
+    "domain": "Domain",
+    "name": "İsim",
+    "value": "Değer",
+    "path": "Path",
+    "secure": "Secure",
+    "secureHttpsOnly": "Yalnızca HTTPS",
+    "secureAny": "Herhangi",
+    "submit": "Çerez Ekle"
+  },
+  "clear": {
+    "title": "Tüm Çerezleri Temizle",
+    "confirmOne": "Bu, çerez kavanozundan {{n}} çerezi kalıcı olarak siler. Bu işlem geri alınamaz.",
+    "confirmOther": "Bu, çerez kavanozundaki {{n}} çerezin tümünü kalıcı olarak siler. Bu işlem geri alınamaz.",
+    "submit": "Tümünü Temizle"
+  }
+}

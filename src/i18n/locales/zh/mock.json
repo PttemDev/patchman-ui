@@ -1,0 +1,90 @@
+{
+  "saving": "保存中...",
+  "toast": {
+    "serverCreated": "服务器已创建",
+    "serverCreatedDesc": "模拟服务器 \"{{name}}\" 已就绪",
+    "createServerFailed": "创建服务器失败",
+    "serverUpdated": "服务器已更新",
+    "updateServerFailed": "更新服务器失败",
+    "serverDeleted": "服务器已删除",
+    "routeDeleted": "路由已删除",
+    "deleteFailed": "删除失败",
+    "routeUpdated": "路由已更新",
+    "routeCreated": "路由已创建",
+    "saveRouteFailed": "保存路由失败"
+  },
+  "list": {
+    "title": "模拟服务器",
+    "emptyTitle": "尚无模拟服务器",
+    "emptyDescription": "模拟服务器让你无需真实后端即可模拟 API 端点进行测试。",
+    "createServer": "创建模拟服务器",
+    "routeCountOne": "{{count}} 条路由",
+    "routeCountOther": "{{count}} 条路由"
+  },
+  "delete": {
+    "serverTitle": "删除服务器？",
+    "routeTitle": "删除路由？",
+    "description": "确定要删除 \"{{label}}\" 吗？此操作无法撤销。"
+  },
+  "header": {
+    "newServer": "新建模拟服务器",
+    "editServer": "编辑服务器"
+  },
+  "wizard": {
+    "setup": "设置"
+  },
+  "form": {
+    "serverName": "服务器名称",
+    "serverNamePlaceholder": "例如：支付 API、用户服务",
+    "urlPrefix": "URL 前缀",
+    "namespaceTitle": "你的强制命名空间 — 固定以防止用户之间的前缀冲突",
+    "prefixPlaceholder": "例如：payment-api",
+    "prefixHintNs": "你的模拟位于 {{namespace}}/ 下 — 留空则根据名称自动生成后缀",
+    "prefixHint": "留空则根据名称自动生成",
+    "baseUrl": "模拟基础 URL",
+    "baseUrlHint": "你添加的路由将可在此 URL 下访问",
+    "creating": "创建中...",
+    "createServer": "创建服务器",
+    "saveChanges": "保存更改"
+  },
+  "detail": {
+    "notFound": "未找到服务器",
+    "backToList": "返回列表",
+    "editServer": "编辑服务器",
+    "disable": "禁用",
+    "enable": "启用",
+    "deleteServer": "删除服务器",
+    "active": "活动",
+    "disabled": "已禁用",
+    "copyBaseUrl": "复制基础 URL",
+    "routesCount": "路由 ({{count}})",
+    "noRoutes": "尚无路由。添加你的第一条路由以开始模拟端点。",
+    "addRoute": "添加路由",
+    "copyFullUrl": "复制完整 URL",
+    "copyUrl": "复制 URL",
+    "openTabName": "Mock · {{name}} {{method}} {{path}}",
+    "openAsRequest": "作为请求打开",
+    "open": "打开"
+  },
+  "editor": {
+    "editRoute": "编辑路由",
+    "newRoute": "新建路由",
+    "description": "配置模拟路由及其响应。",
+    "saveRoute": "保存路由"
+  },
+  "route": {
+    "method": "方法",
+    "path": "路径",
+    "statusCode": "状态码",
+    "delay": "延迟 (ms)",
+    "responseBody": "响应正文",
+    "delayLabel": "延迟:",
+    "bodyLabel": "正文:"
+  },
+  "routeForm": {
+    "endpoint": "端点",
+    "fullUrlLabel": "完整 URL:",
+    "responseHeaders": "响应头 (JSON)",
+    "updateRoute": "更新路由"
+  }
+}

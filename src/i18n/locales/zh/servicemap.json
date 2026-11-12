@@ -1,0 +1,358 @@
+{
+  "title": "服务地图",
+  "conn": {
+    "titleNew": "新建可观测性连接",
+    "titleEdit": "编辑可观测性连接",
+    "description": "连接 APM 或可观测性后端。PatchMan 读取其中“谁调用谁、调用多少”的数据来绘制实时服务地图。所有操作均为只读。",
+    "provider": "后端",
+    "providerHelp": {
+      "coroot": "Coroot 的应用地图及其 eBPF 指标：无需改动应用即可获得每次调用的请求/秒、错误和延迟。",
+      "prometheus": "任意兼容 Prometheus 的 API（Prometheus、VictoriaMetrics、Thanos、Mimir）。PatchMan 可识别 coroot-node-agent、Istio、Linkerd、OpenTelemetry / Tempo 服务图和 Cilium Hubble 指标。",
+      "jaeger": "Jaeger 的依赖图：谁调用谁以及调用频率（没有错误和延迟）。",
+      "kiali": "Kiali 的 Istio 流量图：每次调用的请求/秒、错误率和响应时间。",
+      "signoz": "SigNoz 的服务依赖图：每次调用的调用速率、错误率和延迟。",
+      "datadog": "某个 env 的 Datadog APM 服务依赖（哪个服务调用哪个；Datadog 的 API 不提供按调用的速率）。"
+    },
+    "name": "名称",
+    "url": "URL",
+    "authKind": "登录方式",
+    "auth": {
+      "none": "无",
+      "basic": "用户名 + 密码",
+      "bearer": "令牌",
+      "apikey": "API 密钥",
+      "session": "会话 Cookie",
+      "login": "邮箱 + 密码",
+      "datadog": "API 密钥 + 应用密钥"
+    },
+    "authHelp": {
+      "coroot": {
+        "bearer": "推荐：Viewer 服务账号的 API 密钥（crt_…）。在 Coroot 的 Settings → Users 中创建。",
+        "login": "Coroot 用户的邮箱和密码；PatchMan 会登录并续期会话。",
+        "session": "适用于 SSO 用户：粘贴浏览器中的 coroot_session Cookie，有效期 7 天。",
+        "apikey": "项目 API 密钥只能读取指标：没有 Coroot 的地图和健康状态。注意：它也是代理上报数据所用的密钥。"
+      },
+      "datadog": {
+        "bearer": "Datadog：API 密钥 + 应用密钥，或个人 / 服务访问令牌。"
+      }
+    },
+    "authHelpGeneric": {
+      "none": "API 是开放的（或位于你的网络之后）。",
+      "basic": "HTTP Basic 认证。",
+      "bearer": "以 Authorization: Bearer <token> 发送。",
+      "apikey": "通过该后端的 API 密钥请求头发送（可在“高级”中修改）。",
+      "session": "从浏览器粘贴的会话 Cookie。",
+      "login": "PatchMan 登录并保持会话。",
+      "datadog": "两个密钥都需要。"
+    },
+    "email": "邮箱",
+    "username": "用户名",
+    "password": "密码",
+    "token": "令牌",
+    "apiKey": "API 密钥",
+    "appKey": "应用密钥",
+    "session": "会话 Cookie",
+    "sessionHelp": "coroot_session Cookie 的值（从浏览器开发者工具中获取）。",
+    "scope": {
+      "project": "项目",
+      "env": "Env",
+      "namespaces": "命名空间"
+    },
+    "scopeHelp": {
+      "project": "地图默认打开的 Coroot 项目。新建连接时，点击“测试”后会列出项目。",
+      "env": "要绘制的 Datadog env，例如 prod。",
+      "namespaces": "用逗号分隔；留空 = Kiali 显示的所有命名空间（最多 20 个）。"
+    },
+    "corootProjectKey": "项目 API 密钥（可选）",
+    "corootProjectKeyHelp": "让 PatchMan 直接查询 Coroot 指标，获取每次调用的错误和延迟。不填也可以，数据会通过 Coroot 的面板 API 获取。",
+    "optional": "可选",
+    "backend": "运行位置",
+    "backendLocal": "本机",
+    "backendLocalDesc": "可访问 VPN / 本地网络中的后端。",
+    "backendRemote": "PatchMan 服务器",
+    "backendRemoteDesc": "与团队共享；可访问服务器能访问的内容。",
+    "backendNoteSession": "会话 Cookie 只存在于一个后端，因此只保存在那里。",
+    "advanced": "高级",
+    "headerName": "API 密钥请求头",
+    "headerNameHelp": "留空则使用该后端的默认值。",
+    "insecure": "跳过 TLS 验证",
+    "insecureHelp": "仅用于你信任的自签名证书。",
+    "caCert": "CA 证书（PEM）",
+    "datadogNote": "URL 请填写你所在站点的 API 主机，例如欧盟为 https://api.datadoghq.eu。",
+    "test": "测试",
+    "create": "创建",
+    "testOk": "已连接",
+    "testVersion": "版本 {{version}}",
+    "testUser": "已以 {{user}} 登录",
+    "testFailed": "测试失败",
+    "saveFailed": "无法保存连接",
+    "errName": "请输入名称。",
+    "errUrl": "请输入 URL。",
+    "errUsername": "请输入用户名 / 邮箱。",
+    "errEnv": "请输入 env。",
+    "errPassword": "请输入密码。",
+    "errToken": "请输入令牌。",
+    "errApiKey": "请输入 API 密钥。",
+    "errAppKey": "请输入应用密钥。",
+    "errSession": "请粘贴会话 Cookie。",
+    "keepStored": "••••••（未更改）"
+  },
+  "notes": {
+    "family": "找到 {{value}} 指标",
+    "no_service_metrics": "未找到服务间指标",
+    "family_error": "某个指标族失败：{{value}}",
+    "metrics_only": "仅指标（没有 Coroot 的地图和健康状态）",
+    "no_projects": "该用户看不到任何项目",
+    "project_key_ok": "项目 API 密钥可用",
+    "project_key_rejected": "项目 API 密钥被拒绝",
+    "services": "{{value}} 个服务",
+    "rates_only": "仅调用速率——没有错误和延迟",
+    "no_rates": "仅依赖关系——没有速率",
+    "env_required": "请设置 env 以绘制地图",
+    "coroot_red_unavailable": "无法获取每次调用的指标：{{value}}",
+    "coroot_health_unavailable": "无法获取健康状态",
+    "namespaces_capped": "前 {{value}} 个命名空间",
+    "secrets_skipped": "有 {{value}} 个 Secret 引用未读取（在连接上开启“从 Secret 读取主机”）",
+    "forbidden": "无权列出 {{value}}",
+    "references_capped": "前 {{value}} 个 ConfigMap / Secret",
+    "prometheus_not_found": "集群中未找到 Prometheus",
+    "target": "Prometheus：{{value}}"
+  },
+  "share": {
+    "title": "共享 {{name}}",
+    "description": "你添加的人员和团队可以通过此连接绘制服务地图。凭据不会离开 PatchMan。",
+    "identityWarning": "他们将以此连接已登录的用户身份读取后端。",
+    "searchPlaceholder": "搜索人员或团队…",
+    "roleRead": "只读",
+    "granted": "有访问权限",
+    "empty": "尚未共享。",
+    "teamSuffix": "团队",
+    "addFailed": "无法共享"
+  },
+  "sidebar": {
+    "loading": "加载中…",
+    "empty": "还没有可观测性连接。",
+    "sessionBadge": "会话",
+    "actions": "操作",
+    "openMap": "打开服务地图",
+    "openSite": "打开 {{provider}}",
+    "share": "共享",
+    "deleteTitle": "删除 {{name}}？",
+    "deleteDescription": "将删除该连接及其共享。使用它的已打开地图将停止更新。"
+  },
+  "rail": {
+    "newConnection": "新建连接",
+    "newGrafana": "Grafana 连接",
+    "newGraylog": "Graylog 连接",
+    "newObservability": "可观测性 / APM 连接",
+    "observability": "可观测性"
+  },
+  "sources": {
+    "pick": "选择数据源",
+    "kubernetes": "Kubernetes",
+    "noK8s": "无",
+    "context": "上下文",
+    "defaultContext": "默认",
+    "namespaces": "命名空间",
+    "allNamespaces": "全部允许的",
+    "clusterProm": "集群 Prometheus",
+    "clusterPromHelp": "同时读取集群自身 Prometheus 中的流量指标（Istio、Linkerd、Hubble、OpenTelemetry）。",
+    "observability": "可观测性",
+    "noObservability": "还没有可观测性连接。",
+    "addObservability": "添加连接",
+    "backend": "在何处构建地图",
+    "backend_auto": "自动",
+    "backend_local": "本机",
+    "backend_remote": "服务器",
+    "apply": "显示地图"
+  },
+  "toolbar": {
+    "range": "时间范围",
+    "refresh": "自动刷新",
+    "reload": "立即刷新",
+    "search": "搜索  /",
+    "filters": "筛选",
+    "motion": "动画",
+    "view": "视图",
+    "map": "地图",
+    "table": "表格",
+    "fit": "适应屏幕 (F)",
+    "export": "添加到白板",
+    "namespaces": "命名空间",
+    "group": "分组",
+    "groupHint": "将每个命名空间折叠为一个节点（超过 {{count}} 个节点时自动）。双击命名空间可展开。",
+    "searchHint": "回车：聚焦第一个匹配项"
+  },
+  "range": {
+    "5m": "5 分钟",
+    "15m": "15 分钟",
+    "1h": "1 小时",
+    "6h": "6 小时",
+    "24h": "24 小时"
+  },
+  "refresh": {
+    "off": "不刷新",
+    "s30": "每 30 秒",
+    "m1": "每分钟",
+    "m5": "每 5 分钟"
+  },
+  "filters": {
+    "hideSystem": "隐藏系统组件",
+    "onlyErrors": "仅显示有错误的调用",
+    "hideIsolated": "隐藏未连接的节点",
+    "trafficOnly": "仅显示有流量的连接",
+    "show": "显示"
+  },
+  "motion": {
+    "full": "完整",
+    "calm": "简洁",
+    "off": "关闭"
+  },
+  "hud": {
+    "rps": "请求/秒",
+    "errors": "错误",
+    "services": "节点",
+    "calls": "调用",
+    "callsHint": "有流量数据的 / 全部",
+    "updated": "更新于 {{time}}",
+    "sourceOk": "正常",
+    "grouped": "已折叠 {{count}} 个命名空间 — 双击可展开"
+  },
+  "sourceName": {
+    "config": "Kubernetes 配置",
+    "cluster-prometheus": "集群 Prometheus"
+  },
+  "empty": {
+    "title": "绘制实时服务地图",
+    "text": "选择一个 Kubernetes 连接和/或一个可观测性连接（Coroot、Prometheus、Jaeger、Kiali、SigNoz、Datadog）。"
+  },
+  "loading": {
+    "title": "正在构建地图…",
+    "text": "正在从各个数据源读取工作负载、配置和流量。"
+  },
+  "error": {
+    "title": "无法构建地图"
+  },
+  "emptyGraph": {
+    "title": "没有可绘制的内容",
+    "text": "没有匹配的服务。请查看上方数据源的说明，或放宽筛选条件。"
+  },
+  "card": {
+    "noTraffic": "无流量数据",
+    "conn": "有 PatchMan 连接",
+    "rps": "请求/秒"
+  },
+  "health": {
+    "ok": "正常",
+    "warning": "警告",
+    "critical": "严重",
+    "unknown": "未知"
+  },
+  "kind": {
+    "service": "服务",
+    "datastore": "数据存储",
+    "messaging": "消息",
+    "external": "外部",
+    "ingress": "Ingress"
+  },
+  "flow": {
+    "request": "请求",
+    "publish": "发布",
+    "consume": "消费"
+  },
+  "evidence": {
+    "env": "环境变量",
+    "configMap": "ConfigMap",
+    "secret": "Secret",
+    "ingress": "Ingress",
+    "coroot": "Coroot"
+  },
+  "detail": {
+    "title": "详情",
+    "rps": "请求/秒",
+    "errors": "错误",
+    "p95": "p95",
+    "replicas": "{{value}} 就绪",
+    "openConnection": "打开 {{name}}",
+    "openK8s": "在 Kubernetes 中打开",
+    "openCoroot": "在 Coroot 中打开",
+    "address": "地址",
+    "services": "服务",
+    "images": "镜像",
+    "sources": "数据源",
+    "calls": "调用",
+    "calledBy": "被调用",
+    "conns": "{{count}} 个打开的连接",
+    "declaredOnly": "在配置中声明——未观测到流量。",
+    "evidence": "发现位置",
+    "evidenceNote": "只显示键名和提取出的 host:port——绝不显示值。",
+    "namespaceGroup": "命名空间 · {{count}} 个节点",
+    "foldedCalls": "{{count}} 个调用",
+    "expand": "展开命名空间",
+    "collapse": "折叠 {{name}}",
+    "focus": "聚焦",
+    "focusHops": "仅显示 {{count}} 跳以内",
+    "onlyNamespace": "仅此命名空间",
+    "members": "节点",
+    "colTarget": "调用目标",
+    "colCaller": "调用方",
+    "colProtocol": "协议",
+    "colRps": "请求/秒",
+    "colErrors": "错误",
+    "colErrorsHint": "失败调用占比：5xx、failed 或 gRPC 错误（4xx 不计入）",
+    "openCall": "查看此调用的详情",
+    "goToNode": "转到 {{name}}",
+    "responses": "响应",
+    "responsesNote": "按数据源报告的状态统计的每秒请求数。只有 5xx、failed 和 gRPC 错误计为错误。",
+    "colNode": "节点",
+    "openMember": "展开命名空间并显示 {{name}}",
+    "p95Worst": "p95（最差）",
+    "errorsFrom": "错误来自哪里",
+    "colErrRps": "错误/秒",
+    "errRpsHint": "此调用每秒失败的请求数",
+    "colShare": "占比",
+    "foldedInto": "在图上折叠于 {{name}}",
+    "hiddenByFilters": "被筛选条件或命名空间选择隐藏 — 仍计入总数"
+  },
+  "table": {
+    "from": "来源",
+    "to": "目标",
+    "protocol": "协议",
+    "rps": "请求/秒",
+    "errors": "错误",
+    "p95": "p95",
+    "sources": "数据源",
+    "conns": "{{count}} 个连接",
+    "empty": "没有调用。"
+  },
+  "export": {
+    "failed": "无法将地图添加到白板",
+    "capped": "白板中添加了前 {{count}} 个节点。"
+  },
+  "ns": {
+    "search": "筛选命名空间…",
+    "all": "全部命名空间",
+    "only": "仅此",
+    "outside": "（命名空间之外）",
+    "contextHint": "所选命名空间在其他位置调用的或被调用的对象仍以淡化方式显示在图上。"
+  },
+  "group": {
+    "outside": "命名空间之外",
+    "nodes": "{{count}} 个节点",
+    "datastores": "{{count}} 个数据库",
+    "messaging": "{{count}} 个消息队列",
+    "open": "双击展开此命名空间"
+  },
+  "focus": {
+    "clear": "显示完整地图（Esc）"
+  },
+  "status": {
+    "unknown": "代理无法识别该响应 — 不计为错误",
+    "failed": "失败：连接错误、超时或错误响应",
+    "ok": "成功",
+    "grpc": "gRPC 错误",
+    "5xx": "服务器错误",
+    "4xx": "客户端错误 — 不计为错误",
+    "3xx": "重定向"
+  }
+}

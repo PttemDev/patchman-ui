@@ -1,0 +1,432 @@
+{
+  "panel": {
+    "unknownTool": "Unknown tool."
+  },
+  "sidebar": {
+    "utilities": "Utilities",
+    "openInNewTab": "Open in new tab"
+  },
+  "tools": {
+    "jsonDiff": { "label": "JSON Diff", "description": "Side-by-side compare two JSON/text blobs" },
+    "jwt": { "label": "JWT", "description": "Decode, verify + sign JSON Web Tokens" },
+    "base64": { "label": "Base64", "description": "Encode / decode text + files" },
+    "url": { "label": "URL Encode/Decode", "description": "Percent-encode / decode" },
+    "timestamp": { "label": "Timestamp", "description": "Epoch ↔ date, timezones" },
+    "uuid": { "label": "UUID / ULID", "description": "Generate identifiers" },
+    "hash": { "label": "Hash", "description": "SHA-1 / SHA-256 / SHA-512" },
+    "regex": { "label": "Regex", "description": "Test + a library of common patterns" },
+    "jsConsole": { "label": "JS Console", "description": "Run JavaScript in a sandbox" },
+    "snippets": { "label": "Cookbook", "description": "Correct snippets for commonly-botched tasks" },
+    "mockData": { "label": "Mock Data", "description": "Generate fake data — JSON / CSV / SQL / NDJSON" },
+    "dns": { "label": "DNS Toolkit", "description": "DNS lookups — A/AAAA/MX/TXT/NS/CNAME/SRV/PTR + reverse" },
+    "webAudit": { "label": "Web Audit", "description": "SEO + web-quality checks (no browser)" }
+  },
+  "copy": {
+    "toClipboard": "Copied to clipboard",
+    "failed": "Copy failed",
+    "copiedLabel": "Copied {{label}}",
+    "all": "Copy all"
+  },
+  "actions": {
+    "clear": "Clear",
+    "generate": "Generate",
+    "download": "Download",
+    "run": "Run",
+    "now": "Now",
+    "sample": "Sample"
+  },
+  "units": {
+    "charsBytes": "{{chars}} chars · {{bytes}} bytes"
+  },
+  "placeholders": {
+    "empty": "(empty)",
+    "undefined": "undefined"
+  },
+  "datetime": {
+    "time": "Time",
+    "weekday": {
+      "mon": "Mo",
+      "tue": "Tu",
+      "wed": "We",
+      "thu": "Th",
+      "fri": "Fr",
+      "sat": "Sa",
+      "sun": "Su"
+    }
+  },
+  "base64": {
+    "intro": "Live two-way converter — edit either side and the other updates instantly (UTF-8 safe).",
+    "urlSafe": "URL-safe",
+    "plainText": "Plain text",
+    "textPlaceholder": "Hello, world!",
+    "paneLabel": "Base64",
+    "paneLabelUrlSafe": "Base64 (url-safe)",
+    "invalid": "Not valid base64 — check for stray characters.",
+    "invalidUrlSafeHint": "Not valid base64 — check for stray characters or enable URL-safe if this uses - and _.",
+    "fileToBase64": "File → base64",
+    "dropIdle": "Drop a file or click to browse",
+    "dropActive": "Drop to load",
+    "dropHint": "The Base64 pane above fills with the encoded bytes.",
+    "readError": "Could not read file"
+  },
+  "hash": {
+    "text": "Text",
+    "uppercaseHex": "Uppercase hex",
+    "textPlaceholder": "Type or paste text to hash live…",
+    "hashFile": "Hash a file",
+    "fileDescription": "Compute a cryptographic checksum of any file — useful for verifying downloads or detecting changes. The file is read locally in your browser; nothing is uploaded.",
+    "dropAria": "Drop a file here, or click to browse",
+    "dropText": "Drop a file here, or <1>click to browse</1>",
+    "hashing": "hashing…",
+    "hashError": "Could not hash file",
+    "md5Note": "MD5 is intentionally omitted — the browser Web Crypto API does not support it. Hashes are computed locally via crypto.subtle.digest."
+  },
+  "uuid": {
+    "count": "Count (1–100)",
+    "generateV4": "Generate v4",
+    "nilUuid": "Nil UUID",
+    "uppercase": "Uppercase",
+    "hyphens": "Hyphens",
+    "uuidV4Label": "UUID v4",
+    "ulidLabel": "ULID",
+    "sortable": "sortable",
+    "regenerate": "Regenerate",
+    "footer": "v4 uses crypto.randomUUID(); ULID = 48-bit timestamp + 80-bit randomness."
+  },
+  "jsonDiff": {
+    "formatBoth": "Format both",
+    "swapSides": "Swap sides",
+    "ignoreWhitespace": "Ignore whitespace",
+    "original": "Original",
+    "modified": "Modified",
+    "neitherValid": "Neither side is valid JSON",
+    "leftInvalid": "Left side is not valid JSON",
+    "rightInvalid": "Right side is not valid JSON",
+    "diffingAsText": "— diffing as plain text."
+  },
+  "url": {
+    "component": "Component",
+    "fullUrl": "Full URL",
+    "componentDesc": "encodeURIComponent — escapes reserved characters like & = ? / so a value is safe inside a query param.",
+    "fullDesc": "encodeURI — preserves the URL structure (: / ? & = # stay intact), for encoding a whole URL.",
+    "decodedRaw": "Decoded (raw)",
+    "encoded": "Encoded",
+    "cantDecode": "Can’t decode — check the % escapes",
+    "liveBidirectional": "Live & bidirectional — edit either pane and the other updates automatically.",
+    "breakdown": "URL breakdown (decoded)",
+    "origin": "origin",
+    "path": "path",
+    "key": "Key",
+    "valueDecoded": "Value (decoded)",
+    "noQueryParams": "No query parameters."
+  },
+  "timestamp": {
+    "timezone": "Timezone",
+    "resetToLocal": "Reset to local",
+    "nowEpoch": "now: {{epoch}}",
+    "epochOrDate": "Epoch or date string",
+    "inputPlaceholder": "1516239022, 1516239022000, or 2026-07-24T12:00:00Z",
+    "parseError": "Could not parse that as an epoch or date.",
+    "unixSeconds": "Unix (seconds)",
+    "unixMillis": "Unix (millis)",
+    "iso8601Utc": "ISO 8601 (UTC)",
+    "relative": "Relative",
+    "local": "Local",
+    "inZone": "In {{zone}}",
+    "dateToEpoch": "Date → epoch",
+    "isoSyncHint": "Pick a date above or type ISO 8601 here — both stay in sync.",
+    "invalidDate": "Not a valid date string."
+  },
+  "dns": {
+    "hostPlaceholder": "Hostname or IP — example.com or 8.8.8.8",
+    "serverPlaceholder": "Custom DNS server (optional) — 1.1.1.1",
+    "lookup": "Lookup",
+    "records": "Records",
+    "all": "All",
+    "none": "None",
+    "ipNudge": "Looks like an IP — enable PTR for reverse lookup",
+    "lookupFailed": "Lookup failed",
+    "resolving": "Resolving…",
+    "emptyState": "Enter a hostname or IP, pick record types, then press <1>Lookup</1>.",
+    "resolverLabel": "resolver",
+    "recordCountOne": "{{count}} record",
+    "recordCountOther": "{{count}} records",
+    "typeRecords": "{{type}} records",
+    "noRecords": "No records.",
+    "footer": "Resolved server-side via a real DNS resolver (miekg/dns), so each record carries its TTL, and SOA/CAA are available. PTR is a reverse lookup — enter an IP to use it."
+  },
+  "jwt": {
+    "tokenPlaceholder": "Paste a JWT (header.payload.signature)",
+    "encoded": "Encoded",
+    "expired": "Expired",
+    "notYetValid": "Not yet valid",
+    "validTime": "Valid (time)",
+    "noExpiryClaim": "No expiry claim",
+    "header": "HEADER",
+    "headerSub": "(algorithm & token type)",
+    "payload": "PAYLOAD",
+    "payloadSub": "(claims / data)",
+    "beautify": "Beautify",
+    "beautifyJson": "Beautify JSON",
+    "verifySignature": "VERIFY SIGNATURE",
+    "algorithm": "Algorithm",
+    "secret": "Secret",
+    "secretPlaceholder": "HMAC shared secret",
+    "hsHint": "Editing the secret, header, or payload re-signs the token live.",
+    "publicKey": "Public key (PEM, SPKI)",
+    "rsHint": "RS256 is verify-only here — editing header/payload can’t re-sign without a private key.",
+    "signatureVerified": "Signature Verified",
+    "invalidSignature": "Invalid Signature",
+    "unsigned": "Unsigned — no signature segment",
+    "enterSecret": "Enter a secret to verify the signature",
+    "enterPublicKey": "Enter a public key to verify the signature",
+    "unsupportedAlg": "Unsupported algorithm: {{alg}}",
+    "verificationFailed": "Verification failed.",
+    "signingFailed": "Signing failed.",
+    "headerInvalidJson": "Header is not valid JSON.",
+    "payloadInvalidJson": "Payload is not valid JSON.",
+    "decode": {
+      "tooFewSegments": "A JWT has at least two dot-separated segments (header.payload).",
+      "decodeFailed": "Could not base64url-decode the token."
+    }
+  },
+  "regex": {
+    "commonPatterns": "Common patterns",
+    "pattern": "Pattern",
+    "testString": "Test string",
+    "testPlaceholder": "Type or paste text to test against…",
+    "matches": "Matches",
+    "noTestString": "No test string.",
+    "matchCountOne": "{{count}} match",
+    "matchCountOther": "{{count}} matches",
+    "cappedAt": "(capped at {{max}})",
+    "andMore": "…and {{count}} more.",
+    "replaceWith": "Replace with",
+    "result": "Result",
+    "invalidLabel": "Invalid regex",
+    "invalidFallback": "Invalid regular expression.",
+    "invalidReplacement": "Invalid replacement.",
+    "flag": {
+      "g": "Global: find all matches, not just the first",
+      "i": "Ignore case",
+      "m": "Multiline: ^ and $ match at line breaks",
+      "s": "Dotall: . also matches newlines",
+      "u": "Unicode: enable \\p{…} classes and full Unicode",
+      "y": "Sticky: match only starting at lastIndex"
+    }
+  },
+  "snippets": {
+    "commonMistake": "Common mistake:",
+    "copied": "Snippet copied"
+  },
+  "mockData": {
+    "title": "Mock data",
+    "rows": "Rows",
+    "sqlInsert": "SQL insert",
+    "tablePlaceholder": "table",
+    "copiedDesc": "{{count}} rows as {{format}}",
+    "schemaFieldsOne": "Schema · {{count}} field",
+    "schemaFieldsOther": "Schema · {{count}} fields",
+    "field": "Field",
+    "fieldNamePlaceholder": "field name",
+    "noFields": "No fields — add one to start.",
+    "output": "Output",
+    "outputRowsOne": "· {{count}} row",
+    "outputRowsOther": "· {{count}} rows",
+    "values": "· ~{{count}} values",
+    "emptyState": "Define your schema, then press <1>Generate</1>.",
+    "listPlaceholder": "a, b, c",
+    "constantPlaceholder": "constant",
+    "opt": {
+      "min": "min",
+      "max": "max",
+      "dec": "dec",
+      "blank": "% blank",
+      "from": "from",
+      "to": "to",
+      "list": "list",
+      "value": "value"
+    },
+    "group": {
+      "Basic": "Basic",
+      "Number": "Number",
+      "Person": "Person",
+      "Location": "Location",
+      "Commerce": "Commerce",
+      "Time": "Time",
+      "Text": "Text",
+      "Custom": "Custom"
+    },
+    "fieldType": {
+      "rowNumber": "Row number",
+      "uuid": "UUID",
+      "boolean": "Boolean",
+      "integer": "Integer",
+      "decimal": "Decimal",
+      "firstName": "First name",
+      "lastName": "Last name",
+      "fullName": "Full name",
+      "email": "Email",
+      "username": "Username",
+      "phone": "Phone",
+      "city": "City",
+      "country": "Country",
+      "ipv4": "IPv4",
+      "company": "Company",
+      "url": "URL",
+      "color": "Color (hex)",
+      "date": "Date",
+      "datetime": "Datetime (ISO)",
+      "word": "Word",
+      "sentence": "Sentence",
+      "paragraph": "Paragraph",
+      "enum": "Enum (pick from list)",
+      "constant": "Constant"
+    }
+  },
+  "jsConsole": {
+    "stop": "Stop",
+    "runHint": "⌘/Ctrl + Enter to run",
+    "console": "Console",
+    "consoleEmpty": "Output appears here. Sandboxed — no DOM, no access to the app.",
+    "dragResize": "Drag to resize",
+    "variables": "Variables",
+    "varsEmpty": "Top-level variables show up here after a run.",
+    "stopped": "⏹ Stopped.",
+    "timedOut": "⏱ Execution timed out after {{seconds}}s — worker terminated.",
+    "workerError": "Worker error"
+  },
+  "webAudit": {
+    "urlPlaceholder": "example.com",
+    "followRedirects": "Follow redirects",
+    "auditing": "Auditing…",
+    "auditFailed": "Audit failed",
+    "emptyState": "Enter a URL, then press <1>Run</1>.",
+    "errorCountOne": "{{count}} error",
+    "errorCountOther": "{{count}} errors",
+    "warningCountOne": "{{count}} warning",
+    "warningCountOther": "{{count}} warnings",
+    "okCount": "{{count}} ok",
+    "infoCount": "{{count}} info",
+    "checkCountOne": "{{count}} check",
+    "checkCountOther": "{{count}} checks",
+    "typeCountOne": "{{count}} type",
+    "typeCountOther": "{{count}} types",
+    "hopCountOne": "{{count}} hop",
+    "hopCountOther": "{{count}} hops",
+    "chars": "{{count}} chars",
+    "imagesTotal": "{{count}} total",
+    "imagesMissingAlt": "{{count}} missing alt",
+    "socialMeta": "{{og}} OG · {{twitter}} Twitter",
+    "openGraph": "Open Graph",
+    "noOpenGraph": "No Open Graph tags.",
+    "noTwitter": "No Twitter tags.",
+    "noJsonLd": "No JSON-LD found.",
+    "none": "none",
+    "robotsPresent": "robots.txt present",
+    "robotsSitemap": "robots.txt declares a sitemap",
+    "sitemapPresent": "sitemap.xml present",
+    "noRedirects": "No redirects.",
+    "footer": "Fetched + parsed server-side (no browser). JavaScript-rendered content isn't evaluated — checks run against the raw HTML response.",
+    "severity": {
+      "error": "error",
+      "warn": "warn",
+      "ok": "ok",
+      "info": "info"
+    },
+    "section": {
+      "seo": "SEO",
+      "social": "Social",
+      "structuredData": "Structured data",
+      "performance": "Performance",
+      "securityHeaders": "Security headers",
+      "crawlability": "Crawlability",
+      "redirectChain": "Redirect chain"
+    },
+    "kv": {
+      "title": "Title",
+      "metaDesc": "Meta desc.",
+      "canonical": "Canonical",
+      "robotsMeta": "Robots meta",
+      "lang": "Lang",
+      "viewport": "Viewport",
+      "images": "Images",
+      "hreflang": "Hreflang",
+      "compression": "Compression",
+      "htmlSize": "HTML size",
+      "h1": "H1 ({{count}})"
+    }
+  },
+  "regexLib": {
+    "cat": {
+      "validation": "Validation",
+      "extraction": "Extraction"
+    },
+    "emailPragmatic": { "name": "Email (pragmatic)", "description": "Practical email check — not full RFC 5322." },
+    "emailStrict": { "name": "Email (stricter)", "description": "Restricted local/domain character set with a 2+ letter TLD." },
+    "passwordStrong": { "name": "Password (8+, upper, lower, digit, special)", "description": "Min 8 chars with at least one lowercase, uppercase, digit, and special character." },
+    "passwordMedium": { "name": "Password (8+, upper, lower, digit)", "description": "Min 8 chars with at least one lowercase, uppercase, and digit." },
+    "fullName": { "name": "Full name (Ad Soyad, Unicode)", "description": "Two or more Unicode words (supports Turkish letters); allows spaces, apostrophes, hyphens." },
+    "urlHttp": { "name": "URL (http/https)", "description": "Absolute http or https URL." },
+    "slug": { "name": "Slug", "description": "Lowercase URL slug — words joined by single hyphens." },
+    "uuidV4": { "name": "UUID (v4)", "description": "RFC 4122 version-4 UUID." },
+    "hexColor": { "name": "Hex color", "description": "3- or 6-digit hex color with a leading #." },
+    "ipv4": { "name": "IPv4", "description": "Dotted-quad IPv4 address (0–255 per octet)." },
+    "isoDate": { "name": "ISO date (YYYY-MM-DD)", "description": "Calendar date in YYYY-MM-DD form." },
+    "time24h": { "name": "Time (24h HH:MM)", "description": "24-hour clock time, HH:MM." },
+    "phoneTr": { "name": "Turkish phone", "description": "Turkish GSM number, optional +90/0 prefix and spacing." },
+    "phoneE164": { "name": "Phone (E.164)", "description": "International phone number in E.164 form." },
+    "tcKimlik": { "name": "Turkish ID (TC Kimlik No, format only)", "description": "11 digits, not starting with 0 (format check only, no checksum)." },
+    "iban": { "name": "IBAN (generic)", "description": "Generic IBAN — 2-letter country, 2 check digits, 11–30 alphanumerics." },
+    "numbers": { "name": "Numbers (int/float)", "description": "Integers and decimals, with an optional leading minus." },
+    "words": { "name": "Words", "description": "Word tokens — letters, digits, and underscore." },
+    "hashtags": { "name": "Hashtags", "description": "Hashtags like #topic." },
+    "mentions": { "name": "Mentions", "description": "Mentions like @user." },
+    "htmlTags": { "name": "HTML tags", "description": "Opening and closing HTML tags." },
+    "dupWord": { "name": "Duplicate word", "description": "A word immediately repeated, captured in group 1." }
+  },
+  "snippetsLib": {
+    "cat": {
+      "dateTime": "Date & Time",
+      "auth": "Auth & Tokens",
+      "encoding": "Encoding",
+      "data": "Data & Reliability"
+    },
+    "time-parse": {
+      "title": "Parse & format timestamps (timezone-aware)",
+      "pitfall": "Parsing wall-clock strings in the server's local zone, or formatting without a zone — silently shifts times across DST and machines."
+    },
+    "epoch-convert": {
+      "title": "Convert epoch ↔ date",
+      "pitfall": "Mixing seconds and milliseconds — a silent 1000× error that lands you in 1970 or the year 52000."
+    },
+    "jwt-verify": {
+      "title": "Verify a JWT",
+      "pitfall": "Decoding without verifying the signature, accepting alg:none, not pinning the algorithm (RS→HS key confusion), or skipping exp/aud/iss."
+    },
+    "password-hash": {
+      "title": "Hash & verify passwords",
+      "pitfall": "Hashing passwords with SHA-256/MD5 — they are far too fast. Use a slow, salted KDF (bcrypt / scrypt / argon2)."
+    },
+    "hmac-verify": {
+      "title": "Verify an HMAC signature",
+      "pitfall": "Comparing signatures with == / bytes.Equal leaks timing. Use a constant-time compare."
+    },
+    "secure-token": {
+      "title": "Generate a secure random token",
+      "pitfall": "math/rand · Math.random() · random.random() are NOT cryptographically secure — never use them for tokens, IDs, or secrets."
+    },
+    "base64url": {
+      "title": "Base64url encode / decode",
+      "pitfall": "Standard base64 uses + / and = padding, which break in URLs and JWTs. Those use base64url (- _) with no padding."
+    },
+    "sql-param": {
+      "title": "Parameterized SQL query",
+      "pitfall": "Building SQL with string concatenation / format = SQL injection. Always use placeholders and let the driver bind values."
+    },
+    "retry-backoff": {
+      "title": "Retry with exponential backoff + jitter",
+      "pitfall": "Fixed-interval retries stampede a struggling server. Use exponential backoff with jitter, cap the delay, and bound total attempts."
+    }
+  }
+}

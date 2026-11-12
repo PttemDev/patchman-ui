@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 660 400" role="img" aria-labelledby="dmg-title">
+  <title id="dmg-title">PatchMan DMG installer background</title>
+
+  <!-- DMG window background: transparent so the system can render its own
+       window chrome behind. The Tauri DMG bundler positions the app icon
+       around (165, 200) and the /Applications shortcut around (495, 200);
+       this SVG only paints the decoration between them and a small brand
+       mark in the corner so the arrangement reads as "drag right". -->
+
+  <!-- Brand watermark, top-left, deliberately faint -->
+  <g opacity="0.22">
+    <path
+      d="M 56 56 L 95 23 A 50 50 0 1 0 95 89 Z"
+      fill="#FFD43B"
+      stroke="#1A2940"
+      stroke-width="3"
+      stroke-linejoin="round"
+    />
+    <ellipse cx="46" cy="34" rx="3" ry="5" fill="#1A2940" />
+    <path
+      d="M 100 46 L 125 56 L 100 66 Z"
+      fill="#FF6C37"
+      stroke="#1A2940"
+      stroke-width="2.5"
+      stroke-linejoin="round"
+    />
+  </g>
+
+  <!-- Directional arrow: subtle dashed shaft + arrowhead pointing right.
+       Sized to span between the two icon slots without overlapping either,
+       and tinted muted so it never competes with the icons themselves. -->
+  <g stroke="#FFEB3B" stroke-width="6" fill="none" stroke-linecap="round" opacity="0.45">
+    <line x1="230" y1="200" x2="430" y2="200" stroke-dasharray="2 14" />
+  </g>
+  <path d="M 430 184 L 460 200 L 430 216 Z" fill="#FF6C37" opacity="0.55" />
+
+  <!-- Hint text below the arrow -->
+  <text
+    x="330"
+    y="248"
+    text-anchor="middle"
+    font-family="system-ui, -apple-system, 'Segoe UI', sans-serif"
+    font-size="13"
+    fill="#A0A8B4"
+    opacity="0.7"
+  >
+    Drag PatchMan into Applications to install
+  </text>
+</svg>

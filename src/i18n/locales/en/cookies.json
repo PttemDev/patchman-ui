@@ -1,0 +1,48 @@
+{
+  "title": "Cookies",
+  "filterPlaceholder": "Filter by domain or name...",
+  "noDomain": "(no domain)",
+  "empty": {
+    "title": "No cookies stored",
+    "hint": "Cookies from API responses will appear here, or add them manually."
+  },
+  "noMatch": {
+    "title": "No cookies match your filter",
+    "hint": "Try a different search term."
+  },
+  "domainCountOne": "{{n}} domain",
+  "domainCountOther": "{{n}} domains",
+  "cookieCountOne": "{{n}} cookie",
+  "cookieCountOther": "{{n}} cookies",
+  "summary": "{{domains}} · {{cookies}}",
+  "deleteDomainTitle": "Delete all cookies for {{domain}}",
+  "expiry": {
+    "session": "Session",
+    "expired": "Expired"
+  },
+  "errors": {
+    "load": "Failed to load cookies",
+    "add": "Failed to add cookie",
+    "delete": "Failed to delete cookie",
+    "deleteDomain": "Failed to delete domain cookies",
+    "clear": "Failed to clear cookies"
+  },
+  "add": {
+    "title": "Add Cookie",
+    "description": "Manually add a cookie to the cookie jar.",
+    "domain": "Domain",
+    "name": "Name",
+    "value": "Value",
+    "path": "Path",
+    "secure": "Secure",
+    "secureHttpsOnly": "HTTPS only",
+    "secureAny": "Any",
+    "submit": "Add Cookie"
+  },
+  "clear": {
+    "title": "Clear All Cookies",
+    "confirmOne": "This will permanently delete {{n}} cookie from the cookie jar. This action cannot be undone.",
+    "confirmOther": "This will permanently delete all {{n}} cookies from the cookie jar. This action cannot be undone.",
+    "submit": "Clear All"
+  }
+}

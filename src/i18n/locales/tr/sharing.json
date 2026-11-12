@@ -1,0 +1,31 @@
+{
+  "public": "Herkese açık",
+  "kindCollection": "koleksiyon",
+  "kindEnvironment": "ortam",
+  "publicDescPublic": "Erişim, aşağıdaki Editörler / İzleyiciler listeleri üzerinden yürür. Bu {{kind}} için oluşturulan tüm share code'lar herkese açık hale geldiğinde iptal edildi.",
+  "publicDescPrivate": "Bu {{kind}} yalnızca sizin (ve share code ile davet edilenlerin) tarafından görülebilir. Herkese açık seçeneğini açmak share code'u iptal eder — iki yol birbirini dışlar.",
+  "editors": "Editörler",
+  "editorsSubtitle": "Düzenleyebilir + görüntüleyebilir",
+  "viewers": "İzleyiciler",
+  "viewersSubtitle": "Yalnızca görüntüleyebilir",
+  "addToList": "Bir listeye ekle",
+  "searchPlaceholder": "Kullanıcı, ekip arayın veya 'everyone' yazın...",
+  "roleEditor": "Editör",
+  "roleViewer": "İzleyici",
+  "everyoneOption": "Herkes (tüm kayıtlı kullanıcılar)",
+  "teamSuffix": "ekip",
+  "everyoneHint": "<b>Herkes</b> eklemek o listedeki diğer her şeyi temizler. Herkes'i belirli ekipler / kullanıcılarla birlikte kullanamazsınız — arka uç bunu engeller.",
+  "makePrivateConfirm": "\"{{name}}\" gizli yapılsın mı?",
+  "makePrivateBody": "Tüm Editörler ve İzleyiciler girdileri temizlenecek. Bireysel share-link işbirlikçileri bundan etkilenmez.",
+  "makePrivate": "Gizli Yap",
+  "noOne": "Kimse yok",
+  "ownerBadge": "sahip",
+  "errors": {
+    "makePublic": "Herkese açık yapılamadı",
+    "makePrivate": "Gizli yapılamadı",
+    "add": "Eklenemedi",
+    "remove": "Kaldırılamadı"
+  },
+  "kindWhiteboard": "beyaz tahta",
+  "kindNote": "not"
+}

@@ -1,0 +1,12 @@
+{
+  "title": "历史",
+  "maxDays": "(最多 30 天)",
+  "emptyTitle": "暂无历史",
+  "emptyHint": "你的请求历史将显示在这里",
+  "durationMs": "{{n}}ms",
+  "unavailable": {
+    "remote": "登录 / 同步以查看服务器历史。",
+    "localBackend": "无法连接到嵌入式后端。",
+    "localDesktopOnly": "本地历史仅在桌面应用中可用。"
+  }
+}

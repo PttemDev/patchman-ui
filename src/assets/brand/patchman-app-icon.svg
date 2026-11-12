@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" role="img" aria-labelledby="appicon-title">
+  <title id="appicon-title">PatchMan app icon</title>
+
+  <!-- Deep slate gradient background; macOS Big Sur+ icon containers
+       handle corner rounding so this source stays a square that the OS
+       will clip to the rounded-square mask. The dark backdrop lets the
+       outlined yellow Pacman + orange airplane pop without competing
+       with the dock's own background. -->
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1F2330" />
+      <stop offset="1" stop-color="#11141B" />
+    </linearGradient>
+  </defs>
+  <rect width="1024" height="1024" fill="url(#bg)" rx="180" ry="180" />
+
+  <!-- Motion / speed lines behind Pacman. Lighter on the dark backdrop
+       so the cue reads without dominating. -->
+  <g stroke="#FFD43B" stroke-width="14" stroke-linecap="round" fill="none" opacity="0.35">
+    <line x1="180" y1="420" x2="280" y2="420" />
+    <line x1="130" y1="512" x2="250" y2="512" />
+    <line x1="180" y1="604" x2="280" y2="604" />
+  </g>
+
+  <!-- Pacman (slightly shifted to keep the airplane fully on canvas) -->
+  <g transform="translate(-30 0)">
+    <path
+      d="M 512 512 L 757 306 A 320 320 0 1 0 757 718 Z"
+      fill="#FFD43B"
+      stroke="#1A2940"
+      stroke-width="20"
+      stroke-linejoin="round"
+    />
+    <ellipse cx="448" cy="312" rx="22" ry="34" fill="#1A2940" />
+    <g stroke="#1A2940" stroke-width="14" stroke-linejoin="round">
+      <path d="M 810 462 L 980 512 L 884 512 Z" fill="#FF6C37" />
+      <path d="M 884 512 L 980 512 L 810 562 Z" fill="#D14817" />
+    </g>
+  </g>
+</svg>

@@ -1,0 +1,78 @@
+{
+  "tabs": {
+    "collections": "集合",
+    "history": "历史记录",
+    "database": "数据库",
+    "kafka": "消息队列",
+    "storage": "存储 (S3)",
+    "redis": "Redis",
+    "elasticsearch": "Elasticsearch",
+    "kubernetes": "Kubernetes",
+    "git": "Git",
+    "ai": "AI",
+    "excalidraw": "白板",
+    "devtools": "开发者工具",
+    "qa": "QA 测试",
+    "qa-planning": "QA 规划",
+    "mock": "Mock 服务器",
+    "websocket": "WebSocket",
+    "cookies": "Cookie",
+    "audit": "审计与活动",
+    "notes": "笔记与 Brain",
+    "dashboards": "仪表盘"
+  },
+  "beta": "beta",
+  "settingsProxyOn": "设置（自定义代理已开启）",
+  "settingsProxyOnShort": "设置（代理已开启）",
+  "update": "更新",
+  "updateTooltip": "有新版本可用 — 点击以更新",
+  "darkMode": "深色模式",
+  "lightMode": "浅色模式",
+  "expandSidebar": "展开侧边栏",
+  "collapseToIcons": "折叠为图标",
+  "collapseSidebar": "折叠侧边栏",
+  "expandSidebarShortcut": "展开侧边栏 (Cmd+B)",
+  "syncBadge": {
+    "localLabel": "本地",
+    "localSub": "无账户",
+    "localDbLabel": "本地 DB",
+    "localDbSub": "已登录 · 内嵌",
+    "syncedLabel": "已同步",
+    "syncedSub": "远程 DB",
+    "localTooltip": "正在无账户模式下工作。点击以登录。",
+    "localDbTooltip": "正在读取内嵌的 SQLite，而非你的远程账户。点击以管理。",
+    "syncedTooltip": "正在读取你的远程账户。点击以切换数据源。"
+  },
+  "actions": {
+    "refreshCollections": "刷新集合",
+    "joinShared": "加入共享集合",
+    "importCollection": "导入集合",
+    "newCollection": "新建集合"
+  },
+  "userMenu": {
+    "userFallback": "用户",
+    "adminPanel": "管理面板",
+    "logout": "退出登录"
+  },
+  "download": {
+    "desktopApp": "下载桌面应用",
+    "subtitle": "用于离线和 QA 工具",
+    "getApp": "获取桌面应用",
+    "tooltip": "下载 PatchMan 桌面应用",
+    "steps": {
+      "heading": "获取桌面应用",
+      "step1Title": "下载",
+      "step1Action": "下载 Mac 版",
+      "step2Title": "安装",
+      "step2Desc": "打开文件，将 PatchMan 拖到“应用程序”。",
+      "step3Title": "连接",
+      "step3Desc": "打开 PatchMan，然后点击连接到此后端。",
+      "step3Action": "连接到此后端"
+    }
+  },
+  "statusBar": {
+    "updateAvailable": "有可用更新",
+    "changelogTooltip": "新功能 — 打开更新日志"
+  },
+  "moreTools": "更多工具"
+}

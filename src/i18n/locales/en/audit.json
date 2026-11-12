@@ -1,0 +1,22 @@
+{
+  "tabs": {
+    "auditLogs": "Audit Logs",
+    "activity": "Activity"
+  },
+  "logs": {
+    "countOne": "{{count}} log",
+    "countOther": "{{count}} logs",
+    "empty": "No audit logs"
+  },
+  "activity": {
+    "countOne": "{{count}} activity",
+    "countOther": "{{count}} activities",
+    "empty": "No recent activity"
+  },
+  "time": {
+    "justNow": "just now",
+    "minutesAgo": "{{count}}m ago",
+    "hoursAgo": "{{count}}h ago",
+    "daysAgo": "{{count}}d ago"
+  }
+}

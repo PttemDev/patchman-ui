@@ -1,0 +1,22 @@
+{
+  "tabs": {
+    "auditLogs": "Registros",
+    "activity": "Actividad"
+  },
+  "logs": {
+    "countOne": "{{count}} registro",
+    "countOther": "{{count}} registros",
+    "empty": "Sin registros de auditoría"
+  },
+  "activity": {
+    "countOne": "{{count}} actividad",
+    "countOther": "{{count}} actividades",
+    "empty": "Sin actividad reciente"
+  },
+  "time": {
+    "justNow": "ahora mismo",
+    "minutesAgo": "hace {{count}} min",
+    "hoursAgo": "hace {{count}} h",
+    "daysAgo": "hace {{count}} d"
+  }
+}

@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="PatchMan">
+  <!-- Small-size optimized variant: dropped speed lines + airplane fold,
+       thicker strokes so the Pacman silhouette + chasing airplane both
+       survive 16/32 px rendering. -->
+  <path
+    d="M 32 32 L 47 19 A 20 20 0 1 0 47 45 Z"
+    fill="#FFD43B"
+    stroke="#1A2940"
+    stroke-width="3"
+    stroke-linejoin="round"
+  />
+  <ellipse cx="28" cy="19" rx="1.6" ry="2.4" fill="#1A2940" />
+  <path
+    d="M 50 27 L 62 32 L 50 37 Z"
+    fill="#FF6C37"
+    stroke="#1A2940"
+    stroke-width="2"
+    stroke-linejoin="round"
+  />
+</svg>

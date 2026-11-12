@@ -1,0 +1,76 @@
+{
+  "validation": {
+    "nameRequired": "Name is required"
+  },
+  "error": {
+    "operationFailed": "Operation failed",
+    "inviteFailed": "Invite failed",
+    "changeRoleFailed": "Failed to change role",
+    "removeMemberFailed": "Failed to remove member"
+  },
+  "selector": {
+    "placeholder": "Select workspace",
+    "all": "All Workspaces",
+    "none": "No Workspace",
+    "manageWorkspaces": "Manage workspaces",
+    "manageTeams": "Manage teams"
+  },
+  "manager": {
+    "title": "Workspace Manager",
+    "description": "Workspaces organize your own collections and environments. Use Teams to share them with a group.",
+    "tabList": "Workspaces",
+    "countOne": "{{count}} workspace",
+    "countOther": "{{count}} workspaces",
+    "newWorkspace": "New Workspace",
+    "empty": "No workspaces yet",
+    "createFirst": "Create your first workspace",
+    "teamFallback": "team",
+    "personal": "personal",
+    "sharedWithYou": "shared with you",
+    "created": "Created {{date}}"
+  },
+  "teams": {
+    "title": "Teams",
+    "description": "Create teams to share collections and environments with a group of people at once. Teams are visible to everyone in this workspace — only admins can edit a team's roster. In a workspace shared with a team, admins can also edit the contents.",
+    "tabList": "Teams",
+    "tabMembers": "Members",
+    "countOne": "{{count}} team",
+    "countOther": "{{count}} teams",
+    "newTeam": "New Team",
+    "empty": "No teams yet",
+    "createFirst": "Create your first team",
+    "roleAdmin": "admin",
+    "roleMember": "member",
+    "memberCountOne": "{{count}} member",
+    "memberCountOther": "{{count}} members",
+    "byCreator": " · by {{name}}"
+  },
+  "members": {
+    "viewOnly": "view-only",
+    "addMember": "Add Member",
+    "searchPlaceholder": "Search by name or email...",
+    "roleAdmin": "Admin",
+    "roleMember": "Member",
+    "selected": "Selected:",
+    "empty": "No members yet"
+  },
+  "form": {
+    "namePlaceholder": "My Workspace",
+    "description": "Description",
+    "descriptionPlaceholder": "Optional description",
+    "personal": "Personal",
+    "team": "Team",
+    "shareWithTeam": "Share with team",
+    "personalNoTeam": "Personal — no team",
+    "shareHint": "Team members see this workspace and everything in it: team admins get Editor access to its collections, environments, whiteboards and notes, members can only view them.",
+    "teamNamePlaceholder": "QA Squad",
+    "create": "Create",
+    "saveChanges": "Save Changes"
+  },
+  "delete": {
+    "workspaceTitle": "Delete Workspace",
+    "workspaceDescription": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone.",
+    "teamTitle": "Delete Team",
+    "teamDescription": "Are you sure you want to delete \"{{name}}\"? Any collection / environment grants pointing at this team will become inactive (the resources stay accessible to their owners and individual collaborators)."
+  }
+}

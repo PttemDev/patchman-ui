@@ -1,0 +1,113 @@
+{
+  "renderError": {
+    "body": "The app hit a render error. Copy the report from the dialog and paste it into <mono>#patchman-support</mono>, then reload to continue.",
+    "tryAgain": "Try again",
+    "reload": "Reload app"
+  },
+  "scopePicker": {
+    "localAvailable": "Run on this machine. Required for 127.0.0.1 / LAN endpoints.",
+    "localUnavailable": "Not available — this connection wasn't written to the local BE. Edit + Save to retry.",
+    "remoteAvailable": "Run on the PatchMan server. Consistent with teammates / prod behind the server network.",
+    "remoteUnavailable": "Not available — this connection wasn't written to the team BE. Edit + Save to retry.",
+    "tooltip": "Which backend runs this {{noun}} — your local desktop BE or the team server."
+  },
+  "commandPalette": {
+    "title": "Command Palette",
+    "placeholder": "Type a command...",
+    "empty": "No commands found",
+    "emptyHint": "Try a different search term",
+    "navigate": "Navigate",
+    "select": "Select",
+    "toggleHint": "K to toggle"
+  },
+  "commandCategories": {
+    "Request": "Request",
+    "Navigation": "Navigation",
+    "Environment": "Environment",
+    "Tools": "Tools",
+    "View": "View"
+  },
+  "commands": {
+    "newTab": "New Request Tab",
+    "sendRequest": "Send Request",
+    "saveToCollection": "Save to Collection",
+    "generateCode": "Generate Code",
+    "closeTab": "Close Current Tab",
+    "goCollections": "Go to Collections",
+    "goHistory": "Go to History",
+    "goQa": "Go to QA",
+    "goMock": "Go to Mock Servers",
+    "switchToTab": "Switch to: {{name}}",
+    "newRequest": "New Request",
+    "switchToEnv": "Switch to: {{name}}",
+    "clearEnv": "Clear Environment",
+    "manageEnv": "Manage Environments",
+    "collectionRunner": "Collection Runner",
+    "importSwagger": "Import Swagger / OpenAPI",
+    "importCollection": "Import Collection JSON",
+    "importPostman": "Import from Postman",
+    "switchToDark": "Switch to Dark Mode",
+    "switchToLight": "Switch to Light Mode",
+    "toggleSidebar": "Toggle Sidebar"
+  },
+  "dbBanner": {
+    "blockedTitle": "Another tab is blocking the upgrade",
+    "blockedBody": "Another tab of this app is still running the old schema. Close the other tabs, come back here, and reload the page.",
+    "incompatibleTitle": "Local database is incompatible with the new schema",
+    "incompatibleBody": "IndexedDB holds an older version that could not be upgraded. Resetting the local database fixes it, but any local changes that have not been synced will be deleted.",
+    "openFailedTitle": "Could not open the local database",
+    "openFailedBody": "IndexedDB failed to open. Try reloading the page; if the problem persists you can reset the local database (unsynced local changes will be deleted).",
+    "reloadPage": "Reload page",
+    "resetDb": "Reset local database",
+    "resetting": "Resetting…"
+  },
+  "errorReport": {
+    "source": {
+      "render": "Render error",
+      "action": "Action error",
+      "async": "Async error",
+      "default": "Error"
+    },
+    "title": "Something went wrong",
+    "description": "{{source}} — the app may still be usable, but please report this so we can fix it.",
+    "messageLabel": "Message",
+    "stackLabel": "Stack trace",
+    "forwarded": "This error has been forwarded to the team automatically. Copy the report below and paste it into <mono>{{channel}}</mono> if you'd like to add context.",
+    "resetHint": "If the same error keeps coming back on every launch, you can reset your local session. This only clears the data cached on this device — your remote workspaces, collections, and other data are not affected. You may need to sign in again.",
+    "resetting": "Resetting…",
+    "resetConfirm": "Click again to confirm",
+    "resetLocal": "Reset local session",
+    "dismiss": "Dismiss",
+    "copyReport": "Copy report"
+  },
+  "connect": {
+    "title": "Connect to your backend",
+    "description": "PatchMan needs a backend to sign in and sync your data. Enter your backend URL, or continue offline.",
+    "urlPlaceholder": "https://your-backend/api",
+    "connectButton": "Connect",
+    "offlineButton": "Continue offline",
+    "invalidUrl": "Enter a full http(s):// URL",
+    "offlineHint": "Offline mode uses only this device — no account, no sync.",
+    "connecting": "Connecting…",
+    "unreachable": "Couldn’t reach that backend. Check the URL and try again.",
+    "notPatchman": "That URL isn’t a PatchMan backend.",
+    "incompatibleAppOld": "This backend needs a newer version of the app. Please update PatchMan.",
+    "incompatibleBackendOld": "This backend is too old for this app. Ask an admin to update it.",
+    "incompatibleTitle": "Backend not compatible",
+    "incompatibleDescription": "The current backend isn’t compatible with this version of the app. Connect a compatible backend, or continue offline.",
+    "switchedNotice": "Switched from {{from}} to {{to}} — the previous backend isn’t compatible with this app version.",
+    "dismiss": "Dismiss"
+  },
+  "tray": {
+    "show": "Show PatchMan",
+    "newRequest": "New Request",
+    "settings": "Settings",
+    "checkUpdates": "Check for Updates…",
+    "quit": "Quit PatchMan"
+  },
+  "quitConfirm": {
+    "title": "Quit PatchMan?",
+    "description": "Any in-progress requests will stop.",
+    "confirm": "Quit"
+  }
+}

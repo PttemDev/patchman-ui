@@ -1,0 +1,130 @@
+{
+  "tabs": {
+    "body": "Gövde",
+    "transform": "Dönüştür",
+    "headers": "Başlıklar",
+    "cookies": "Çerezler",
+    "timing": "Zamanlama",
+    "request": "İstek",
+    "console": "Konsol"
+  },
+  "loading": "İstek gönderiliyor…",
+  "empty": {
+    "title": "Bir URL girin ve yanıt almak için Gönder'e tıklayın",
+    "hint": "Veya Ctrl+Enter / Cmd+Enter tuşlarına basın"
+  },
+  "clickToCopyValue": "Değeri kopyalamak için tıklayın",
+  "meta": {
+    "copyBody": "Yanıt gövdesini kopyala",
+    "encodingTooltip": "Ağ üzerindeki veri {{encoding}} ile kodlanmıştı; PatchMan sizin için çözdü.",
+    "sizeRequest": "İstek — {{size}}",
+    "sizeResponse": "Yanıt — {{size}}",
+    "sizeHeaders": "Başlıklar",
+    "sizeBody": "Gövde",
+    "sizeCookies": "Çerezler",
+    "remoteAria": "Uzak adres — kopyalamak için tıklayın",
+    "remoteTitle": "Uzak sunucu adresi",
+    "clickToCopy": "kopyalamak için tıklayın",
+    "remoteHint": "Bu isteğin gerçekten bağlandığı IP:port — tüm yönlendirmelerden sonraki son sunucu."
+  },
+  "console": {
+    "empty": "Konsol çıktısı yok. Test betiği günlükleri burada görünecek."
+  },
+  "body": {
+    "pretty": "Biçimli",
+    "raw": "Ham",
+    "preview": "Önizleme",
+    "download": "İndir",
+    "unknownType": "bilinmiyor",
+    "previewTitle": "Yanıt önizlemesi",
+    "imageAlt": "Yanıt",
+    "pdfTitle": "PDF yanıtı",
+    "soapFault": "SOAP Fault",
+    "save": "Kaydet"
+  },
+  "headers": {
+    "empty": "Yanıt başlığı yok"
+  },
+  "table": {
+    "value": "Değer",
+    "key": "Anahtar"
+  },
+  "cookies": {
+    "emptyTitle": "Bu yanıtta Set-Cookie başlığı yok",
+    "emptyHint": "Sunucunun ayarladığı çerezler burada bir Kaydet düğmesiyle görünecek.",
+    "countOne": "{{count}} çerez",
+    "countOther": "{{count}} çerez",
+    "newCount": "{{count}} yeni",
+    "autoSave": "Otomatik kaydet",
+    "autoSaveTooltip": "Her istekten sonra yanıt çerezlerini kavanoza otomatik olarak kaydeder — elle Kaydet gerekmez. Tüm sekmelerde geçerlidir ve oturumlar arasında hatırlanır.",
+    "saveAll": "Tümünü kaydet",
+    "empty": "(boş)",
+    "saved": "Kaydedildi",
+    "session": "Oturum",
+    "expired": "Süresi doldu"
+  },
+  "timing": {
+    "dns": "DNS Araması",
+    "tcp": "TCP Bağlantısı",
+    "tls": "TLS El Sıkışması",
+    "ttfb": "İlk Bayta Kadar Süre",
+    "total": "Toplam",
+    "waterfall": "İstek Şelalesi"
+  },
+  "request": {
+    "empty": "İstek ayrıntısı yok. Önce bir istek gönderin.",
+    "heading": "İstek",
+    "headersCount": "Başlıklar ({{count}})",
+    "paramsCount": "Sorgu Parametreleri ({{count}})",
+    "body": "Gövde",
+    "auth": "Kimlik Doğrulama"
+  },
+  "transform": {
+    "cheatsheet": "Kopya kağıdı",
+    "readsHint": "yanıtı okur — orijinaline dokunulmaz",
+    "notJson": "Yanıt gövdesi geçerli JSON değil — dönüştürülecek bir şey yok.",
+    "resultPlaceholder": "Sonuç burada görünür.",
+    "docs": "belgeler",
+    "useExpression": "Bu ifadeyi kullan"
+  },
+  "cheat": {
+    "jmespath": {
+      "whole": "tüm belge",
+      "nested": "iç içe bir alan",
+      "first": "bir dizinin ilk öğesi",
+      "pluck": "her öğeden bir alanı seç",
+      "filterPluck": "bir alana göre filtrele, sonra seç",
+      "count": "öğeleri say",
+      "reshape": "yeni nesnelere dönüştür"
+    },
+    "jq": {
+      "identity": "tüm belge (kimlik)",
+      "first": "bir dizinin ilk öğesi",
+      "stream": "her öğeden bir alanı akıt",
+      "map": "tek alanlı bir diziye eşle",
+      "filter": "select() ile filtrele",
+      "count": "öğeleri say",
+      "group": "grupla + topla"
+    },
+    "jsonpath": {
+      "root": "kök belge",
+      "all": "bir dizinin tüm öğeleri",
+      "first": "ilk öğe",
+      "pluck": "her öğeden bir alanı seç",
+      "filter": "bir alana göre filtrele",
+      "recursive": "özyinelemeli iniş — bir anahtarı her yerde bul"
+    }
+  },
+  "save": {
+    "title": "Response'u kaydet",
+    "description": "Bu request'i ve response'unu bir koleksiyonda sakla — sonra koleksiyonun “Kaydedilmiş response'lar” bölümünden aç ya da yeniden gönder.",
+    "name": "Ad",
+    "collection": "Koleksiyon veya klasör",
+    "pick": "Koleksiyon seç…",
+    "noCollections": "Önce bir koleksiyon oluştur — kaydedilen response'lar bir koleksiyonda tutulur.",
+    "saved": "Response kaydedildi",
+    "truncated": "{{where}} içine kaydedildi (gövde 5 MB'ı aştığı için kesildi).",
+    "view": "Göster",
+    "failed": "Response kaydedilemedi"
+  }
+}

@@ -1,0 +1,262 @@
+@import "tailwindcss";
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-sidebar-background: var(--sidebar-background);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+@layer base {
+  :root {
+    --background: oklch(1 0 0);
+    --foreground: oklch(0.145 0 0);
+    --card: oklch(1 0 0);
+    --card-foreground: oklch(0.145 0 0);
+    --popover: oklch(1 0 0);
+    --popover-foreground: oklch(0.145 0 0);
+    --primary: oklch(0.205 0.08 265);
+    --primary-foreground: oklch(0.985 0 0);
+    --secondary: oklch(0.965 0 0);
+    --secondary-foreground: oklch(0.205 0 0);
+    --muted: oklch(0.965 0 0);
+    --muted-foreground: oklch(0.556 0 0);
+    --accent: oklch(0.965 0 0);
+    --accent-foreground: oklch(0.205 0 0);
+    --destructive: oklch(0.577 0.245 27.325);
+    --destructive-foreground: oklch(0.985 0 0);
+    --border: oklch(0.922 0 0);
+    --input: oklch(0.922 0 0);
+    --ring: oklch(0.708 0 0);
+    --radius: 0.625rem;
+    --sidebar-background: oklch(0.985 0 0);
+    --sidebar-foreground: oklch(0.145 0 0);
+    --sidebar-primary: oklch(0.205 0.08 265);
+    --sidebar-primary-foreground: oklch(0.985 0 0);
+    --sidebar-accent: oklch(0.965 0 0);
+    --sidebar-accent-foreground: oklch(0.205 0 0);
+    --sidebar-border: oklch(0.922 0 0);
+    --sidebar-ring: oklch(0.708 0 0);
+  }
+
+  .dark {
+    --background: oklch(0.145 0 0);
+    --foreground: oklch(0.985 0 0);
+    --card: oklch(0.145 0 0);
+    --card-foreground: oklch(0.985 0 0);
+    --popover: oklch(0.145 0 0);
+    --popover-foreground: oklch(0.985 0 0);
+    --primary: oklch(0.922 0 0);
+    --primary-foreground: oklch(0.205 0 0);
+    --secondary: oklch(0.269 0 0);
+    --secondary-foreground: oklch(0.985 0 0);
+    --muted: oklch(0.269 0 0);
+    --muted-foreground: oklch(0.708 0 0);
+    --accent: oklch(0.269 0 0);
+    --accent-foreground: oklch(0.985 0 0);
+    --destructive: oklch(0.704 0.191 22.216);
+    --destructive-foreground: oklch(0.985 0 0);
+    --border: oklch(0.269 0 0);
+    --input: oklch(0.269 0 0);
+    --ring: oklch(0.556 0 0);
+    --sidebar-background: oklch(0.175 0 0);
+    --sidebar-foreground: oklch(0.985 0 0);
+    --sidebar-primary: oklch(0.922 0 0);
+    --sidebar-primary-foreground: oklch(0.205 0 0);
+    --sidebar-accent: oklch(0.269 0 0);
+    --sidebar-accent-foreground: oklch(0.985 0 0);
+    --sidebar-border: oklch(0.269 0 0);
+    --sidebar-ring: oklch(0.556 0 0);
+  }
+
+  /* ── Theme presets (opt-in variants) ─────────────────────────────────
+     Each overrides a few SURFACE tokens on top of the base :root/.dark set
+     above; the default 'light'/'dark' presets set no data-theme and are
+     unaffected. Base mode (Monaco/xterm/charts) still follows :root vs .dark. */
+
+  /* Light · Warm (cream/sepia) — deeper ground, near-white cards lift off it */
+  :root[data-theme="warm"] {
+    --background: oklch(0.955 0.022 85);
+    --card: oklch(0.99 0.012 85);
+    --card-foreground: oklch(0.2 0.01 85);
+    --popover: oklch(0.99 0.012 85);
+    --secondary: oklch(0.93 0.022 85);
+    --secondary-foreground: oklch(0.205 0.012 85);
+    --muted: oklch(0.93 0.022 85);
+    --muted-foreground: oklch(0.48 0.012 85);
+    --accent: oklch(0.9 0.03 85);
+    --accent-foreground: oklch(0.205 0.012 85);
+    --border: oklch(0.88 0.024 85);
+    --input: oklch(0.88 0.024 85);
+    --sidebar-background: oklch(0.935 0.024 85);
+    --sidebar-accent: oklch(0.9 0.03 85);
+    --sidebar-border: oklch(0.88 0.024 85);
+  }
+
+  /* Light · Slate (cool blue-gray) — deeper, clearly cooler than Warm */
+  :root[data-theme="slate"] {
+    --background: oklch(0.955 0.012 250);
+    --card: oklch(0.99 0.006 250);
+    --popover: oklch(0.99 0.006 250);
+    --secondary: oklch(0.935 0.014 250);
+    --secondary-foreground: oklch(0.2 0.02 255);
+    --muted: oklch(0.935 0.014 250);
+    --muted-foreground: oklch(0.47 0.02 255);
+    --accent: oklch(0.91 0.02 250);
+    --accent-foreground: oklch(0.2 0.02 255);
+    --border: oklch(0.885 0.016 250);
+    --input: oklch(0.885 0.016 250);
+    --primary: oklch(0.45 0.13 255);
+    --ring: oklch(0.6 0.1 255);
+    --sidebar-background: oklch(0.935 0.014 250);
+    --sidebar-accent: oklch(0.91 0.02 250);
+    --sidebar-border: oklch(0.885 0.016 250);
+    --sidebar-primary: oklch(0.45 0.13 255);
+  }
+
+  /* Light · Paper (dim, low-glare warm gray — the "darker light") */
+  :root[data-theme="paper"] {
+    --background: oklch(0.915 0.005 90);
+    --foreground: oklch(0.22 0.006 90);
+    --card: oklch(0.975 0.004 90);
+    --card-foreground: oklch(0.22 0.006 90);
+    --popover: oklch(0.975 0.004 90);
+    --popover-foreground: oklch(0.22 0.006 90);
+    --secondary: oklch(0.89 0.006 90);
+    --secondary-foreground: oklch(0.24 0.006 90);
+    --muted: oklch(0.89 0.006 90);
+    --muted-foreground: oklch(0.46 0.006 90);
+    --accent: oklch(0.87 0.007 90);
+    --accent-foreground: oklch(0.24 0.006 90);
+    --border: oklch(0.85 0.007 90);
+    --input: oklch(0.85 0.007 90);
+    --ring: oklch(0.6 0.006 90);
+    --sidebar-background: oklch(0.895 0.006 90);
+    --sidebar-foreground: oklch(0.22 0.006 90);
+    --sidebar-accent: oklch(0.87 0.007 90);
+    --sidebar-border: oklch(0.85 0.007 90);
+  }
+
+  /* Dark · Dim (softer gray, less pure black) */
+  .dark[data-theme="dim"] {
+    --background: oklch(0.223 0.006 264);
+    --card: oklch(0.223 0.006 264);
+    --popover: oklch(0.223 0.006 264);
+    --secondary: oklch(0.3 0.006 264);
+    --muted: oklch(0.3 0.006 264);
+    --accent: oklch(0.3 0.006 264);
+    --border: oklch(0.32 0.006 264);
+    --input: oklch(0.32 0.006 264);
+    --sidebar-background: oklch(0.25 0.006 264);
+    --sidebar-accent: oklch(0.3 0.006 264);
+    --sidebar-border: oklch(0.32 0.006 264);
+  }
+
+  /* Dark · Ocean (blue-tinted) */
+  .dark[data-theme="ocean"] {
+    --background: oklch(0.19 0.028 245);
+    --card: oklch(0.205 0.028 245);
+    --popover: oklch(0.205 0.028 245);
+    --secondary: oklch(0.27 0.03 245);
+    --muted: oklch(0.27 0.03 245);
+    --accent: oklch(0.31 0.045 245);
+    --border: oklch(0.3 0.03 245);
+    --input: oklch(0.3 0.03 245);
+    --primary: oklch(0.72 0.13 235);
+    --primary-foreground: oklch(0.16 0.02 245);
+    --ring: oklch(0.6 0.1 235);
+    --sidebar-background: oklch(0.17 0.028 245);
+    --sidebar-accent: oklch(0.31 0.045 245);
+    --sidebar-border: oklch(0.3 0.03 245);
+    --sidebar-primary: oklch(0.72 0.13 235);
+  }
+
+  /* Dark · Grape (purple-tinted) */
+  .dark[data-theme="grape"] {
+    --background: oklch(0.185 0.03 300);
+    --card: oklch(0.205 0.03 300);
+    --popover: oklch(0.205 0.03 300);
+    --secondary: oklch(0.28 0.035 300);
+    --muted: oklch(0.28 0.035 300);
+    --accent: oklch(0.32 0.05 300);
+    --border: oklch(0.31 0.035 300);
+    --input: oklch(0.31 0.035 300);
+    --primary: oklch(0.74 0.14 305);
+    --primary-foreground: oklch(0.16 0.02 300);
+    --ring: oklch(0.62 0.12 305);
+    --sidebar-background: oklch(0.165 0.03 300);
+    --sidebar-accent: oklch(0.32 0.05 300);
+    --sidebar-border: oklch(0.31 0.035 300);
+    --sidebar-primary: oklch(0.74 0.14 305);
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  /* Kill the macOS trackpad rubber-band / horizontal swipe bounce: dragging
+     left/right over empty space used to pan the whole app and snap back (and
+     could trigger history back/forward). The app manages its own scrolling. */
+  html,
+  body {
+    overscroll-behavior: none;
+  }
+}
+
+@keyframes env-marquee {
+  0%, 20% { transform: translateX(0); }
+  50%, 70% { transform: translateX(min(0px, calc(-100% + 10rem))); }
+  100% { transform: translateX(0); }
+}
+
+.group:hover .env-marquee-text {
+  overflow: visible !important;
+  text-overflow: clip;
+  display: inline-block;
+  max-width: none;
+  width: max-content;
+  animation: env-marquee 3s linear infinite;
+}
+
+/* Monaco's find-widget action buttons show tooltips (e.g. "Find in selection
+   (⌥⌘L)", "(Escape)") via the hover service. This is a known, unfixed Monaco
+   bug (microsoft/monaco-editor#5137, #5177): the tooltip is absolutely
+   positioned with no positioned ancestor, so near the editor's top edge it
+   anchors to the page top and renders clipped / on top of the widget. There's
+   no supported way to reposition just these, so hide Monaco's hover bubbles.
+   Trade-off: code/error hover popups are hidden too — negligible for an API
+   client (the error squiggles themselves still show). */
+.monaco-hover {
+  display: none !important;
+}

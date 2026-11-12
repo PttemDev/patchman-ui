@@ -1,0 +1,197 @@
+{
+  "title": "管理",
+  "subtitle": "用户、角色和系统使用情况。作用于实时数据库。",
+  "backToApp": "返回应用",
+  "accessDenied": {
+    "title": "需要管理员权限",
+    "description": "您的账户无权访问管理面板。",
+    "back": "返回 PatchMan"
+  },
+  "errors": {
+    "loadFailed": "加载管理数据失败"
+  },
+  "stats": {
+    "users": "用户",
+    "collections": "集合",
+    "requests": "请求",
+    "workspaces": "工作区",
+    "mockServers": "Mock 服务器",
+    "historyItems": "历史记录",
+    "testCases": "测试用例",
+    "gitlabLinks": "GitLab 链接",
+    "newThisWeek": "本周 +{{n}}",
+    "routesOne": "{{n}} 条路由",
+    "routesOther": "{{n}} 条路由"
+  },
+  "usersTable": {
+    "heading": "用户",
+    "countOfTotal": "（{{shown}} / {{total}}）",
+    "searchPlaceholder": "按名称、邮箱或 ID 搜索…",
+    "colUser": "用户",
+    "colRole": "角色",
+    "colIntegrations": "集成",
+    "colLastLogin": "上次登录",
+    "colVersion": "版本",
+    "versionTitle": "最近一次客户端版本",
+    "colJoined": "加入时间",
+    "loading": "正在加载用户…",
+    "noMatch": "没有匹配的用户。",
+    "never": "从不",
+    "lastSeen": "最近一次出现 {{date}}",
+    "colLastActivity": "最近活动",
+    "lastActivityTitle": "以下最近一次：打开应用、登录、更改、发送的请求、MCP 使用。展开行可查看每个工具。",
+    "toggleUsage": "显示或隐藏使用情况"
+  },
+  "roles": {
+    "admin": "管理员",
+    "user": "用户"
+  },
+  "integrations": {
+    "gitlab": "GitLab",
+    "mcp": "MCP",
+    "mcpCount": "MCP ×{{n}}"
+  },
+  "userActions": {
+    "demote": "降级",
+    "demoteTitle": "降级为用户",
+    "makeAdmin": "设为管理员",
+    "promoteTitle": "提升为管理员",
+    "password": "密码",
+    "resetPasswordTitle": "重置密码",
+    "manage": "管理"
+  },
+  "pagination": {
+    "rowsPerPage": "每页行数",
+    "range": "{{from}}–{{to}}，共 {{total}}"
+  },
+  "toasts": {
+    "nowAdmin": "{{user}} 现在是管理员",
+    "demotedToUser": "{{user}} 已降级为用户",
+    "updateRoleFailed": "无法更新角色",
+    "alreadyThisUser": "您已经是该用户",
+    "nowManaging": "正在以 {{user}} 身份管理",
+    "nowManagingDesc": "在您退出之前，您执行的每个操作都会影响此账户。"
+  },
+  "passwordReset": {
+    "title": "重置密码",
+    "description": "为 <strong>{{user}}</strong> 设置新密码。用户保留其账户；仅更改密码。",
+    "newPasswordLabel": "新密码",
+    "passwordPlaceholder": "输入密码或生成一个",
+    "show": "显示",
+    "hide": "隐藏",
+    "generate": "生成",
+    "generateTitle": "生成强密码",
+    "copyTitle": "复制到剪贴板",
+    "hint": "至少 6 个字符。请通过安全渠道与用户共享——此对话框关闭后，密码不会保存在任何可读的位置。",
+    "savedNote": "密码已更新。如果尚未复制，请立即复制——关闭此对话框将丢弃明文。",
+    "savePassword": "保存密码",
+    "saveAgain": "再次保存",
+    "minLengthError": "密码必须至少 6 个字符",
+    "successTitle": "密码已重置",
+    "successDesc": "已为 {{user}} 设置新密码。",
+    "resetFailed": "无法重置密码",
+    "copyFailed": "无法复制到剪贴板"
+  },
+  "crash": {
+    "heading": "崩溃报告 → Slack",
+    "noWebhook": "无 webhook",
+    "webhookNotice": "服务器上未设置 <mono>SLACK_ERROR_WEBHOOK_URL</mono>。您可以切换开关，但在配置 webhook 之前不会发送任何消息——并且在此状态下测试按钮将返回 503。",
+    "testDescription": "发送一条合成消息以验证集成。独立于上面的开关运行。",
+    "sendTest": "发送测试消息",
+    "sending": "正在发送…",
+    "testSuccess": "测试消息已发送到 Slack。如果在频道中看不到它，请再次确认 webhook URL 绑定到了正确的频道。",
+    "testFailed": "测试失败：{{error}}",
+    "unknownError": "未知错误",
+    "updateToggleFailed": "无法更新开关",
+    "errors": {
+      "loadConfigFailed": "加载崩溃报告配置失败",
+      "testRequestFailed": "测试请求失败"
+    },
+    "toggles": {
+      "boundary": {
+        "label": "React 渲染崩溃",
+        "hint": "组件在渲染期间抛出错误（经典的全屏错误）。大多数生产崩溃都属于此类。"
+      },
+      "rejection": {
+        "label": "未处理的异步错误",
+        "hint": "没有 .catch 的被拒绝 Promise（window.onunhandledrejection）。有助于捕获否则会悄然消失的错误。"
+      },
+      "window": {
+        "label": "其他 JS 错误（window.error）",
+        "hint": "在 click/keydown 处理程序中抛出的同步错误。默认关闭，因为浏览器扩展的噪音可能会淹没真正的错误。"
+      }
+    }
+  },
+  "impersonation": {
+    "managingAs": "正在以 <strong>{{user}}</strong> 身份管理。每个操作都会影响此用户。",
+    "exit": "退出"
+  },
+  "usage": {
+    "lastActivity": "最近活动",
+    "updated": "{{when}}更新",
+    "refresh": "刷新使用情况",
+    "lastSeen": "最近一次出现",
+    "loadFailed": "无法加载使用情况",
+    "loading": "正在加载使用情况…",
+    "noActivity": "尚无记录的活动。",
+    "counts": {
+      "environments": "环境",
+      "history": "已发送请求",
+      "notes": "笔记",
+      "cards": "记忆卡片",
+      "whiteboards": "白板",
+      "teams": "团队",
+      "mcpTokens": "MCP 令牌"
+    },
+    "tools": {
+      "heading": "工具",
+      "colTool": "工具",
+      "colItems": "项目",
+      "colActions": "操作",
+      "colOps": "执行",
+      "colLastUsed": "上次使用",
+      "itemsTitle": "用户在此拥有的内容：连接、白板、测试用例…",
+      "actionsTitle": "审计日志中记录的更改和操作（来自应用和 MCP）",
+      "opsTitle": "工具自身历史中的条目：查询、消费、已发送请求（包括读取）"
+    },
+    "mcp": {
+      "heading": "MCP 客户端",
+      "none": "没有 MCP 令牌。",
+      "noClient": "尚无客户端连接",
+      "token": "令牌“{{name}}”· 创建于 {{date}}",
+      "neverUsed": "从未使用"
+    },
+    "agents": {
+      "heading": "按智能体统计的记忆卡片",
+      "byHand": "手动编写"
+    },
+    "tool": {
+      "requests": "集合与请求",
+      "history": "已发送请求",
+      "environments": "环境",
+      "mocks": "Mock 服务器",
+      "notes": "笔记",
+      "memory": "智能体记忆",
+      "whiteboards": "白板",
+      "qa": "测试管理",
+      "loadtests": "负载测试",
+      "db": "数据库",
+      "kafka": "Kafka",
+      "s3": "S3",
+      "redis": "Redis",
+      "es": "Elasticsearch",
+      "k8s": "Kubernetes",
+      "grafana": "Grafana",
+      "rabbitmq": "RabbitMQ",
+      "graylog": "Graylog",
+      "mcp": "MCP",
+      "observability": "可观测性",
+      "git": "Git / CI",
+      "ai": "AI / LLM",
+      "collab": "工作区与团队",
+      "devtools": "开发者工具",
+      "sync": "桌面同步",
+      "other": "其他"
+    }
+  }
+}

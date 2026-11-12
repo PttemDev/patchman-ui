@@ -1,0 +1,113 @@
+{
+  "renderError": {
+    "body": "Uygulama bir görüntüleme hatası aldı. Raporu iletişim kutusundan kopyalayıp <mono>#patchman-support</mono> kanalına yapıştırın, ardından devam etmek için yeniden yükleyin.",
+    "tryAgain": "Tekrar dene",
+    "reload": "Uygulamayı yeniden yükle"
+  },
+  "scopePicker": {
+    "localAvailable": "Bu makinede çalıştırın. 127.0.0.1 / LAN uç noktaları için gereklidir.",
+    "localUnavailable": "Kullanılamıyor — bu bağlantı yerel BE'ye yazılmadı. Yeniden denemek için Düzenle + Kaydet.",
+    "remoteAvailable": "PatchMan sunucusunda çalıştırın. Takım arkadaşlarıyla / sunucu ağının arkasındaki prod ile tutarlıdır.",
+    "remoteUnavailable": "Kullanılamıyor — bu bağlantı takım BE'sine yazılmadı. Yeniden denemek için Düzenle + Kaydet.",
+    "tooltip": "Bu {{noun}} işlemini hangi arka uç çalıştırır — yerel masaüstü BE'niz mi yoksa takım sunucusu mu."
+  },
+  "commandPalette": {
+    "title": "Komut Paleti",
+    "placeholder": "Bir komut yazın...",
+    "empty": "Komut bulunamadı",
+    "emptyHint": "Farklı bir arama terimi deneyin",
+    "navigate": "Gezin",
+    "select": "Seç",
+    "toggleHint": "K ile aç/kapat"
+  },
+  "commandCategories": {
+    "Request": "İstek",
+    "Navigation": "Gezinme",
+    "Environment": "Ortam",
+    "Tools": "Araçlar",
+    "View": "Görünüm"
+  },
+  "commands": {
+    "newTab": "Yeni İstek Sekmesi",
+    "sendRequest": "İstek Gönder",
+    "saveToCollection": "Koleksiyona Kaydet",
+    "generateCode": "Kod Oluştur",
+    "closeTab": "Geçerli Sekmeyi Kapat",
+    "goCollections": "Koleksiyonlara Git",
+    "goHistory": "Geçmişe Git",
+    "goQa": "QA'ya Git",
+    "goMock": "Mock Sunuculara Git",
+    "switchToTab": "Şuna geç: {{name}}",
+    "newRequest": "Yeni İstek",
+    "switchToEnv": "Şuna geç: {{name}}",
+    "clearEnv": "Ortamı Temizle",
+    "manageEnv": "Ortamları Yönet",
+    "collectionRunner": "Koleksiyon Çalıştırıcı",
+    "importSwagger": "Swagger / OpenAPI İçe Aktar",
+    "importCollection": "Koleksiyon JSON İçe Aktar",
+    "importPostman": "Postman'den İçe Aktar",
+    "switchToDark": "Karanlık Moda Geç",
+    "switchToLight": "Aydınlık Moda Geç",
+    "toggleSidebar": "Kenar Çubuğunu Aç/Kapat"
+  },
+  "dbBanner": {
+    "blockedTitle": "Başka bir sekme yükseltmeyi engelliyor",
+    "blockedBody": "Bu uygulamanın başka bir sekmesi hâlâ eski şemayı çalıştırıyor. Diğer sekmeleri kapatın, buraya geri dönün ve sayfayı yeniden yükleyin.",
+    "incompatibleTitle": "Yerel veritabanı yeni şemayla uyumsuz",
+    "incompatibleBody": "IndexedDB, yükseltilemeyen daha eski bir sürüm içeriyor. Yerel veritabanını sıfırlamak bunu düzeltir, ancak eşitlenmemiş yerel değişiklikler silinir.",
+    "openFailedTitle": "Yerel veritabanı açılamadı",
+    "openFailedBody": "IndexedDB açılamadı. Sayfayı yeniden yüklemeyi deneyin; sorun devam ederse yerel veritabanını sıfırlayabilirsiniz (eşitlenmemiş yerel değişiklikler silinir).",
+    "reloadPage": "Sayfayı yeniden yükle",
+    "resetDb": "Yerel veritabanını sıfırla",
+    "resetting": "Sıfırlanıyor…"
+  },
+  "errorReport": {
+    "source": {
+      "render": "Görüntüleme hatası",
+      "action": "Eylem hatası",
+      "async": "Asenkron hata",
+      "default": "Hata"
+    },
+    "title": "Bir şeyler ters gitti",
+    "description": "{{source}} — uygulama hâlâ kullanılabilir olabilir, ancak düzeltebilmemiz için lütfen bunu bildirin.",
+    "messageLabel": "Mesaj",
+    "stackLabel": "Yığın izi",
+    "forwarded": "Bu hata otomatik olarak takıma iletildi. Bağlam eklemek isterseniz aşağıdaki raporu kopyalayıp <mono>{{channel}}</mono> kanalına yapıştırın.",
+    "resetHint": "Aynı hata her açılışta tekrar geliyorsa yerel oturumunuzu sıfırlayabilirsiniz. Bu yalnızca bu cihazda önbelleğe alınan verileri temizler — uzak çalışma alanlarınız, koleksiyonlarınız ve diğer verileriniz etkilenmez. Yeniden oturum açmanız gerekebilir.",
+    "resetting": "Sıfırlanıyor…",
+    "resetConfirm": "Onaylamak için tekrar tıklayın",
+    "resetLocal": "Yerel oturumu sıfırla",
+    "dismiss": "Yoksay",
+    "copyReport": "Raporu kopyala"
+  },
+  "connect": {
+    "title": "Sunucuna bağlan",
+    "description": "PatchMan, oturum açmak ve verilerini eşitlemek için bir sunucuya ihtiyaç duyar. Sunucu adresini gir veya çevrimdışı devam et.",
+    "urlPlaceholder": "https://sunucunuz/api",
+    "connectButton": "Bağlan",
+    "offlineButton": "Çevrimdışı devam et",
+    "invalidUrl": "Tam bir http(s):// adresi girin",
+    "offlineHint": "Çevrimdışı mod yalnızca bu cihazı kullanır — hesap yok, eşitleme yok.",
+    "connecting": "Bağlanılıyor…",
+    "unreachable": "Bu sunucuya ulaşılamadı. Adresi kontrol edip tekrar deneyin.",
+    "notPatchman": "Bu adres bir PatchMan sunucusu değil.",
+    "incompatibleAppOld": "Bu sunucu uygulamanın daha yeni bir sürümünü gerektiriyor. Lütfen PatchMan’i güncelleyin.",
+    "incompatibleBackendOld": "Bu sunucu bu uygulama için çok eski. Bir yöneticiden güncellemesini isteyin.",
+    "incompatibleTitle": "Sunucu uyumlu değil",
+    "incompatibleDescription": "Mevcut sunucu uygulamanın bu sürümüyle uyumlu değil. Uyumlu bir sunucuya bağlanın veya çevrimdışı devam edin.",
+    "switchedNotice": "{{from}} sunucusundan {{to}} sunucusuna geçildi — önceki sunucu bu uygulama sürümüyle uyumlu değil.",
+    "dismiss": "Kapat"
+  },
+  "tray": {
+    "show": "PatchMan’i Göster",
+    "newRequest": "Yeni İstek",
+    "settings": "Ayarlar",
+    "checkUpdates": "Güncellemeleri Denetle…",
+    "quit": "PatchMan’den Çık"
+  },
+  "quitConfirm": {
+    "title": "PatchMan'den çıkılsın mı?",
+    "description": "Devam eden istekler durur.",
+    "confirm": "Çıkış"
+  }
+}

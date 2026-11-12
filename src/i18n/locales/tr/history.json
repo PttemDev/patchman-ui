@@ -1,0 +1,12 @@
+{
+  "title": "Geçmiş",
+  "maxDays": "(en fazla 30 gün)",
+  "emptyTitle": "Henüz geçmiş yok",
+  "emptyHint": "İstek geçmişiniz burada görünecek",
+  "durationMs": "{{n}}ms",
+  "unavailable": {
+    "remote": "Sunucu geçmişini görmek için oturum açın / eşitleyin.",
+    "localBackend": "Gömülü arka uca ulaşılamıyor.",
+    "localDesktopOnly": "Yerel geçmiş yalnızca masaüstü uygulamasında kullanılabilir."
+  }
+}

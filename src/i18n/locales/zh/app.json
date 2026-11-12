@@ -1,0 +1,113 @@
+{
+  "renderError": {
+    "body": "应用遇到了渲染错误。请从对话框中复制报告并粘贴到 <mono>#patchman-support</mono>，然后重新加载以继续。",
+    "tryAgain": "重试",
+    "reload": "重新加载应用"
+  },
+  "scopePicker": {
+    "localAvailable": "在本机上运行。127.0.0.1 / LAN 端点必需。",
+    "localUnavailable": "不可用 — 此连接未写入本地 BE。请编辑 + 保存后重试。",
+    "remoteAvailable": "在 PatchMan 服务器上运行。与团队成员 / 服务器网络后的生产环境保持一致。",
+    "remoteUnavailable": "不可用 — 此连接未写入团队 BE。请编辑 + 保存后重试。",
+    "tooltip": "哪个后端运行此 {{noun}} — 你的本地桌面 BE 还是团队服务器。"
+  },
+  "commandPalette": {
+    "title": "命令面板",
+    "placeholder": "输入命令...",
+    "empty": "未找到命令",
+    "emptyHint": "尝试其他搜索词",
+    "navigate": "导航",
+    "select": "选择",
+    "toggleHint": "按 K 切换"
+  },
+  "commandCategories": {
+    "Request": "请求",
+    "Navigation": "导航",
+    "Environment": "环境",
+    "Tools": "工具",
+    "View": "视图"
+  },
+  "commands": {
+    "newTab": "新建请求标签页",
+    "sendRequest": "发送请求",
+    "saveToCollection": "保存到集合",
+    "generateCode": "生成代码",
+    "closeTab": "关闭当前标签页",
+    "goCollections": "转到集合",
+    "goHistory": "转到历史",
+    "goQa": "转到 QA",
+    "goMock": "转到 Mock 服务器",
+    "switchToTab": "切换到：{{name}}",
+    "newRequest": "新建请求",
+    "switchToEnv": "切换到：{{name}}",
+    "clearEnv": "清除环境",
+    "manageEnv": "管理环境",
+    "collectionRunner": "集合运行器",
+    "importSwagger": "导入 Swagger / OpenAPI",
+    "importCollection": "导入集合 JSON",
+    "importPostman": "从 Postman 导入",
+    "switchToDark": "切换到深色模式",
+    "switchToLight": "切换到浅色模式",
+    "toggleSidebar": "切换侧边栏"
+  },
+  "dbBanner": {
+    "blockedTitle": "另一个标签页正在阻止升级",
+    "blockedBody": "此应用的另一个标签页仍在运行旧架构。请关闭其他标签页，回到此处，然后重新加载页面。",
+    "incompatibleTitle": "本地数据库与新架构不兼容",
+    "incompatibleBody": "IndexedDB 中保存的是无法升级的旧版本。重置本地数据库可以解决此问题，但所有尚未同步的本地更改都将被删除。",
+    "openFailedTitle": "无法打开本地数据库",
+    "openFailedBody": "IndexedDB 打开失败。请尝试重新加载页面；如果问题仍然存在，你可以重置本地数据库（未同步的本地更改将被删除）。",
+    "reloadPage": "重新加载页面",
+    "resetDb": "重置本地数据库",
+    "resetting": "正在重置…"
+  },
+  "errorReport": {
+    "source": {
+      "render": "渲染错误",
+      "action": "操作错误",
+      "async": "异步错误",
+      "default": "错误"
+    },
+    "title": "出了点问题",
+    "description": "{{source}} — 应用可能仍可使用，但请报告此问题以便我们修复。",
+    "messageLabel": "消息",
+    "stackLabel": "堆栈跟踪",
+    "forwarded": "此错误已自动转发给团队。如果你想补充背景信息，请复制下面的报告并粘贴到 <mono>{{channel}}</mono>。",
+    "resetHint": "如果每次启动都反复出现同一错误，你可以重置本地会话。这只会清除此设备上缓存的数据 — 你的远程工作区、集合和其他数据不受影响。你可能需要重新登录。",
+    "resetting": "正在重置…",
+    "resetConfirm": "再次点击以确认",
+    "resetLocal": "重置本地会话",
+    "dismiss": "忽略",
+    "copyReport": "复制报告"
+  },
+  "connect": {
+    "title": "连接到你的后端",
+    "description": "PatchMan 需要一个后端来登录和同步数据。请输入你的后端地址，或继续离线使用。",
+    "urlPlaceholder": "https://your-backend/api",
+    "connectButton": "连接",
+    "offlineButton": "离线继续",
+    "invalidUrl": "请输入完整的 http(s):// 地址",
+    "offlineHint": "离线模式仅使用本设备——无账号、无同步。",
+    "connecting": "正在连接…",
+    "unreachable": "无法连接到该后端。请检查地址后重试。",
+    "notPatchman": "该地址不是 PatchMan 后端。",
+    "incompatibleAppOld": "此后端需要更新版本的应用。请更新 PatchMan。",
+    "incompatibleBackendOld": "此后端对此应用来说太旧。请让管理员更新它。",
+    "incompatibleTitle": "后端不兼容",
+    "incompatibleDescription": "当前后端与此版本的应用不兼容。请连接兼容的后端，或继续离线使用。",
+    "switchedNotice": "已从 {{from}} 切换到 {{to}}——之前的后端与此应用版本不兼容。",
+    "dismiss": "关闭"
+  },
+  "tray": {
+    "show": "显示 PatchMan",
+    "newRequest": "新建请求",
+    "settings": "设置",
+    "checkUpdates": "检查更新…",
+    "quit": "退出 PatchMan"
+  },
+  "quitConfirm": {
+    "title": "退出 PatchMan？",
+    "description": "所有进行中的请求将停止。",
+    "confirm": "退出"
+  }
+}

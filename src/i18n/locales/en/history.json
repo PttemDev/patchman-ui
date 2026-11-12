@@ -1,0 +1,12 @@
+{
+  "title": "History",
+  "maxDays": "(max 30 days)",
+  "emptyTitle": "No history yet",
+  "emptyHint": "Your request history will appear here",
+  "durationMs": "{{n}}ms",
+  "unavailable": {
+    "remote": "Sign in / sync to see server history.",
+    "localBackend": "Embedded backend not reachable.",
+    "localDesktopOnly": "Local history is only available in the desktop app."
+  }
+}

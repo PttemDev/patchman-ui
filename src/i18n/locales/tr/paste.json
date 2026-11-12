@@ -1,0 +1,23 @@
+{
+  "title": "Yapıştırma Geçmişi",
+  "searchPlaceholder": "Yapıştırma geçmişinde ara...",
+  "clearAll": "Tümünü temizle",
+  "empty": {
+    "titleEmpty": "Henüz yapıştırma geçmişi yok",
+    "titleNoMatch": "Eşleşme yok",
+    "hintEmpty": "Alanlara yapıştırdığınız metinler burada görünür",
+    "hintNoMatch": "Farklı bir arama terimi deneyin"
+  },
+  "deleteEntry": "Girdiyi sil",
+  "hints": {
+    "navigate": "Gezin",
+    "insert": "Ekle"
+  },
+  "relativeTime": {
+    "justNow": "az önce",
+    "secondsAgo": "{{n}}sn önce",
+    "minutesAgo": "{{n}}dk önce",
+    "hoursAgo": "{{n}}sa önce",
+    "daysAgo": "{{n}}g önce"
+  }
+}

@@ -1,0 +1,78 @@
+{
+  "tabs": {
+    "collections": "Koleksiyonlar",
+    "history": "Geçmiş",
+    "database": "Veritabanı",
+    "kafka": "Mesajlaşma",
+    "storage": "Depolama (S3)",
+    "redis": "Redis",
+    "elasticsearch": "Elasticsearch",
+    "kubernetes": "Kubernetes",
+    "git": "Git",
+    "ai": "Yapay Zekâ",
+    "excalidraw": "Beyaz Tahtalar",
+    "devtools": "Geliştirici Araçları",
+    "qa": "QA Testleri",
+    "qa-planning": "QA Planlama",
+    "mock": "Mock Sunucular",
+    "websocket": "WebSocket",
+    "cookies": "Çerezler",
+    "audit": "Denetim ve Etkinlik",
+    "notes": "Notlar & Brain",
+    "dashboards": "Dashboard'lar"
+  },
+  "beta": "beta",
+  "settingsProxyOn": "Ayarlar (özel proxy açık)",
+  "settingsProxyOnShort": "Ayarlar (proxy açık)",
+  "update": "Güncelle",
+  "updateTooltip": "Yeni bir sürüm mevcut — güncellemek için tıklayın",
+  "darkMode": "Koyu tema",
+  "lightMode": "Açık tema",
+  "expandSidebar": "Kenar çubuğunu genişlet",
+  "collapseToIcons": "Simgelere daralt",
+  "collapseSidebar": "Kenar çubuğunu daralt",
+  "expandSidebarShortcut": "Kenar çubuğunu genişlet (Cmd+B)",
+  "syncBadge": {
+    "localLabel": "Yerel",
+    "localSub": "Hesap yok",
+    "localDbLabel": "Yerel DB",
+    "localDbSub": "Giriş yapıldı · gömülü",
+    "syncedLabel": "Eşitlendi",
+    "syncedSub": "Uzak DB",
+    "localTooltip": "Hesap olmadan çalışıyorsunuz. Giriş yapmak için tıklayın.",
+    "localDbTooltip": "Uzak hesabınız değil, gömülü SQLite okunuyor. Yönetmek için tıklayın.",
+    "syncedTooltip": "Uzak hesabınız okunuyor. Veri kaynağını değiştirmek için tıklayın."
+  },
+  "actions": {
+    "refreshCollections": "Koleksiyonları yenile",
+    "joinShared": "Paylaşılan koleksiyona katıl",
+    "importCollection": "Koleksiyon içe aktar",
+    "newCollection": "Yeni koleksiyon"
+  },
+  "userMenu": {
+    "userFallback": "Kullanıcı",
+    "adminPanel": "Yönetici paneli",
+    "logout": "Çıkış yap"
+  },
+  "download": {
+    "desktopApp": "Uygulamayı indir",
+    "subtitle": "çevrimdışı ve QA araçları için",
+    "getApp": "Uygulamayı indir",
+    "tooltip": "PatchMan masaüstü uygulamasını indir",
+    "steps": {
+      "heading": "Masaüstü uygulamasını kur",
+      "step1Title": "İndir",
+      "step1Action": "Mac için indir",
+      "step2Title": "Kur",
+      "step2Desc": "Dosyayı açıp PatchMan’i Uygulamalar’a sürükleyin.",
+      "step3Title": "Bağlan",
+      "step3Desc": "PatchMan’i açın, sonra bu sunucuya bağlamak için tıklayın.",
+      "step3Action": "Bu sunucuya bağla"
+    }
+  },
+  "statusBar": {
+    "updateAvailable": "Güncelleme var",
+    "changelogTooltip": "Yenilikler — sürüm notlarını aç"
+  },
+  "moreTools": "Diğer araçlar"
+}

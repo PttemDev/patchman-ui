@@ -1,0 +1,90 @@
+{
+  "saving": "Saving...",
+  "toast": {
+    "serverCreated": "Server created",
+    "serverCreatedDesc": "Mock server \"{{name}}\" is ready",
+    "createServerFailed": "Failed to create server",
+    "serverUpdated": "Server updated",
+    "updateServerFailed": "Failed to update server",
+    "serverDeleted": "Server deleted",
+    "routeDeleted": "Route deleted",
+    "deleteFailed": "Delete failed",
+    "routeUpdated": "Route updated",
+    "routeCreated": "Route created",
+    "saveRouteFailed": "Failed to save route"
+  },
+  "list": {
+    "title": "Mock Servers",
+    "emptyTitle": "No mock servers yet",
+    "emptyDescription": "Mock servers let you simulate API endpoints for testing without a real backend.",
+    "createServer": "Create Mock Server",
+    "routeCountOne": "{{count}} route",
+    "routeCountOther": "{{count}} routes"
+  },
+  "delete": {
+    "serverTitle": "Delete server?",
+    "routeTitle": "Delete route?",
+    "description": "Are you sure you want to delete \"{{label}}\"? This action cannot be undone."
+  },
+  "header": {
+    "newServer": "New Mock Server",
+    "editServer": "Edit Server"
+  },
+  "wizard": {
+    "setup": "Setup"
+  },
+  "form": {
+    "serverName": "Server Name",
+    "serverNamePlaceholder": "e.g., Payment API, User Service",
+    "urlPrefix": "URL Prefix",
+    "namespaceTitle": "Your mandatory namespace — locks in to prevent prefix collisions across users",
+    "prefixPlaceholder": "e.g., payment-api",
+    "prefixHintNs": "Your mocks live under {{namespace}}/ — leave empty to auto-generate the suffix from name",
+    "prefixHint": "Leave empty to auto-generate from name",
+    "baseUrl": "Mock Base URL",
+    "baseUrlHint": "Routes you add will be accessible under this URL",
+    "creating": "Creating...",
+    "createServer": "Create Server",
+    "saveChanges": "Save Changes"
+  },
+  "detail": {
+    "notFound": "Server not found",
+    "backToList": "Back to list",
+    "editServer": "Edit Server",
+    "disable": "Disable",
+    "enable": "Enable",
+    "deleteServer": "Delete Server",
+    "active": "Active",
+    "disabled": "Disabled",
+    "copyBaseUrl": "Copy base URL",
+    "routesCount": "Routes ({{count}})",
+    "noRoutes": "No routes yet. Add your first route to start mocking endpoints.",
+    "addRoute": "Add Route",
+    "copyFullUrl": "Copy full URL",
+    "copyUrl": "Copy URL",
+    "openTabName": "Mock · {{name}} {{method}} {{path}}",
+    "openAsRequest": "Open as request",
+    "open": "Open"
+  },
+  "editor": {
+    "editRoute": "Edit Route",
+    "newRoute": "New Route",
+    "description": "Configure the mock route and its response.",
+    "saveRoute": "Save Route"
+  },
+  "route": {
+    "method": "Method",
+    "path": "Path",
+    "statusCode": "Status Code",
+    "delay": "Delay (ms)",
+    "responseBody": "Response Body",
+    "delayLabel": "Delay:",
+    "bodyLabel": "Body:"
+  },
+  "routeForm": {
+    "endpoint": "Endpoint",
+    "fullUrlLabel": "Full URL:",
+    "responseHeaders": "Response Headers (JSON)",
+    "updateRoute": "Update Route"
+  }
+}

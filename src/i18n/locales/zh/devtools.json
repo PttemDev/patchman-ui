@@ -1,0 +1,432 @@
+{
+  "panel": {
+    "unknownTool": "未知工具。"
+  },
+  "sidebar": {
+    "utilities": "实用工具",
+    "openInNewTab": "在新标签页中打开"
+  },
+  "tools": {
+    "jsonDiff": { "label": "JSON Diff", "description": "并排比较两段 JSON/文本" },
+    "jwt": { "label": "JWT", "description": "解码、验证 + 签名 JSON Web Token" },
+    "base64": { "label": "Base64", "description": "编码 / 解码文本 + 文件" },
+    "url": { "label": "URL 编码/解码", "description": "百分号编码 / 解码" },
+    "timestamp": { "label": "时间戳", "description": "Epoch ↔ 日期、时区" },
+    "uuid": { "label": "UUID / ULID", "description": "生成标识符" },
+    "hash": { "label": "Hash", "description": "SHA-1 / SHA-256 / SHA-512" },
+    "regex": { "label": "Regex", "description": "测试 + 常用模式库" },
+    "jsConsole": { "label": "JS 控制台", "description": "在沙箱中运行 JavaScript" },
+    "snippets": { "label": "代码手册", "description": "常见易错任务的正确代码片段" },
+    "mockData": { "label": "模拟数据", "description": "生成假数据 — JSON / CSV / SQL / NDJSON" },
+    "dns": { "label": "DNS 工具箱", "description": "DNS 查询 — A/AAAA/MX/TXT/NS/CNAME/SRV/PTR + 反向" },
+    "webAudit": { "label": "Web 审计", "description": "SEO + Web 质量检查（无需浏览器）" }
+  },
+  "copy": {
+    "toClipboard": "已复制到剪贴板",
+    "failed": "复制失败",
+    "copiedLabel": "已复制 {{label}}",
+    "all": "全部复制"
+  },
+  "actions": {
+    "clear": "清除",
+    "generate": "生成",
+    "download": "下载",
+    "run": "运行",
+    "now": "现在",
+    "sample": "示例"
+  },
+  "units": {
+    "charsBytes": "{{chars}} 字符 · {{bytes}} 字节"
+  },
+  "placeholders": {
+    "empty": "（空）",
+    "undefined": "undefined"
+  },
+  "datetime": {
+    "time": "时间",
+    "weekday": {
+      "mon": "一",
+      "tue": "二",
+      "wed": "三",
+      "thu": "四",
+      "fri": "五",
+      "sat": "六",
+      "sun": "日"
+    }
+  },
+  "base64": {
+    "intro": "实时双向转换器 — 编辑任一侧，另一侧即时更新（UTF-8 安全）。",
+    "urlSafe": "URL-safe",
+    "plainText": "纯文本",
+    "textPlaceholder": "你好，世界！",
+    "paneLabel": "Base64",
+    "paneLabelUrlSafe": "Base64 (url-safe)",
+    "invalid": "不是有效的 base64 — 请检查是否有杂散字符。",
+    "invalidUrlSafeHint": "不是有效的 base64 — 请检查是否有杂散字符，若使用了 - 和 _ 请启用 URL-safe。",
+    "fileToBase64": "文件 → base64",
+    "dropIdle": "拖入文件或点击浏览",
+    "dropActive": "拖放以加载",
+    "dropHint": "上方的 Base64 面板会填入编码后的字节。",
+    "readError": "无法读取文件"
+  },
+  "hash": {
+    "text": "文本",
+    "uppercaseHex": "大写十六进制",
+    "textPlaceholder": "输入或粘贴文本以实时计算哈希…",
+    "hashFile": "计算文件哈希",
+    "fileDescription": "计算任意文件的加密校验和 — 可用于验证下载或检测更改。文件在你的浏览器中本地读取；不会上传任何内容。",
+    "dropAria": "将文件拖到此处，或点击浏览",
+    "dropText": "将文件拖到此处，或 <1>点击浏览</1>",
+    "hashing": "计算中…",
+    "hashError": "无法计算文件哈希",
+    "md5Note": "MD5 被有意省略 — 浏览器 Web Crypto API 不支持它。哈希通过 crypto.subtle.digest 在本地计算。"
+  },
+  "uuid": {
+    "count": "数量 (1–100)",
+    "generateV4": "生成 v4",
+    "nilUuid": "Nil UUID",
+    "uppercase": "大写",
+    "hyphens": "连字符",
+    "uuidV4Label": "UUID v4",
+    "ulidLabel": "ULID",
+    "sortable": "可排序",
+    "regenerate": "重新生成",
+    "footer": "v4 使用 crypto.randomUUID()；ULID = 48 位时间戳 + 80 位随机数。"
+  },
+  "jsonDiff": {
+    "formatBoth": "格式化两侧",
+    "swapSides": "交换两侧",
+    "ignoreWhitespace": "忽略空白",
+    "original": "原始",
+    "modified": "修改后",
+    "neitherValid": "两侧都不是有效的 JSON",
+    "leftInvalid": "左侧不是有效的 JSON",
+    "rightInvalid": "右侧不是有效的 JSON",
+    "diffingAsText": "— 按纯文本比较。"
+  },
+  "url": {
+    "component": "组件",
+    "fullUrl": "完整 URL",
+    "componentDesc": "encodeURIComponent — 转义 & = ? / 等保留字符，使值在查询参数中安全。",
+    "fullDesc": "encodeURI — 保留 URL 结构（: / ? & = # 保持不变），用于编码整个 URL。",
+    "decodedRaw": "已解码（原始）",
+    "encoded": "已编码",
+    "cantDecode": "无法解码 — 请检查 % 转义",
+    "liveBidirectional": "实时 & 双向 — 编辑任一面板，另一面板自动更新。",
+    "breakdown": "URL 分解（已解码）",
+    "origin": "源",
+    "path": "路径",
+    "key": "键",
+    "valueDecoded": "值（已解码）",
+    "noQueryParams": "没有查询参数。"
+  },
+  "timestamp": {
+    "timezone": "时区",
+    "resetToLocal": "重置为本地",
+    "nowEpoch": "现在：{{epoch}}",
+    "epochOrDate": "Epoch 或日期字符串",
+    "inputPlaceholder": "1516239022、1516239022000 或 2026-07-24T12:00:00Z",
+    "parseError": "无法将其解析为 epoch 或日期。",
+    "unixSeconds": "Unix（秒）",
+    "unixMillis": "Unix（毫秒）",
+    "iso8601Utc": "ISO 8601 (UTC)",
+    "relative": "相对",
+    "local": "本地",
+    "inZone": "在 {{zone}}",
+    "dateToEpoch": "日期 → epoch",
+    "isoSyncHint": "在上方选择日期或在此输入 ISO 8601 — 两者保持同步。",
+    "invalidDate": "不是有效的日期字符串。"
+  },
+  "dns": {
+    "hostPlaceholder": "主机名或 IP — example.com 或 8.8.8.8",
+    "serverPlaceholder": "自定义 DNS 服务器（可选）— 1.1.1.1",
+    "lookup": "查询",
+    "records": "记录",
+    "all": "全部",
+    "none": "无",
+    "ipNudge": "看起来像 IP — 启用 PTR 进行反向查询",
+    "lookupFailed": "查询失败",
+    "resolving": "解析中…",
+    "emptyState": "输入主机名或 IP，选择记录类型，然后按 <1>查询</1>。",
+    "resolverLabel": "解析器",
+    "recordCountOne": "{{count}} 条记录",
+    "recordCountOther": "{{count}} 条记录",
+    "typeRecords": "{{type}} 记录",
+    "noRecords": "没有记录。",
+    "footer": "在服务器端通过真实 DNS 解析器（miekg/dns）解析，因此每条记录都带有其 TTL，并可获得 SOA/CAA。PTR 是反向查询 — 输入 IP 以使用它。"
+  },
+  "jwt": {
+    "tokenPlaceholder": "粘贴一个 JWT (header.payload.signature)",
+    "encoded": "已编码",
+    "expired": "已过期",
+    "notYetValid": "尚未生效",
+    "validTime": "有效（时间）",
+    "noExpiryClaim": "无过期声明",
+    "header": "头部",
+    "headerSub": "（算法 & token 类型）",
+    "payload": "载荷",
+    "payloadSub": "（声明 / 数据）",
+    "beautify": "美化",
+    "beautifyJson": "美化 JSON",
+    "verifySignature": "验证签名",
+    "algorithm": "算法",
+    "secret": "密钥",
+    "secretPlaceholder": "HMAC 共享密钥",
+    "hsHint": "编辑密钥、头部或载荷会实时重新签名 token。",
+    "publicKey": "公钥 (PEM, SPKI)",
+    "rsHint": "RS256 此处仅用于验证 — 没有私钥时编辑头部/载荷无法重新签名。",
+    "signatureVerified": "签名已验证",
+    "invalidSignature": "无效签名",
+    "unsigned": "未签名 — 无签名段",
+    "enterSecret": "输入密钥以验证签名",
+    "enterPublicKey": "输入公钥以验证签名",
+    "unsupportedAlg": "不支持的算法：{{alg}}",
+    "verificationFailed": "验证失败。",
+    "signingFailed": "签名失败。",
+    "headerInvalidJson": "头部不是有效的 JSON。",
+    "payloadInvalidJson": "载荷不是有效的 JSON。",
+    "decode": {
+      "tooFewSegments": "JWT 至少有两个以点分隔的段（header.payload）。",
+      "decodeFailed": "无法对 token 进行 base64url 解码。"
+    }
+  },
+  "regex": {
+    "commonPatterns": "常用模式",
+    "pattern": "模式",
+    "testString": "测试字符串",
+    "testPlaceholder": "输入或粘贴要测试的文本…",
+    "matches": "匹配项",
+    "noTestString": "没有测试字符串。",
+    "matchCountOne": "{{count}} 个匹配",
+    "matchCountOther": "{{count}} 个匹配",
+    "cappedAt": "（上限 {{max}}）",
+    "andMore": "…还有 {{count}} 个。",
+    "replaceWith": "替换为",
+    "result": "结果",
+    "invalidLabel": "无效的 regex",
+    "invalidFallback": "无效的正则表达式。",
+    "invalidReplacement": "无效的替换。",
+    "flag": {
+      "g": "Global：查找所有匹配，而不仅是第一个",
+      "i": "忽略大小写",
+      "m": "Multiline：^ 和 $ 在换行处匹配",
+      "s": "Dotall：. 也匹配换行符",
+      "u": "Unicode：启用 \\p{…} 类和完整 Unicode",
+      "y": "Sticky：仅从 lastIndex 开始匹配"
+    }
+  },
+  "snippets": {
+    "commonMistake": "常见错误：",
+    "copied": "代码片段已复制"
+  },
+  "mockData": {
+    "title": "模拟数据",
+    "rows": "行数",
+    "sqlInsert": "SQL insert",
+    "tablePlaceholder": "表",
+    "copiedDesc": "{{count}} 行，格式为 {{format}}",
+    "schemaFieldsOne": "架构 · {{count}} 个字段",
+    "schemaFieldsOther": "架构 · {{count}} 个字段",
+    "field": "字段",
+    "fieldNamePlaceholder": "字段名",
+    "noFields": "没有字段 — 添加一个以开始。",
+    "output": "输出",
+    "outputRowsOne": "· {{count}} 行",
+    "outputRowsOther": "· {{count}} 行",
+    "values": "· ~{{count}} 个值",
+    "emptyState": "定义你的架构，然后按 <1>生成</1>。",
+    "listPlaceholder": "a, b, c",
+    "constantPlaceholder": "常量",
+    "opt": {
+      "min": "最小",
+      "max": "最大",
+      "dec": "小数",
+      "blank": "% 空白",
+      "from": "起",
+      "to": "至",
+      "list": "列表",
+      "value": "值"
+    },
+    "group": {
+      "Basic": "基础",
+      "Number": "数字",
+      "Person": "人员",
+      "Location": "位置",
+      "Commerce": "商务",
+      "Time": "时间",
+      "Text": "文本",
+      "Custom": "自定义"
+    },
+    "fieldType": {
+      "rowNumber": "行号",
+      "uuid": "UUID",
+      "boolean": "布尔值",
+      "integer": "整数",
+      "decimal": "小数",
+      "firstName": "名",
+      "lastName": "姓",
+      "fullName": "全名",
+      "email": "电子邮件",
+      "username": "用户名",
+      "phone": "电话",
+      "city": "城市",
+      "country": "国家",
+      "ipv4": "IPv4",
+      "company": "公司",
+      "url": "URL",
+      "color": "颜色（hex）",
+      "date": "日期",
+      "datetime": "日期时间（ISO）",
+      "word": "单词",
+      "sentence": "句子",
+      "paragraph": "段落",
+      "enum": "枚举（从列表选择）",
+      "constant": "常量"
+    }
+  },
+  "jsConsole": {
+    "stop": "停止",
+    "runHint": "⌘/Ctrl + Enter 运行",
+    "console": "控制台",
+    "consoleEmpty": "输出显示在此处。沙箱化 — 无 DOM，无法访问应用。",
+    "dragResize": "拖动以调整大小",
+    "variables": "变量",
+    "varsEmpty": "运行后顶级变量会显示在此处。",
+    "stopped": "⏹ 已停止。",
+    "timedOut": "⏱ 执行在 {{seconds}}s 后超时 — worker 已终止。",
+    "workerError": "Worker 错误"
+  },
+  "webAudit": {
+    "urlPlaceholder": "example.com",
+    "followRedirects": "跟随重定向",
+    "auditing": "审计中…",
+    "auditFailed": "审计失败",
+    "emptyState": "输入一个 URL，然后按 <1>运行</1>。",
+    "errorCountOne": "{{count}} 个错误",
+    "errorCountOther": "{{count}} 个错误",
+    "warningCountOne": "{{count}} 个警告",
+    "warningCountOther": "{{count}} 个警告",
+    "okCount": "{{count}} 个正常",
+    "infoCount": "{{count}} 个信息",
+    "checkCountOne": "{{count}} 项检查",
+    "checkCountOther": "{{count}} 项检查",
+    "typeCountOne": "{{count}} 种类型",
+    "typeCountOther": "{{count}} 种类型",
+    "hopCountOne": "{{count}} 跳",
+    "hopCountOther": "{{count}} 跳",
+    "chars": "{{count}} 字符",
+    "imagesTotal": "共 {{count}} 张",
+    "imagesMissingAlt": "{{count}} 张缺少 alt",
+    "socialMeta": "{{og}} OG · {{twitter}} Twitter",
+    "openGraph": "Open Graph",
+    "noOpenGraph": "没有 Open Graph 标签。",
+    "noTwitter": "没有 Twitter 标签。",
+    "noJsonLd": "未找到 JSON-LD。",
+    "none": "无",
+    "robotsPresent": "存在 robots.txt",
+    "robotsSitemap": "robots.txt 声明了 sitemap",
+    "sitemapPresent": "存在 sitemap.xml",
+    "noRedirects": "没有重定向。",
+    "footer": "在服务器端获取 + 解析（无浏览器）。不评估 JavaScript 渲染的内容 — 检查针对原始 HTML 响应运行。",
+    "severity": {
+      "error": "错误",
+      "warn": "警告",
+      "ok": "正常",
+      "info": "信息"
+    },
+    "section": {
+      "seo": "SEO",
+      "social": "社交",
+      "structuredData": "结构化数据",
+      "performance": "性能",
+      "securityHeaders": "安全头",
+      "crawlability": "可抓取性",
+      "redirectChain": "重定向链"
+    },
+    "kv": {
+      "title": "标题",
+      "metaDesc": "Meta 描述",
+      "canonical": "Canonical",
+      "robotsMeta": "Robots meta",
+      "lang": "语言",
+      "viewport": "Viewport",
+      "images": "图片",
+      "hreflang": "Hreflang",
+      "compression": "压缩",
+      "htmlSize": "HTML 大小",
+      "h1": "H1 ({{count}})"
+    }
+  },
+  "regexLib": {
+    "cat": {
+      "validation": "验证",
+      "extraction": "提取"
+    },
+    "emailPragmatic": { "name": "电子邮件（实用）", "description": "实用的电子邮件检查 — 非完整 RFC 5322。" },
+    "emailStrict": { "name": "电子邮件（更严格）", "description": "受限的本地/域字符集，带 2+ 字母 TLD。" },
+    "passwordStrong": { "name": "密码（8+，大写、小写、数字、特殊）", "description": "至少 8 个字符，至少一个小写、大写、数字和特殊字符。" },
+    "passwordMedium": { "name": "密码（8+，大写、小写、数字）", "description": "至少 8 个字符，至少一个小写、大写和数字。" },
+    "fullName": { "name": "全名（Ad Soyad，Unicode）", "description": "两个或更多 Unicode 单词（支持土耳其字母）；允许空格、撇号、连字符。" },
+    "urlHttp": { "name": "URL (http/https)", "description": "绝对 http 或 https URL。" },
+    "slug": { "name": "Slug", "description": "小写 URL slug — 由单个连字符连接的单词。" },
+    "uuidV4": { "name": "UUID (v4)", "description": "RFC 4122 版本 4 UUID。" },
+    "hexColor": { "name": "Hex 颜色", "description": "带前导 # 的 3 位或 6 位 hex 颜色。" },
+    "ipv4": { "name": "IPv4", "description": "点分四段 IPv4 地址（每段 0–255）。" },
+    "isoDate": { "name": "ISO 日期 (YYYY-MM-DD)", "description": "YYYY-MM-DD 形式的日历日期。" },
+    "time24h": { "name": "时间（24 小时 HH:MM）", "description": "24 小时制时间，HH:MM。" },
+    "phoneTr": { "name": "土耳其电话", "description": "土耳其 GSM 号码，可选 +90/0 前缀和空格。" },
+    "phoneE164": { "name": "电话 (E.164)", "description": "E.164 格式的国际电话号码。" },
+    "tcKimlik": { "name": "土耳其身份证号（TC Kimlik No，仅格式）", "description": "11 位数字，不以 0 开头（仅格式检查，无校验和）。" },
+    "iban": { "name": "IBAN（通用）", "description": "通用 IBAN — 2 字母国家、2 位校验码、11–30 位字母数字。" },
+    "numbers": { "name": "数字（整数/浮点）", "description": "整数和小数，可选前导负号。" },
+    "words": { "name": "单词", "description": "单词标记 — 字母、数字和下划线。" },
+    "hashtags": { "name": "话题标签", "description": "如 #topic 的话题标签。" },
+    "mentions": { "name": "提及", "description": "如 @user 的提及。" },
+    "htmlTags": { "name": "HTML 标签", "description": "开始和结束的 HTML 标签。" },
+    "dupWord": { "name": "重复单词", "description": "紧接着重复的单词，捕获在组 1 中。" }
+  },
+  "snippetsLib": {
+    "cat": {
+      "dateTime": "日期与时间",
+      "auth": "认证与令牌",
+      "encoding": "编码",
+      "data": "数据与可靠性"
+    },
+    "time-parse": {
+      "title": "解析并格式化时间戳（时区感知）",
+      "pitfall": "在服务器本地时区解析挂钟字符串，或不带时区格式化 — 会在 DST 和机器之间悄悄偏移时间。"
+    },
+    "epoch-convert": {
+      "title": "转换 epoch ↔ 日期",
+      "pitfall": "混淆秒和毫秒 — 一个悄无声息的 1000× 错误，会把你带到 1970 年或 52000 年。"
+    },
+    "jwt-verify": {
+      "title": "验证一个 JWT",
+      "pitfall": "解码时不验证签名、接受 alg:none、不固定算法（RS→HS 密钥混淆）或跳过 exp/aud/iss。"
+    },
+    "password-hash": {
+      "title": "哈希并验证密码",
+      "pitfall": "用 SHA-256/MD5 哈希密码 — 它们太快了。使用慢速、加盐的 KDF（bcrypt / scrypt / argon2）。"
+    },
+    "hmac-verify": {
+      "title": "验证 HMAC 签名",
+      "pitfall": "用 == / bytes.Equal 比较签名会泄露时序。请使用恒定时间比较。"
+    },
+    "secure-token": {
+      "title": "生成安全的随机令牌",
+      "pitfall": "math/rand · Math.random() · random.random() 并非加密安全 — 切勿用于令牌、ID 或密钥。"
+    },
+    "base64url": {
+      "title": "Base64url 编码 / 解码",
+      "pitfall": "标准 base64 使用 + / 和 = 填充，在 URL 和 JWT 中会出错。它们使用不带填充的 base64url (- _)。"
+    },
+    "sql-param": {
+      "title": "参数化 SQL 查询",
+      "pitfall": "用字符串拼接 / format 构建 SQL = SQL 注入。始终使用占位符，让驱动程序绑定值。"
+    },
+    "retry-backoff": {
+      "title": "带指数退避 + 抖动的重试",
+      "pitfall": "固定间隔的重试会挤垮陷入困境的服务器。使用带抖动的指数退避，限制延迟，并约束总尝试次数。"
+    }
+  }
+}

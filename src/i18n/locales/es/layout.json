@@ -1,0 +1,78 @@
+{
+  "tabs": {
+    "collections": "Colecciones",
+    "history": "Historial",
+    "database": "Base de datos",
+    "kafka": "Mensajería",
+    "storage": "Almacenamiento (S3)",
+    "redis": "Redis",
+    "elasticsearch": "Elasticsearch",
+    "kubernetes": "Kubernetes",
+    "git": "Git",
+    "ai": "IA",
+    "excalidraw": "Pizarras",
+    "devtools": "Herramientas de desarrollo",
+    "qa": "Pruebas QA",
+    "qa-planning": "Planificación QA",
+    "mock": "Servidores mock",
+    "websocket": "WebSocket",
+    "cookies": "Cookies",
+    "audit": "Auditoría y actividad",
+    "notes": "Notas y Brain",
+    "dashboards": "Paneles"
+  },
+  "beta": "beta",
+  "settingsProxyOn": "Ajustes (proxy personalizado activado)",
+  "settingsProxyOnShort": "Ajustes (proxy activado)",
+  "update": "Actualizar",
+  "updateTooltip": "Hay una nueva versión disponible — haz clic para actualizar",
+  "darkMode": "Modo oscuro",
+  "lightMode": "Modo claro",
+  "expandSidebar": "Expandir barra lateral",
+  "collapseToIcons": "Contraer a iconos",
+  "collapseSidebar": "Contraer barra lateral",
+  "expandSidebarShortcut": "Expandir barra lateral (Cmd+B)",
+  "syncBadge": {
+    "localLabel": "Local",
+    "localSub": "Sin cuenta",
+    "localDbLabel": "DB local",
+    "localDbSub": "Sesión iniciada · integrado",
+    "syncedLabel": "Sincronizado",
+    "syncedSub": "DB remota",
+    "localTooltip": "Trabajando sin una cuenta. Haz clic para iniciar sesión.",
+    "localDbTooltip": "Leyendo la SQLite integrada, no tu cuenta remota. Haz clic para gestionar.",
+    "syncedTooltip": "Leyendo tu cuenta remota. Haz clic para cambiar la fuente de datos."
+  },
+  "actions": {
+    "refreshCollections": "Actualizar colecciones",
+    "joinShared": "Unirse a una colección compartida",
+    "importCollection": "Importar colección",
+    "newCollection": "Nueva colección"
+  },
+  "userMenu": {
+    "userFallback": "Usuario",
+    "adminPanel": "Panel de administración",
+    "logout": "Cerrar sesión"
+  },
+  "download": {
+    "desktopApp": "Descargar la app de escritorio",
+    "subtitle": "para herramientas sin conexión y de QA",
+    "getApp": "Obtener la app de escritorio",
+    "tooltip": "Descargar la app de escritorio de PatchMan",
+    "steps": {
+      "heading": "Consigue la app de escritorio",
+      "step1Title": "Descargar",
+      "step1Action": "Descargar para Mac",
+      "step2Title": "Instalar",
+      "step2Desc": "Abre el archivo y arrastra PatchMan a Aplicaciones.",
+      "step3Title": "Conectar",
+      "step3Desc": "Abre PatchMan y haz clic para conectarla a este servidor.",
+      "step3Action": "Conectar a este servidor"
+    }
+  },
+  "statusBar": {
+    "updateAvailable": "Actualización disponible",
+    "changelogTooltip": "Novedades — abrir el registro de cambios"
+  },
+  "moreTools": "Más herramientas"
+}

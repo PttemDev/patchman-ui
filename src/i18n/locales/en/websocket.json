@@ -1,0 +1,40 @@
+{
+  "title": "WebSocket",
+  "status": {
+    "disconnected": "Disconnected",
+    "connecting": "Connecting",
+    "connected": "Connected",
+    "error": "Error"
+  },
+  "urlPlaceholder": "ws://localhost:8080/ws",
+  "headers": "Headers",
+  "headerNamePlaceholder": "Header name",
+  "headerValuePlaceholder": "Value",
+  "messagesCount": "Messages ({{n}})",
+  "emptyTitle": "No messages yet",
+  "emptyHintConnected": "Send a message or wait for incoming messages",
+  "emptyHintDisconnected": "Connect to start exchanging messages",
+  "sent": "Sent",
+  "received": "Received",
+  "binaryBadge": "binary",
+  "binaryDataPreview": "[Binary data: {{n}} bytes]",
+  "messageKind": {
+    "text": "Text",
+    "binary": "Binary"
+  },
+  "binaryFormat": {
+    "hex": "Hex",
+    "base64": "Base64",
+    "utf8": "UTF-8"
+  },
+  "copyHex": "Copy Hex",
+  "copyBase64": "Copy Base64",
+  "composePlaceholderConnected": "Type a message... (Ctrl+Enter to send)",
+  "composePlaceholderDisconnected": "Connect to start sending messages",
+  "errors": {
+    "connectionError": "WebSocket connection error",
+    "closedUnexpectedly": "Connection closed unexpectedly (code: {{code}})",
+    "connectFailed": "Failed to connect",
+    "sendFailed": "Failed to send message"
+  }
+}

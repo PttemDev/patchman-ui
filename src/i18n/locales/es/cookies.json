@@ -1,0 +1,48 @@
+{
+  "title": "Cookies",
+  "filterPlaceholder": "Filtrar por dominio o nombre...",
+  "noDomain": "(sin dominio)",
+  "empty": {
+    "title": "No hay cookies almacenadas",
+    "hint": "Las cookies de las respuestas de API aparecerán aquí, o añádelas manualmente."
+  },
+  "noMatch": {
+    "title": "Ninguna cookie coincide con tu filtro",
+    "hint": "Prueba otro término de búsqueda."
+  },
+  "domainCountOne": "{{n}} dominio",
+  "domainCountOther": "{{n}} dominios",
+  "cookieCountOne": "{{n}} cookie",
+  "cookieCountOther": "{{n}} cookies",
+  "summary": "{{domains}} · {{cookies}}",
+  "deleteDomainTitle": "Eliminar todas las cookies de {{domain}}",
+  "expiry": {
+    "session": "Sesión",
+    "expired": "Caducada"
+  },
+  "errors": {
+    "load": "Error al cargar las cookies",
+    "add": "Error al añadir la cookie",
+    "delete": "Error al eliminar la cookie",
+    "deleteDomain": "Error al eliminar las cookies del dominio",
+    "clear": "Error al borrar las cookies"
+  },
+  "add": {
+    "title": "Añadir cookie",
+    "description": "Añade manualmente una cookie al almacén de cookies.",
+    "domain": "Domain",
+    "name": "Nombre",
+    "value": "Valor",
+    "path": "Path",
+    "secure": "Secure",
+    "secureHttpsOnly": "Solo HTTPS",
+    "secureAny": "Cualquiera",
+    "submit": "Añadir cookie"
+  },
+  "clear": {
+    "title": "Borrar todas las cookies",
+    "confirmOne": "Esto eliminará permanentemente {{n}} cookie del almacén de cookies. Esta acción no se puede deshacer.",
+    "confirmOther": "Esto eliminará permanentemente las {{n}} cookies del almacén de cookies. Esta acción no se puede deshacer.",
+    "submit": "Borrar todo"
+  }
+}

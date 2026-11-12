@@ -1,0 +1,76 @@
+{
+  "validation": {
+    "nameRequired": "名称为必填项"
+  },
+  "error": {
+    "operationFailed": "操作失败",
+    "inviteFailed": "邀请失败",
+    "changeRoleFailed": "更改角色失败",
+    "removeMemberFailed": "移除成员失败"
+  },
+  "selector": {
+    "placeholder": "选择工作区",
+    "all": "所有工作区",
+    "none": "无工作区",
+    "manageWorkspaces": "管理工作区",
+    "manageTeams": "管理团队"
+  },
+  "manager": {
+    "title": "工作区管理器",
+    "description": "工作区用于组织你自己的集合和环境。使用团队与一组人共享它们。",
+    "tabList": "工作区",
+    "countOne": "{{count}} 个工作区",
+    "countOther": "{{count}} 个工作区",
+    "newWorkspace": "新建工作区",
+    "empty": "尚无工作区",
+    "createFirst": "创建你的第一个工作区",
+    "teamFallback": "团队",
+    "personal": "个人",
+    "sharedWithYou": "与你共享",
+    "created": "创建于 {{date}}"
+  },
+  "teams": {
+    "title": "团队",
+    "description": "创建团队，一次性与一组人共享集合和环境。团队对此工作区中的所有人可见 — 只有管理员可以编辑团队的成员名单。在与团队共享的工作区中，管理员还可以编辑其中的内容。",
+    "tabList": "团队",
+    "tabMembers": "成员",
+    "countOne": "{{count}} 个团队",
+    "countOther": "{{count}} 个团队",
+    "newTeam": "新建团队",
+    "empty": "尚无团队",
+    "createFirst": "创建你的第一个团队",
+    "roleAdmin": "管理员",
+    "roleMember": "成员",
+    "memberCountOne": "{{count}} 个成员",
+    "memberCountOther": "{{count}} 个成员",
+    "byCreator": " · 由 {{name}} 创建"
+  },
+  "members": {
+    "viewOnly": "只读",
+    "addMember": "添加成员",
+    "searchPlaceholder": "按姓名或邮箱搜索...",
+    "roleAdmin": "管理员",
+    "roleMember": "成员",
+    "selected": "已选择：",
+    "empty": "尚无成员"
+  },
+  "form": {
+    "namePlaceholder": "我的工作区",
+    "description": "描述",
+    "descriptionPlaceholder": "可选描述",
+    "personal": "个人",
+    "team": "团队",
+    "shareWithTeam": "与团队共享",
+    "personalNoTeam": "个人 — 无团队",
+    "shareHint": "团队成员可以看到此工作区及其中的所有内容：团队管理员对其中的集合、环境、白板和笔记拥有编辑者权限，成员只能查看。",
+    "teamNamePlaceholder": "QA 小组",
+    "create": "创建",
+    "saveChanges": "保存更改"
+  },
+  "delete": {
+    "workspaceTitle": "删除工作区",
+    "workspaceDescription": "确定要删除“{{name}}”吗？此操作无法撤销。",
+    "teamTitle": "删除团队",
+    "teamDescription": "确定要删除“{{name}}”吗？任何指向此团队的集合 / 环境授权都将失效（资源对其所有者和个别协作者仍可访问）。"
+  }
+}

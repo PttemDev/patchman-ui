@@ -1,0 +1,48 @@
+{
+  "title": "Cookie",
+  "filterPlaceholder": "按域或名称筛选...",
+  "noDomain": "（无域）",
+  "empty": {
+    "title": "未存储任何 Cookie",
+    "hint": "来自 API 响应的 Cookie 将显示在此处，或手动添加。"
+  },
+  "noMatch": {
+    "title": "没有 Cookie 与你的筛选条件匹配",
+    "hint": "尝试其他搜索词。"
+  },
+  "domainCountOne": "{{n}} 个域",
+  "domainCountOther": "{{n}} 个域",
+  "cookieCountOne": "{{n}} 个 Cookie",
+  "cookieCountOther": "{{n}} 个 Cookie",
+  "summary": "{{domains}} · {{cookies}}",
+  "deleteDomainTitle": "删除 {{domain}} 的所有 Cookie",
+  "expiry": {
+    "session": "会话",
+    "expired": "已过期"
+  },
+  "errors": {
+    "load": "加载 Cookie 失败",
+    "add": "添加 Cookie 失败",
+    "delete": "删除 Cookie 失败",
+    "deleteDomain": "删除域 Cookie 失败",
+    "clear": "清除 Cookie 失败"
+  },
+  "add": {
+    "title": "添加 Cookie",
+    "description": "手动向 Cookie 存储添加 Cookie。",
+    "domain": "Domain",
+    "name": "名称",
+    "value": "值",
+    "path": "Path",
+    "secure": "Secure",
+    "secureHttpsOnly": "仅 HTTPS",
+    "secureAny": "任意",
+    "submit": "添加 Cookie"
+  },
+  "clear": {
+    "title": "清除所有 Cookie",
+    "confirmOne": "这将从 Cookie 存储中永久删除 {{n}} 个 Cookie。此操作无法撤销。",
+    "confirmOther": "这将从 Cookie 存储中永久删除全部 {{n}} 个 Cookie。此操作无法撤销。",
+    "submit": "全部清除"
+  }
+}

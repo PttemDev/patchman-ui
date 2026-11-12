@@ -1,0 +1,58 @@
+{
+  "title": "Ejecutor de colecciones",
+  "description": "Ejecuta todas las solicitudes de una colección en secuencia y consulta los resultados.",
+  "localOnly": "El ejecutor de colecciones solo está disponible cuando has iniciado sesión — necesita el backend para orquestar iteraciones, capturar resultados y guardar ejecuciones. Inicia sesión para usar esta función.",
+  "fields": {
+    "collection": "Colección",
+    "selectCollection": "Selecciona una colección",
+    "environment": "Entorno",
+    "noEnvironment": "Sin entorno",
+    "active": "(activo)"
+  },
+  "tabs": {
+    "options": "Opciones",
+    "dataDriven": "Basado en datos"
+  },
+  "options": {
+    "iterations": "Iteraciones",
+    "delay": "Retardo entre solicitudes (ms)"
+  },
+  "data": {
+    "variableSets": "Conjuntos de variables (array JSON)",
+    "loadFromFile": "Cargar desde archivo",
+    "iterationCountOne": "Se ejecutará {{count}} iteración",
+    "iterationCountOther": "Se ejecutarán {{count}} iteraciones",
+    "firstRow": "Primera fila:",
+    "hint": "Cada objeto del array representa una iteración con su propio conjunto de variables. Las variables se sustituirán en las URL, cabeceras y cuerpo de las solicitudes."
+  },
+  "validation": {
+    "notArray": "Los datos deben ser un array JSON",
+    "empty": "El array debe contener al menos un elemento",
+    "itemNotObject": "El elemento en el índice {{index}} debe ser un objeto JSON",
+    "invalidJson": "JSON no válido",
+    "readFailed": "Error al leer el archivo"
+  },
+  "progress": {
+    "running": "Ejecutando colección..."
+  },
+  "run": {
+    "running": "Ejecutando...",
+    "runCollection": "Ejecutar colección",
+    "invalidData": "Datos JSON no válidos: {{message}}",
+    "invalidDataGeneric": "Datos JSON no válidos",
+    "failed": "Error al ejecutar la colección",
+    "retryFailed": "Error al reintentar"
+  },
+  "results": {
+    "runFailed": "Ejecución fallida",
+    "tryAgain": "Reintentar",
+    "total": "Total",
+    "passed": "Correctas",
+    "failed": "Fallidas",
+    "duration": "Duración",
+    "untitledRequest": "Solicitud sin título",
+    "responseBody": "Cuerpo de la respuesta:",
+    "retryFailedCount": "Reintentar fallidas ({{count}})",
+    "runAgain": "Ejecutar de nuevo"
+  }
+}

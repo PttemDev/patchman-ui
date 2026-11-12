@@ -1,0 +1,37 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# Desktop installers and updater artifacts staged by scripts/stage-desktop.mjs.
+# Release binaries are never committed; host them separately.
+public/downloads/*
+!public/downloads/latest.json.example
+
+# Environment
+.env
+.env.*
+!.env.example
+!.env.tenant.example
+
+# Tauri updater signing keys — never commit the private key. The public key
+# is embedded into tauri.conf.json so it does not need to live here.
+src-tauri/.keys/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# Temp
+*.tsbuildinfo

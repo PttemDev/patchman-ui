@@ -1,0 +1,33 @@
+{
+  "groups": {
+    "requests": "İstekler",
+    "collections": "Koleksiyonlar",
+    "connections": "Bağlantılar",
+    "history": "Geçmiş",
+    "environments": "Ortamlar",
+    "testcases": "Test Senaryoları",
+    "mock": "Mock Sunucular",
+    "notes": "Notlar"
+  },
+  "scopes": {
+    "all": "Tümü",
+    "requests": "İstekler",
+    "collections": "Koleksiyonlar",
+    "connections": "Bağlantılar"
+  },
+  "triggerTitle": "İstek, koleksiyon ve bağlantı ara",
+  "triggerText": "İstek, koleksiyon, bağlantı ara…",
+  "placeholder": "İstek, koleksiyon, bağlantı ara…",
+  "dialogTitle": "Genel arama",
+  "idle": {
+    "title": "İstekler, koleksiyonlar ve bağlantılar arasında ara",
+    "hint": "Yazmaya başlayın — gezinmek için ↑ ↓, açmak için Enter, kapatmak için Esc"
+  },
+  "noResults": {
+    "title": "Sonuç bulunamadı",
+    "hint": "Farklı bir terim veya kapsam deneyin"
+  },
+  "variablesCountOne": "{{n}} değişken",
+  "variablesCountOther": "{{n}} değişken",
+  "durationMs": "{{n}}ms"
+}

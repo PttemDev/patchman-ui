@@ -1,0 +1,197 @@
+{
+  "title": "Administración",
+  "subtitle": "Usuarios, roles y uso del sistema. Actúa sobre la base de datos en vivo.",
+  "backToApp": "Volver a la app",
+  "accessDenied": {
+    "title": "Se requiere acceso de administrador",
+    "description": "Tu cuenta no tiene acceso al panel de administración.",
+    "back": "Volver a PatchMan"
+  },
+  "errors": {
+    "loadFailed": "Error al cargar los datos de administración"
+  },
+  "stats": {
+    "users": "Usuarios",
+    "collections": "Colecciones",
+    "requests": "Solicitudes",
+    "workspaces": "Espacios de trabajo",
+    "mockServers": "Servidores mock",
+    "historyItems": "Elementos del historial",
+    "testCases": "Casos de prueba",
+    "gitlabLinks": "Enlaces de GitLab",
+    "newThisWeek": "+{{n}} esta semana",
+    "routesOne": "{{n}} ruta",
+    "routesOther": "{{n}} rutas"
+  },
+  "usersTable": {
+    "heading": "Usuarios",
+    "countOfTotal": "({{shown}} de {{total}})",
+    "searchPlaceholder": "Buscar por nombre, correo o id…",
+    "colUser": "Usuario",
+    "colRole": "Rol",
+    "colIntegrations": "Integraciones",
+    "colLastLogin": "Último acceso",
+    "colVersion": "Versión",
+    "versionTitle": "Última versión de cliente vista",
+    "colJoined": "Se unió",
+    "loading": "Cargando usuarios…",
+    "noMatch": "No hay usuarios que coincidan.",
+    "never": "Nunca",
+    "lastSeen": "Visto por última vez {{date}}",
+    "colLastActivity": "Última actividad",
+    "lastActivityTitle": "Lo más reciente de: apertura de la app, inicio de sesión, cambios, solicitudes enviadas, uso de MCP. Expande una fila para ver cada herramienta.",
+    "toggleUsage": "Mostrar u ocultar uso"
+  },
+  "roles": {
+    "admin": "Admin",
+    "user": "Usuario"
+  },
+  "integrations": {
+    "gitlab": "GitLab",
+    "mcp": "MCP",
+    "mcpCount": "MCP ×{{n}}"
+  },
+  "userActions": {
+    "demote": "Degradar",
+    "demoteTitle": "Degradar a usuario",
+    "makeAdmin": "Hacer admin",
+    "promoteTitle": "Promover a admin",
+    "password": "Contraseña",
+    "resetPasswordTitle": "Restablecer contraseña",
+    "manage": "Gestionar"
+  },
+  "pagination": {
+    "rowsPerPage": "Filas por página",
+    "range": "{{from}}–{{to}} de {{total}}"
+  },
+  "toasts": {
+    "nowAdmin": "{{user}} ahora es admin",
+    "demotedToUser": "{{user}} degradado a usuario",
+    "updateRoleFailed": "No se pudo actualizar el rol",
+    "alreadyThisUser": "Ya eres este usuario",
+    "nowManaging": "Gestionando ahora como {{user}}",
+    "nowManagingDesc": "Cada acción que realices afecta a esta cuenta hasta que salgas."
+  },
+  "passwordReset": {
+    "title": "Restablecer contraseña",
+    "description": "Establece una nueva contraseña para <strong>{{user}}</strong>. El usuario conserva su cuenta; solo cambia la contraseña.",
+    "newPasswordLabel": "Nueva contraseña",
+    "passwordPlaceholder": "Escribe una contraseña o genera una",
+    "show": "Mostrar",
+    "hide": "Ocultar",
+    "generate": "Generar",
+    "generateTitle": "Generar una contraseña segura",
+    "copyTitle": "Copiar al portapapeles",
+    "hint": "Mínimo 6 caracteres. Compártela con el usuario por un canal seguro — no se almacena en ningún lugar legible después de cerrar este diálogo.",
+    "savedNote": "Contraseña actualizada. Cópiala ahora si no lo has hecho — cerrar este diálogo descartará el texto sin cifrar.",
+    "savePassword": "Guardar contraseña",
+    "saveAgain": "Guardar de nuevo",
+    "minLengthError": "La contraseña debe tener al menos 6 caracteres",
+    "successTitle": "Contraseña restablecida",
+    "successDesc": "Nueva contraseña establecida para {{user}}.",
+    "resetFailed": "No se pudo restablecer la contraseña",
+    "copyFailed": "No se pudo copiar al portapapeles"
+  },
+  "crash": {
+    "heading": "Informe de fallos → Slack",
+    "noWebhook": "Sin webhook",
+    "webhookNotice": "<mono>SLACK_ERROR_WEBHOOK_URL</mono> no está configurado en el servidor. Puedes activar los interruptores, pero no se entregará ningún mensaje hasta que se configure el webhook — y en este estado el botón de prueba devolverá un 503.",
+    "testDescription": "Envía un mensaje sintético para validar la integración. Se ejecuta de forma independiente de los interruptores de arriba.",
+    "sendTest": "Enviar mensaje de prueba",
+    "sending": "Enviando…",
+    "testSuccess": "Mensaje de prueba entregado a Slack. Si no lo ves en el canal, verifica que la URL del webhook esté vinculada al canal correcto.",
+    "testFailed": "Prueba fallida: {{error}}",
+    "unknownError": "error desconocido",
+    "updateToggleFailed": "No se pudo actualizar el interruptor",
+    "errors": {
+      "loadConfigFailed": "Error al cargar la configuración de informe de fallos",
+      "testRequestFailed": "La solicitud de prueba falló"
+    },
+    "toggles": {
+      "boundary": {
+        "label": "Fallos de render de React",
+        "hint": "Un componente lanza un error durante el render (el clásico error de pantalla completa). La mayoría de los fallos en producción caen en este grupo."
+      },
+      "rejection": {
+        "label": "Errores asíncronos no controlados",
+        "hint": "Promesas rechazadas sin .catch (window.onunhandledrejection). Útil para capturar errores que de otro modo desaparecerían en silencio."
+      },
+      "window": {
+        "label": "Otros errores de JS (window.error)",
+        "hint": "Errores síncronos lanzados dentro de los manejadores de click/keydown. Desactivado por defecto porque el ruido de las extensiones del navegador puede ahogar los errores reales."
+      }
+    }
+  },
+  "impersonation": {
+    "managingAs": "Gestionando como <strong>{{user}}</strong>. Cada acción afecta a este usuario.",
+    "exit": "Salir"
+  },
+  "usage": {
+    "lastActivity": "Última actividad",
+    "updated": "Actualizado {{when}}",
+    "refresh": "Actualizar uso",
+    "lastSeen": "Visto por última vez",
+    "loadFailed": "No se pudo cargar el uso",
+    "loading": "Cargando uso…",
+    "noActivity": "Aún no hay actividad registrada.",
+    "counts": {
+      "environments": "Entornos",
+      "history": "Solicitudes enviadas",
+      "notes": "Notas",
+      "cards": "Tarjetas de memoria",
+      "whiteboards": "Pizarras",
+      "teams": "Equipos",
+      "mcpTokens": "Tokens MCP"
+    },
+    "tools": {
+      "heading": "Herramientas",
+      "colTool": "Herramienta",
+      "colItems": "Elementos",
+      "colActions": "Acciones",
+      "colOps": "Operaciones",
+      "colLastUsed": "Último uso",
+      "itemsTitle": "Lo que el usuario posee aquí: conexiones, pizarras, casos de prueba…",
+      "actionsTitle": "Cambios y operaciones registrados en el registro de auditoría (desde la app y MCP)",
+      "opsTitle": "Entradas del historial propio de la herramienta: consultas, consumos, solicitudes enviadas (lecturas incluidas)"
+    },
+    "mcp": {
+      "heading": "Clientes MCP",
+      "none": "No hay tokens MCP.",
+      "noClient": "Aún no se ha conectado ningún cliente",
+      "token": "Token “{{name}}” · creado el {{date}}",
+      "neverUsed": "Nunca usado"
+    },
+    "agents": {
+      "heading": "Tarjetas de memoria por agente",
+      "byHand": "Escritas a mano"
+    },
+    "tool": {
+      "requests": "Colecciones y solicitudes",
+      "history": "Solicitudes enviadas",
+      "environments": "Entornos",
+      "mocks": "Servidores mock",
+      "notes": "Notas",
+      "memory": "Memoria de agentes",
+      "whiteboards": "Pizarras",
+      "qa": "Gestión de pruebas",
+      "loadtests": "Pruebas de carga",
+      "db": "Bases de datos",
+      "kafka": "Kafka",
+      "s3": "S3",
+      "redis": "Redis",
+      "es": "Elasticsearch",
+      "k8s": "Kubernetes",
+      "grafana": "Grafana",
+      "rabbitmq": "RabbitMQ",
+      "graylog": "Graylog",
+      "mcp": "MCP",
+      "observability": "Observabilidad",
+      "git": "Git / CI",
+      "ai": "IA / LLM",
+      "collab": "Espacios de trabajo y equipos",
+      "devtools": "Herramientas de desarrollo",
+      "sync": "Sincronización de escritorio",
+      "other": "Otros"
+    }
+  }
+}

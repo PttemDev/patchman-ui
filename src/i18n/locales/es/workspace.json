@@ -1,0 +1,76 @@
+{
+  "validation": {
+    "nameRequired": "El nombre es obligatorio"
+  },
+  "error": {
+    "operationFailed": "La operación falló",
+    "inviteFailed": "La invitación falló",
+    "changeRoleFailed": "Error al cambiar el rol",
+    "removeMemberFailed": "Error al eliminar el miembro"
+  },
+  "selector": {
+    "placeholder": "Seleccionar espacio de trabajo",
+    "all": "Todos los espacios de trabajo",
+    "none": "Sin espacio de trabajo",
+    "manageWorkspaces": "Gestionar espacios de trabajo",
+    "manageTeams": "Gestionar equipos"
+  },
+  "manager": {
+    "title": "Gestor de espacios de trabajo",
+    "description": "Los espacios de trabajo organizan tus propias colecciones y entornos. Usa los Equipos para compartirlos con un grupo.",
+    "tabList": "Espacios de trabajo",
+    "countOne": "{{count}} espacio de trabajo",
+    "countOther": "{{count}} espacios de trabajo",
+    "newWorkspace": "Nuevo espacio de trabajo",
+    "empty": "Aún no hay espacios de trabajo",
+    "createFirst": "Crea tu primer espacio de trabajo",
+    "teamFallback": "equipo",
+    "personal": "personal",
+    "sharedWithYou": "compartido contigo",
+    "created": "Creado {{date}}"
+  },
+  "teams": {
+    "title": "Equipos",
+    "description": "Crea equipos para compartir colecciones y entornos con un grupo de personas a la vez. Los equipos son visibles para todos en este espacio de trabajo — solo los administradores pueden editar la lista de un equipo. En un espacio de trabajo compartido con un equipo, los administradores también pueden editar el contenido.",
+    "tabList": "Equipos",
+    "tabMembers": "Miembros",
+    "countOne": "{{count}} equipo",
+    "countOther": "{{count}} equipos",
+    "newTeam": "Nuevo equipo",
+    "empty": "Aún no hay equipos",
+    "createFirst": "Crea tu primer equipo",
+    "roleAdmin": "admin",
+    "roleMember": "miembro",
+    "memberCountOne": "{{count}} miembro",
+    "memberCountOther": "{{count}} miembros",
+    "byCreator": " · por {{name}}"
+  },
+  "members": {
+    "viewOnly": "solo lectura",
+    "addMember": "Añadir miembro",
+    "searchPlaceholder": "Buscar por nombre o correo...",
+    "roleAdmin": "Admin",
+    "roleMember": "Miembro",
+    "selected": "Seleccionado:",
+    "empty": "Aún no hay miembros"
+  },
+  "form": {
+    "namePlaceholder": "Mi espacio de trabajo",
+    "description": "Descripción",
+    "descriptionPlaceholder": "Descripción opcional",
+    "personal": "Personal",
+    "team": "Equipo",
+    "shareWithTeam": "Compartir con el equipo",
+    "personalNoTeam": "Personal — sin equipo",
+    "shareHint": "Los miembros del equipo ven este espacio de trabajo y todo lo que contiene: los administradores del equipo tienen acceso de editor a sus colecciones, entornos, pizarras y notas; los miembros solo pueden verlos.",
+    "teamNamePlaceholder": "Equipo QA",
+    "create": "Crear",
+    "saveChanges": "Guardar cambios"
+  },
+  "delete": {
+    "workspaceTitle": "Eliminar espacio de trabajo",
+    "workspaceDescription": "¿Seguro que quieres eliminar \"{{name}}\"? Esta acción no se puede deshacer.",
+    "teamTitle": "Eliminar equipo",
+    "teamDescription": "¿Seguro que quieres eliminar \"{{name}}\"? Cualquier autorización de colección / entorno que apunte a este equipo quedará inactiva (los recursos siguen siendo accesibles para sus propietarios y colaboradores individuales)."
+  }
+}

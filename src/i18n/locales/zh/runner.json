@@ -1,0 +1,58 @@
+{
+  "title": "集合运行器",
+  "description": "按顺序运行集合中的所有请求并查看结果。",
+  "localOnly": "集合运行器仅在登录后可用 — 它需要后端来编排迭代、捕获结果并保存运行记录。登录以使用此功能。",
+  "fields": {
+    "collection": "集合",
+    "selectCollection": "选择一个集合",
+    "environment": "环境",
+    "noEnvironment": "无环境",
+    "active": "(活动)"
+  },
+  "tabs": {
+    "options": "选项",
+    "dataDriven": "数据驱动"
+  },
+  "options": {
+    "iterations": "迭代次数",
+    "delay": "请求间延迟 (ms)"
+  },
+  "data": {
+    "variableSets": "变量集 (JSON 数组)",
+    "loadFromFile": "从文件加载",
+    "iterationCountOne": "将运行 {{count}} 次迭代",
+    "iterationCountOther": "将运行 {{count}} 次迭代",
+    "firstRow": "第一行:",
+    "hint": "数组中的每个对象代表一次迭代，拥有各自的变量集。变量将被替换到请求的 URL、请求头和请求体中。"
+  },
+  "validation": {
+    "notArray": "数据必须是 JSON 数组",
+    "empty": "数组必须至少包含一项",
+    "itemNotObject": "索引 {{index}} 处的项必须是 JSON 对象",
+    "invalidJson": "无效的 JSON",
+    "readFailed": "读取文件失败"
+  },
+  "progress": {
+    "running": "正在运行集合..."
+  },
+  "run": {
+    "running": "运行中...",
+    "runCollection": "运行集合",
+    "invalidData": "无效的 JSON 数据: {{message}}",
+    "invalidDataGeneric": "无效的 JSON 数据",
+    "failed": "运行集合失败",
+    "retryFailed": "重试失败"
+  },
+  "results": {
+    "runFailed": "运行失败",
+    "tryAgain": "重试",
+    "total": "总计",
+    "passed": "通过",
+    "failed": "失败",
+    "duration": "耗时",
+    "untitledRequest": "未命名请求",
+    "responseBody": "响应正文:",
+    "retryFailedCount": "重试失败项 ({{count}})",
+    "runAgain": "再次运行"
+  }
+}

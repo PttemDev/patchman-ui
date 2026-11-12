@@ -1,0 +1,12 @@
+{
+  "title": "Comments",
+  "authorFallback": "User",
+  "empty": "No comments yet. Be the first to add one.",
+  "placeholder": "Add a comment...",
+  "relativeTime": {
+    "justNow": "just now",
+    "minutesAgo": "{{n}}m ago",
+    "hoursAgo": "{{n}}h ago",
+    "daysAgo": "{{n}}d ago"
+  }
+}

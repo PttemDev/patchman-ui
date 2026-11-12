@@ -1,0 +1,18 @@
+#!/bin/sh
+# PatchMan pre-commit guard. Runs from the fe/ repo root.
+#
+# i18n coverage: block a commit whose locale files are out of sync (a string
+# added to one language but missing in another). See scripts/check-i18n.mjs and
+# the project's rule that every UI string must exist in all locales.
+#
+# Enable once per clone:  git config core.hooksPath .githooks
+# (the `prepare` npm script does this automatically after `npm install`.)
+
+if command -v node >/dev/null 2>&1; then
+  node scripts/check-i18n.mjs || {
+    echo ""
+    echo "Commit blocked: i18n locale check failed (see above)."
+    echo "Fix the keys, or run 'npm run check:i18n' to re-check."
+    exit 1
+  }
+fi

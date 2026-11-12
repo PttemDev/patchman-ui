@@ -1,0 +1,622 @@
+{
+  "units": {
+    "rowsWord": "filas",
+    "colsWord": "cols",
+    "rowsOne": "{{count}} fila",
+    "rowsOther": "{{count}} filas",
+    "fieldsOne": "{{count}} campo",
+    "fieldsOther": "{{count}} campos",
+    "colsOne": "{{count}} col",
+    "colsOther": "{{count}} cols",
+    "charsOne": "{{count}} car.",
+    "charsOther": "{{count}} car.",
+    "itemsOne": "{{count}} elemento",
+    "itemsOther": "{{count}} elementos"
+  },
+  "scope": {
+    "local": "Local",
+    "remote": "Remoto"
+  },
+  "role": {
+    "coowner": "copropietario",
+    "readonly": "solo lectura",
+    "read": "lectura"
+  },
+  "badges": {
+    "rw": "R+W",
+    "r": "R"
+  },
+  "connection": {
+    "kindFamily": "familia {{driver}}",
+    "editTitle": "Editar conexión",
+    "newTitle": "Nueva conexión",
+    "namePlaceholder": "prod-payments",
+    "description": "Las credenciales se cifran en reposo con AES-256-GCM. Usa el botón Compartir de la barra lateral para conceder acceso de solo lectura o de copropietario a otro usuario sin revelar la contraseña. El modo lectura-escritura (sentencias de escritura/DML) se activa desde el menú ⋯ de la conexión.",
+    "defaultBackend": "Backend predeterminado para esta conexión",
+    "scopeLocalTitle": "Este dispositivo",
+    "scopeLocalDesc": "Las consultas conectan a la BD desde tu máquina local. Necesario para hosts en 127.0.0.1 / tu LAN.",
+    "scopeRemoteTitle": "Servidor PatchMan",
+    "scopeRemoteDesc": "Las consultas conectan a la BD desde el backend del equipo. Úsalo para prod / staging tras VPN.",
+    "scopeNote": "La conexión se guarda en AMBOS backends — las credenciales se cifran con la clave propia de cada BE. Elige cuál usa por defecto el conmutador Local/Remoto de la barra de herramientas; puedes cambiarlo por consulta más tarde desde la barra.",
+    "modeForm": "Campos de formulario",
+    "modeDsn": "Cadena de conexión",
+    "whatDoesThis": "¿Qué hace esto?",
+    "dsnTooltip": "El modo de cadena de conexión te permite pegar un DSN completo con cualquier parámetro que no exponemos (certificados TLS, channel_binding, autenticación personalizada, etc.). Los campos de formulario de abajo son solo informativos; el BE usa la cadena tal cual.",
+    "connectionString": "Cadena de conexión",
+    "dsnKeepStored": "(déjalo en blanco para conservar la almacenada)",
+    "dsnNote": "Almacenada cifrada (AES-256-GCM). Host/Puerto/Base de datos de abajo se conservan solo para la etiqueta de la barra lateral; el usuario y la contraseña se usan cuando la cadena no los incluye. También funcionan las cadenas jdbc:postgresql://.",
+    "useAutoDsn": "Usar DSN autogenerado",
+    "host": "Host",
+    "hostPlaceholder": "db.foo.com",
+    "port": "Puerto",
+    "database": "Base de datos",
+    "dbOptional": "(opcional)",
+    "dbOptionalAll": "(opcional — déjalo en blanco para explorar todas las bases de datos)",
+    "dbPlaceholderMongo": "patchman_demo (o en blanco)",
+    "dbPlaceholderMysql": "payments (o en blanco para todas las bases de datos)",
+    "dbPlaceholderPg": "payments",
+    "username": "Usuario",
+    "password": "Contraseña",
+    "passwordKeep": "Contraseña (déjalo en blanco para conservarla)",
+    "willConnectAs": "Se conectará como",
+    "advanced": "Avanzado",
+    "optionsJson": "Opciones (JSON)",
+    "optionsHelp": "Por controlador: familia Postgres <code>sslmode</code> / <code>application_name</code>; familia MySQL <code>tls</code> / <code>allowNativePasswords</code>; Mongo <code>authSource</code> / <code>authMechanism</code> / <code>replicaSet</code>.",
+    "connectionOk": "Conexión correcta",
+    "testedVia": "Probado vía {{backend}}",
+    "testConnection": "Probar conexión",
+    "create": "Crear",
+    "testFailed": "Prueba fallida",
+    "errOptionsJson": "Las opciones deben ser JSON válido",
+    "errNameRequired": "El nombre es obligatorio",
+    "errHostRequired": "El host es obligatorio",
+    "errDatabaseRequired": "La base de datos es obligatoria para conexiones SQL a menos que se proporcione una cadena de conexión personalizada",
+    "errDsnEmpty": "La cadena de conexión está vacía — pega un DSN o vuelve al modo de formulario",
+    "errUpdateAllFailed": "La actualización falló en todos los backends",
+    "partialUpdate": "Actualizado en {{ok}}; falló en {{missed}}. Reintenta desde Editar para sincronizar.",
+    "errCreateAllFailed": "La creación falló en todos los backends",
+    "partialCreate": "Guardado en {{ok}}; falló en {{missed}}. Editar + Guardar de nuevo para reintentar el lado que falta.",
+    "saveFailed": "Error al guardar",
+    "duplicateTitle": "Duplicar conexión",
+    "duplicateDescription": "Crea una conexión nueva a partir de “{{name}}”. Se copia la contraseña almacenada; el uso compartido y el modo lectura-escritura no.",
+    "copyName": "{{name}} (copia)",
+    "passwordCopy": "Contraseña (vacía = se copia)",
+    "dsnCopyStored": "(vacía = se copia)",
+    "errCopyUnsupported": "Este servidor aún no puede copiar la contraseña almacenada; introdúcela para crear la copia.",
+    "copyPartial": "Copiada en {{ok}}. El servidor {{missed}} aún no puede copiar contraseñas almacenadas; vuelve a duplicarla allí cuando se actualice.",
+    "authSource": "Auth source",
+    "authSourceDefault": "{{db}} (predeterminado)",
+    "authSourceHelp": "La base de datos en la que se creó el usuario; a menudo admin.",
+    "replicaSet": "Replica set",
+    "replicaSetPlaceholder": "opcional, p. ej. rs0",
+    "hostsHelpMongo": "Varios hosts (replica set): sepáralos con comas, p. ej. db1,db2:27018,db3. Un host sin puerto usa el de Puerto.",
+    "mongoAuthHint": "MongoDB comprueba el usuario y la contraseña en la base de datos «{{db}}» (Auth source). Si el usuario se creó en otra base de datos, indícala en Auth source; si no, el usuario o la contraseña son incorrectos.",
+    "mongoAuth": "Autenticación",
+    "mongoAuthScram": "Usuario + contraseña",
+    "mongoAuthLdap": "LDAP",
+    "mongoAuthAws": "AWS IAM",
+    "mongoAuthNone": "Ninguna",
+    "mongoAuthCustom": "Otro: {{mech}}",
+    "mongoAuthHelp_scram": "Un usuario de MongoDB (SCRAM; el servidor elige SHA-256 o SHA-1).",
+    "mongoAuthHelp_ldap": "Un usuario de LDAP / Active Directory, en MongoDB Enterprise o Atlas. La contraseña se envía tal cual, así que úsalo con TLS.",
+    "mongoAuthHelp_aws": "Una clave de acceso de IAM. Deja ambos campos vacíos para usar el rol de IAM o el entorno de AWS del backend que ejecuta las consultas.",
+    "mongoAuthHelp_none": "Para un servidor sin control de acceso.",
+    "mongoAuthHelp_custom": "Configurado en Avanzado (authMechanism).",
+    "awsAccessKey": "Access key ID",
+    "awsSecretKey": "Secret access key",
+    "authSourceDefaultThenAdmin": "{{db}}; si no, admin",
+    "authSourceFellBack": "Se inició sesión a través de la base de datos «{{db}}», así que Auth source se ha ajustado a ella.",
+    "mongoAuthHintBoth": "MongoDB rechazó el usuario y la contraseña tanto en «{{db}}» como en «admin». Revísalos o indica en Auth source la base de datos en la que se creó el usuario.",
+    "directFallback": "El replica set anuncia a sus miembros como {{members}}, nombres que este backend no puede resolver, así que PatchMan se conectó directamente a {{host}}. Funciona; para la conmutación automática por error, haz que esos nombres se resuelvan aquí (DNS o /etc/hosts).",
+    "directFallbackSecondary": "{{host}} no es el primario, así que solo funcionan las lecturas.",
+    "mongoDnsHint": "Los nombres de los miembros del replica set no se pueden resolver desde este backend. Añádelos al DNS o a /etc/hosts, o indica un solo host."
+  },
+  "panel": {
+    "refreshOff": "Desactivado",
+    "selectConnection": "Selecciona una conexión...",
+    "noConnectionsHint": "Aún no hay conexiones. Añade una desde la pestaña Base de datos de la barra lateral.",
+    "autoRerunOn": "Auto-reejecutar · {{sec}}s",
+    "autoRerunOff": "Auto-reejecutar: desactivado",
+    "autoRerunTooltip": "Reejecuta la misma consulta a un intervalo fijo — útil para monitoreo en vivo. Desactivado por defecto. El icono se vuelve verde cuando está activo.",
+    "schema": "Esquema",
+    "schemaTooltip": "Reintrospecta tablas y columnas para que el autocompletado refleje la BD más reciente.",
+    "rowLimit": "Límite de filas",
+    "rowLimitTooltip": "Limita cuántas filas devuelve el BE. Vacío = predeterminado ({{default}}).",
+    "scopeLocalAvail": "Ejecutar en esta máquina. Necesario para BD en 127.0.0.1 / LAN.",
+    "scopeLocalUnavail": "No disponible — esta conexión no se escribió en el BE local. Editar + Guardar para reintentar.",
+    "scopeRemoteAvail": "Ejecutar en el servidor PatchMan. Coherente con tus compañeros.",
+    "scopeRemoteUnavail": "No disponible — esta conexión no se escribió en el BE del equipo. Editar + Guardar para reintentar.",
+    "scopeTooltip": "Qué backend ejecuta esta consulta — tu BE de escritorio local o el servidor del equipo. Refleja el conmutador del panel de solicitudes.",
+    "cancelTooltip": "Aborta la consulta en ejecución en el BE.",
+    "runQuery": "Ejecutar consulta",
+    "runTooltip": "Se ejecuta contra {{target}} vía {{via}}. Solo lectura — las escrituras las rechaza el BE.",
+    "selectedConnection": "la conexión seleccionada",
+    "viaLocal": "tu BE local",
+    "viaTeam": "el BE del equipo",
+    "beautify": "Formatear",
+    "beautifyTooltip": "Reformatea el texto del editor en el sitio — palabras clave SQL en mayúsculas, cláusulas en sus propias líneas; argumentos de Mongo con formato. Atajo: ⌘⇧F.",
+    "examples": "Ejemplos",
+    "examplesTooltip": "Explora un recetario de consultas de solo lectura (SQL + Mongo). Elige una para insertarla en el editor.",
+    "saveQuery": "Guardar consulta",
+    "saveQueryTooltip": "Fija el texto actual del editor bajo esta conexión en la barra lateral. ⌘S.",
+    "statements": "Sentencias",
+    "recentRuns": "Ejecuciones recientes",
+    "now": "ahora",
+    "running": "Ejecutando…",
+    "cancelled": "Cancelado",
+    "queryFailed": "Consulta fallida",
+    "emptyRun": "Pulsa Cmd+Enter para ejecutar la consulta.",
+    "emptyPickConnection": "Elige una conexión arriba para empezar.",
+    "savedQueryDefault": "Consulta guardada"
+  },
+  "results": {
+    "truncated": "truncado",
+    "rowsRange": "filas {{start}}–{{end}}",
+    "prevPage": "Página anterior",
+    "nextPage": "Página siguiente · solo disponible cuando las filas están truncadas",
+    "viewTable": "Tabla",
+    "viewChart": "Gráfico",
+    "viewPlan": "Plan",
+    "export": "Exportar",
+    "largeTitle": "Conjunto de resultados grande",
+    "largeBody": "Este resultado tiene <mono>{{rows}}</mono> filas × <mono>{{cols}}</mono> columnas (<mono>{{cells}}</mono> celdas). Renderizar tantas celdas puede ralentizar la interfaz — exportar suele ser más rápido y fácil de manejar.",
+    "exportCsvBtn": "Exportar CSV",
+    "exportExcelBtn": "Exportar Excel",
+    "showAnyway": "Mostrar igual"
+  },
+  "table": {
+    "sortTitle": "Clic para ordenar · Shift+clic para orden múltiple",
+    "noRowsTitle": "No se devolvieron filas",
+    "noRowsBody": "La consulta se ejecutó correctamente pero no produjo columnas ni filas.",
+    "noRowsCauses": "Causas comunes: colección vacía, base de datos predeterminada ausente o un error tipográfico en el nombre de la colección/tabla.",
+    "resizeTitle": "Arrastra para redimensionar · doble clic para restablecer",
+    "filterPlaceholder": "Filtrar…",
+    "pushWhereLike": "Insertar como WHERE LIKE en el editor",
+    "noMatch": "Ninguna fila coincide con los filtros actuales.",
+    "rightClickCell": "Clic derecho en una celda",
+    "copyValue": "Copiar valor",
+    "showAsJson": "Mostrar como JSON…",
+    "copyAs": "Copiar como…",
+    "copyPlain": "Texto plano",
+    "copyRowJson": "Fila como JSON",
+    "copyRowInsert": "Fila como INSERT",
+    "copyColumnName": "Nombre de columna",
+    "filterByValue": "Filtrar por este valor",
+    "excludeValue": "Excluir este valor",
+    "filterNull": "Filtrar NULL",
+    "filterNotNull": "Filtrar NOT NULL",
+    "openReferenced": "Abrir fila referenciada…",
+    "unfreezeColumn": "Descongelar columna",
+    "freezeColumn": "Congelar columna"
+  },
+  "chart": {
+    "noData": "No hay datos para graficar.",
+    "noNumeric": "No se encontraron columnas numéricas. Los gráficos necesitan al menos una columna numérica.",
+    "label": "Gráfico",
+    "bar": "Barras",
+    "line": "Líneas",
+    "pie": "Circular",
+    "rowLabel": "fila {{n}}"
+  },
+  "json": {
+    "format": "Formato",
+    "pretty": "Legible",
+    "compact": "Compacto",
+    "copyAll": "Copiar todo",
+    "noDocuments": "Sin documentos.",
+    "docN": "doc {{n}}"
+  },
+  "summary": {
+    "aggregatePlaceholder": "Columna a agregar…",
+    "noColumns": "Sin columnas",
+    "numeric": "Numérico",
+    "all": "Todo",
+    "count": "recuento",
+    "nonNull": "no nulos",
+    "sum": "suma",
+    "avg": "prom",
+    "min": "mín",
+    "max": "máx",
+    "distinct": "distintos"
+  },
+  "columns": {
+    "title": "Columnas",
+    "findPlaceholder": "Buscar columna…",
+    "showAll": "Mostrar todo",
+    "hideAll": "Ocultar todo",
+    "reset": "Restablecer",
+    "show": "Mostrar",
+    "hide": "Ocultar",
+    "unfreeze": "Descongelar",
+    "freezeLeft": "Congelar a la izquierda"
+  },
+  "stats": {
+    "title": "Estadísticas de columna",
+    "distinct": "Distintos",
+    "nulls": "Nulos",
+    "min": "Mín",
+    "max": "Máx",
+    "avg": "Prom",
+    "sum": "Suma",
+    "topValues": "Valores principales",
+    "empty": "(vacío)"
+  },
+  "cell": {
+    "title": "Celda",
+    "rowN": "fila {{n}}",
+    "showAsJson": "Mostrar como JSON",
+    "open": "Abrir",
+    "metaLength": "longitud",
+    "metaSize": "tamaño",
+    "metaDuration": "duración",
+    "metaValue": "valor",
+    "metaAsDate": "como fecha",
+    "metaIso": "iso",
+    "metaLocal": "local",
+    "metaRelative": "relativa",
+    "metaJsonSize": "tamaño json",
+    "metaKeys": "claves"
+  },
+  "row": {
+    "title": "Fila",
+    "prevRow": "Fila anterior",
+    "nextRow": "Fila siguiente",
+    "filterPlaceholder": "Filtrar campos…",
+    "copyJson": "Copiar como JSON",
+    "copyInsert": "Copiar como INSERT"
+  },
+  "jsonModal": {
+    "deepParse": "Analizar en profundidad cadenas JSON anidadas",
+    "invalidJson": "Este valor no es JSON válido — mostrando el texto sin procesar.",
+    "valueNull": "El valor es NULL.",
+    "notValidJson": "JSON no válido"
+  },
+  "explain": {
+    "fallback": "La vista EXPLAIN no reconoció un plan JSON. Prueba <code>EXPLAIN (FORMAT JSON, ANALYZE) ...</code> para Postgres.",
+    "kvPlan": "Plan",
+    "kvExec": "Ejec.",
+    "kvCost": "Costo",
+    "seqScan": "seq scan",
+    "cost": "costo",
+    "planRows": "plan ~{{count}} filas",
+    "actualRows": "real {{count}} filas",
+    "pctTotal": "{{pct}}% del total",
+    "filter": "filtro",
+    "index": "índice",
+    "hash": "hash"
+  },
+  "save": {
+    "title": "Guardar consulta",
+    "description": "Fija el texto actual del editor bajo esta conexión para poder reejecutarlo más tarde desde la barra lateral.",
+    "namePlaceholder": "Verificación diaria de reembolsos",
+    "folder": "Carpeta",
+    "folderOptional": "(opcional · elige o escribe)",
+    "folderPlaceholder": "reports/daily",
+    "moreChips": "+{{count}} más · escribe para buscar",
+    "moreTitle": "Escribe para buscar el resto en el menú desplegable de arriba",
+    "saveTo": "Guardar en",
+    "scopeLocalTitle": "Este dispositivo",
+    "scopeLocalDesc": "Permanece en este navegador. Funciona sin conexión / sin iniciar sesión.",
+    "scopeRemoteTitle": "Mi cuenta",
+    "scopeRemoteDesc": "Se sincroniza con tu cuenta; visible en todos los dispositivos.",
+    "notSignedIn": "Sin sesión iniciada",
+    "saving": "Guardando…"
+  },
+  "share": {
+    "title": "Compartir \"{{name}}\"",
+    "description": "Las consultas se ejecutan como TÚ — los destinatarios usan esta conexión sin ver la contraseña. Elige un rol por persona: <strong>Solo lectura</strong> solo puede ejecutar consultas SELECT/find; <strong>Copropietario</strong> obtiene control total (editar, volver a compartir, eliminar, revelar la contraseña y ejecutar sentencias de escritura cuando el modo lectura-escritura de esta conexión está activado).",
+    "grantAs": "Conceder como",
+    "roleReadonly": "Solo lectura",
+    "roleCoowner": "Copropietario",
+    "coownerWarning": "Los copropietarios tienen control total de esta conexión — incluyendo eliminarla y revelar la contraseña. Concédelo solo a personas en las que confiarías como segundo propietario.",
+    "searchPlaceholder": "Buscar usuarios o equipos...",
+    "teamOption": "{{name}} · equipo",
+    "granted": "Concedido",
+    "noOne": "Nadie — solo el propietario",
+    "addFailed": "Error al añadir"
+  },
+  "examples": {
+    "title": "Ejemplos de consultas",
+    "description": "Recetas de solo lectura que puedes insertar en el editor. Elige una pestaña, busca y luego <strong>Usar esta</strong> para sembrar tu consulta — o copia cualquier fragmento manualmente.",
+    "filterPlaceholder": "Filtrar por título, descripción o etiqueta…",
+    "badgeSql": "familia SQL",
+    "badgeMongo": "MongoDB",
+    "tabSql": "SQL (Postgres / MySQL / familia)",
+    "tabMongo": "MongoDB",
+    "noMatch": "Ningún ejemplo coincide con este filtro.",
+    "useThis": "Usar esta",
+    "tip1": "⌘+Enter ejecuta la consulta · ⌘+S la guarda · Shift+clic en un encabezado de columna para orden múltiple",
+    "tip2": "Usa el campo Límite de filas junto a Ejecutar consulta para limitar cuántas filas devuelve el BE (predeterminado 500).",
+    "tip3": "Clic derecho en una celda para Copiar / Copiar como JSON / \"Filtrar por este valor\" — inserta la cláusula WHERE de vuelta en el editor.",
+    "sql": {
+      "basics": {
+        "title": "Conceptos básicos",
+        "listRows": {
+          "title": "Listar filas",
+          "desc": "Trae las primeras N filas de una tabla — la forma más rápida de ver qué columnas existen."
+        },
+        "countRows": {
+          "title": "Contar filas",
+          "desc": "Solo el recuento — útil cuando el resultado sería enorme."
+        },
+        "pickColumns": {
+          "title": "Elegir columnas específicas",
+          "desc": "Proyecta solo lo que necesitas — mantiene la cuadrícula legible + acelera la transferencia."
+        },
+        "distinctValues": {
+          "title": "Valores distintos",
+          "desc": "Valores únicos de una columna — comprobación rápida en columnas de tipo enum."
+        }
+      },
+      "filtering": {
+        "title": "Filtrado",
+        "equalityIn": {
+          "title": "Igualdad + IN",
+          "desc": "Limita filas por coincidencia exacta o conjunto de valores."
+        },
+        "patternMatch": {
+          "title": "Coincidencia de patrón (LIKE / ILIKE)",
+          "desc": "Búsqueda con comodín / sin distinción de mayúsculas (Postgres ILIKE)."
+        },
+        "dateRange": {
+          "title": "Rango de fechas",
+          "desc": "Filas entre dos fechas — reemplaza los marcadores o usa {{var}} para plantillas de entorno."
+        },
+        "nullHandling": {
+          "title": "Manejo de NULL",
+          "desc": "Encuentra filas a las que les falta (o que tienen) un valor."
+        }
+      },
+      "aggregation": {
+        "title": "Agregación",
+        "groupByCount": {
+          "title": "GROUP BY + COUNT",
+          "desc": "Resumen por una columna de categoría — el informe canónico de \"filas por estado\"."
+        },
+        "sumAvg": {
+          "title": "SUM / AVG / MIN / MAX",
+          "desc": "Resúmenes numéricos sobre una columna monetaria, con un filtro HAVING."
+        },
+        "dailySeries": {
+          "title": "Serie diaria (date_trunc)",
+          "desc": "Agrupa filas en días para un gráfico de series temporales."
+        }
+      },
+      "joins": {
+        "title": "Joins",
+        "innerJoin": {
+          "title": "INNER JOIN",
+          "desc": "Combina tablas relacionadas — pedidos + campos del cliente."
+        },
+        "leftJoin": {
+          "title": "LEFT JOIN con lado opcional",
+          "desc": "Incluye filas de la tabla izquierda aunque falte el lado derecho."
+        },
+        "selfJoin": {
+          "title": "Auto-join",
+          "desc": "Encuentra gerentes + sus subordinados directos."
+        }
+      },
+      "windows": {
+        "title": "Ventanas + CTE",
+        "cte": {
+          "title": "CTE (WITH …)",
+          "desc": "Divide una consulta compleja en pasos con nombre para mayor legibilidad."
+        },
+        "rowNumber": {
+          "title": "ROW_NUMBER() por grupo",
+          "desc": "Numera filas dentro de cada usuario — primer pedido por usuario, etc."
+        },
+        "cumulativeSum": {
+          "title": "SUM acumulada",
+          "desc": "Total acumulado de ingresos por día."
+        }
+      },
+      "jsonColumns": {
+        "title": "Columnas JSON (Postgres)",
+        "extractField": {
+          "title": "Extraer un campo",
+          "desc": "`->>` lee una clave de nivel superior como texto. Añade un cast para numéricos."
+        },
+        "filterJson": {
+          "title": "Filtrar dentro de JSON",
+          "desc": "Coincide con un valor anidado dentro de una ruta JSON."
+        }
+      },
+      "inspection": {
+        "title": "Inspección",
+        "explainAnalyze": {
+          "title": "EXPLAIN ANALYZE",
+          "desc": "Ve cómo el planificador piensa tu consulta — mostrado como un árbol en la vista Plan."
+        },
+        "listColumns": {
+          "title": "Listar columnas de una tabla",
+          "desc": "Cuando el autocompletado de la barra lateral no basta — volcado completo de information_schema."
+        },
+        "biggestTables": {
+          "title": "Tablas más grandes",
+          "desc": "Comprobación rápida del estado del almacenamiento (Postgres)."
+        }
+      },
+      "templating": {
+        "title": "Plantillas + múltiples sentencias",
+        "envVars": {
+          "title": "Variables de entorno",
+          "desc": "Los marcadores {{var}} se rellenan desde la barra de parámetros sobre el editor."
+        },
+        "multiStatement": {
+          "title": "Múltiples sentencias (devuelve N pestañas de resultados)",
+          "desc": "Ejecuta varias sentencias de una vez — cada una obtiene su propia pestaña de resultados."
+        }
+      }
+    },
+    "mongo": {
+      "addressForms": {
+        "title": "Formas de dirección",
+        "currentDb": {
+          "title": "BD actual · colección · find",
+          "desc": "Usa la base de datos predeterminada de la conexión. La forma más fácil."
+        },
+        "quotedCollection": {
+          "title": "Nombre de colección entre comillas",
+          "desc": "Usa getCollection para nombres con puntos, guiones, espacios."
+        },
+        "switchDb": {
+          "title": "Cambiar a otra base de datos",
+          "desc": "getSiblingDB salta a la BD nombrada en el mismo cliente."
+        },
+        "crossDb": {
+          "title": "Atajo entre BD",
+          "desc": "db.<dbname>.<collection>.<op>(...) — igual que getSiblingDB, tres puntos."
+        },
+        "crossDbQuoted": {
+          "title": "Entre BD + colección entre comillas",
+          "desc": "Ambos a la vez — lo más explícito, siempre funciona."
+        }
+      },
+      "filtering": {
+        "title": "Filtrado",
+        "equalityProjection": {
+          "title": "Igualdad + proyección",
+          "desc": "Busca por un solo campo. El segundo argumento elige qué campos vuelven."
+        },
+        "comparison": {
+          "title": "Operadores de comparación",
+          "desc": "$gt / $gte / $lt / $lte para rangos numéricos + de fechas."
+        },
+        "inNin": {
+          "title": "Conjuntos IN / NIN",
+          "desc": "$in coincide con uno de N valores. Ideal para enums de tipo estado."
+        },
+        "regex": {
+          "title": "Búsqueda regex",
+          "desc": "Subcadena + sin distinción de mayúsculas mediante regex /…/i."
+        },
+        "fieldExists": {
+          "title": "El campo existe",
+          "desc": "$exists distingue un campo ausente de un valor null."
+        },
+        "arrayMatch": {
+          "title": "Coincidencia de elemento de array",
+          "desc": "Encuentra documentos cuyo array contiene un elemento dado."
+        }
+      },
+      "chained": {
+        "title": "Modificadores de shell encadenados",
+        "limitSkipSort": {
+          "title": "Limit + skip + sort",
+          "desc": "Paginación + orden, exactamente como lo hace el shell de Mongo."
+        },
+        "projection": {
+          "title": "Proyección con .project()",
+          "desc": "Devuelve solo campos específicos."
+        },
+        "countFetch": {
+          "title": "Contar en lugar de obtener",
+          "desc": ".count() deriva internamente a countDocuments."
+        }
+      },
+      "aggregations": {
+        "title": "Agregaciones",
+        "groupSum": {
+          "title": "Agrupar + sumar (ingresos por usuario)",
+          "desc": "Usuarios de mayores ingresos en un solo pipeline."
+        },
+        "unwind": {
+          "title": "Desglosar array + agrupar",
+          "desc": "Aplana un array incrustado y lo resume."
+        },
+        "dailySeries": {
+          "title": "Serie diaria (agrupación por fecha)",
+          "desc": "Agrupa documentos por día — útil para gráficos."
+        },
+        "lookup": {
+          "title": "Lookup (left join)",
+          "desc": "Une pedidos con usuarios por userId. El \"JOIN\" de Mongo."
+        }
+      },
+      "counts": {
+        "title": "Recuentos + distinct",
+        "countDocuments": {
+          "title": "countDocuments",
+          "desc": "Recuento preciso que respeta el filtro — más lento en colecciones enormes."
+        },
+        "estimatedDocumentCount": {
+          "title": "estimatedDocumentCount",
+          "desc": "Recuento rápido basado en metadatos — no acepta un filtro."
+        },
+        "distinctValues": {
+          "title": "Valores distintos",
+          "desc": "Etiquetas únicas en todos los productos."
+        }
+      },
+      "singleDoc": {
+        "title": "Documento único + inspección ad hoc",
+        "findOne": {
+          "title": "findOne",
+          "desc": "Trae un único documento coincidente — útil cuando solo necesitas un ejemplo."
+        },
+        "explainQuery": {
+          "title": "Explicar una consulta",
+          "desc": "Ve si se usa un índice + estadísticas de escaneo."
+        }
+      }
+    }
+  },
+  "params": {
+    "label": "Parámetros"
+  },
+  "cellRender": {
+    "binary": "«binario»"
+  },
+  "sidebar": {
+    "connections": "Conexiones",
+    "newConnection": "Nueva conexión",
+    "noConnections": "Aún no hay conexiones",
+    "addFirst": "Añade tu primera conexión",
+    "savedQueries": "Consultas guardadas",
+    "rwTitle": "Lectura-escritura — se permiten sentencias de escritura",
+    "readonlyTitle": "Solo lectura",
+    "share": "Compartir",
+    "rwMode": "Modo lectura-escritura",
+    "tables": "Tablas",
+    "collections": "Colecciones",
+    "refreshSchema": "Actualizar esquema",
+    "filterTables": "Filtrar tablas…",
+    "filterCollections": "Filtrar colecciones…",
+    "filterColumns": "Filtrar columnas…",
+    "filterFields": "Filtrar campos…",
+    "emptySchema": "Esquema vacío",
+    "expandToLoad": "Expande para cargar",
+    "noMatchTables": "No hay tablas coincidentes",
+    "noMatchCollections": "No hay colecciones coincidentes",
+    "hideColumns": "Ocultar columnas",
+    "showColumns": "Mostrar columnas",
+    "unknownType": "desconocido",
+    "fieldType": "campo",
+    "noColumns": "Sin columnas",
+    "noMatchColumns": "No hay columnas coincidentes",
+    "noSavedQueries": "Sin consultas guardadas",
+    "savedLocalTip": "Guardada en este dispositivo — permanece en este navegador.",
+    "savedRemoteTip": "Sincronizada con tu cuenta — visible en todos los dispositivos.",
+    "copyQueryText": "Copiar texto de la consulta",
+    "localSuffix": "(local)",
+    "deleteTitle": "¿Eliminar \"{{name}}\"?",
+    "deleteDescription": "La conexión y cada consulta guardada / permiso bajo ella se eliminan. Las pestañas de consulta activas contra esta conexión fallarán en su próxima ejecución. Esto no se puede deshacer.",
+    "toastModeFailTitle": "No se pudo cambiar el modo",
+    "toastModeFailDesc": "Todos los backends rechazaron el cambio. Verifica tu acceso e inténtalo de nuevo.",
+    "enabledRw": "Lectura-escritura activada",
+    "setReadonly": "Poner en solo lectura",
+    "scopeBoth": "Almacenada en ambos backends. El conmutador Local/Remoto de la barra de herramientas cambia el ejecutor por consulta.",
+    "scopeLocalOnly": "Solo en este dispositivo — el servidor PatchMan no aceptó la última escritura.",
+    "scopeRemoteOnly": "Solo en el servidor PatchMan — este dispositivo no aceptó la última escritura.",
+    "defaultRunner": "Ejecutor predeterminado: {{target}}.",
+    "runnerThisDevice": "este dispositivo",
+    "runnerServer": "el servidor PatchMan",
+    "sharedCoowner": "Compartida contigo como copropietario.",
+    "sharedReadonly": "Compartida en solo lectura.",
+    "rwModeOn": "Modo lectura-escritura: se permiten sentencias de escritura.",
+    "roModeOff": "Modo solo lectura.",
+    "duplicate": "Duplicar"
+  }
+}

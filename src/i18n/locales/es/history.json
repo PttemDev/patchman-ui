@@ -1,0 +1,12 @@
+{
+  "title": "Historial",
+  "maxDays": "(máx. 30 días)",
+  "emptyTitle": "Aún no hay historial",
+  "emptyHint": "Tu historial de solicitudes aparecerá aquí",
+  "durationMs": "{{n}}ms",
+  "unavailable": {
+    "remote": "Inicia sesión / sincroniza para ver el historial del servidor.",
+    "localBackend": "No se puede acceder al backend integrado.",
+    "localDesktopOnly": "El historial local solo está disponible en la app de escritorio."
+  }
+}

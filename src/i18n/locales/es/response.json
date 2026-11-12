@@ -1,0 +1,130 @@
+{
+  "tabs": {
+    "body": "Cuerpo",
+    "transform": "Transformar",
+    "headers": "Encabezados",
+    "cookies": "Cookies",
+    "timing": "Tiempos",
+    "request": "Solicitud",
+    "console": "Consola"
+  },
+  "loading": "Enviando solicitud…",
+  "empty": {
+    "title": "Ingresa una URL y haz clic en Enviar para obtener una respuesta",
+    "hint": "O pulsa Ctrl+Enter / Cmd+Enter"
+  },
+  "clickToCopyValue": "Haz clic para copiar el valor",
+  "meta": {
+    "copyBody": "Copiar el cuerpo de la respuesta",
+    "encodingTooltip": "La carga en la red estaba codificada con {{encoding}}; PatchMan la decodificó por ti.",
+    "sizeRequest": "Solicitud — {{size}}",
+    "sizeResponse": "Respuesta — {{size}}",
+    "sizeHeaders": "Encabezados",
+    "sizeBody": "Cuerpo",
+    "sizeCookies": "Cookies",
+    "remoteAria": "Dirección remota — haz clic para copiar",
+    "remoteTitle": "Dirección del servidor remoto",
+    "clickToCopy": "haz clic para copiar",
+    "remoteHint": "La IP:puerto a la que esta solicitud se conectó realmente — el host final tras cualquier redirección."
+  },
+  "console": {
+    "empty": "Sin salida de consola. Los registros del script de prueba aparecerán aquí."
+  },
+  "body": {
+    "pretty": "Formateado",
+    "raw": "Sin formato",
+    "preview": "Vista previa",
+    "download": "Descargar",
+    "unknownType": "desconocido",
+    "previewTitle": "Vista previa de la respuesta",
+    "imageAlt": "Respuesta",
+    "pdfTitle": "Respuesta PDF",
+    "soapFault": "SOAP Fault",
+    "save": "Guardar"
+  },
+  "headers": {
+    "empty": "Sin encabezados de respuesta"
+  },
+  "table": {
+    "value": "Valor",
+    "key": "Clave"
+  },
+  "cookies": {
+    "emptyTitle": "No hay encabezados Set-Cookie en esta respuesta",
+    "emptyHint": "Las cookies establecidas por el servidor aparecerán aquí con un botón Guardar.",
+    "countOne": "{{count}} cookie",
+    "countOther": "{{count}} cookies",
+    "newCount": "{{count}} nuevas",
+    "autoSave": "Guardado automático",
+    "autoSaveTooltip": "Guarda automáticamente las cookies de la respuesta en el tarro tras cada solicitud — sin Guardar manual. Se aplica a todas las pestañas y se recuerda entre sesiones.",
+    "saveAll": "Guardar todo",
+    "empty": "(vacío)",
+    "saved": "Guardado",
+    "session": "Sesión",
+    "expired": "Caducada"
+  },
+  "timing": {
+    "dns": "Búsqueda DNS",
+    "tcp": "Conexión TCP",
+    "tls": "Handshake TLS",
+    "ttfb": "Tiempo hasta el primer byte",
+    "total": "Total",
+    "waterfall": "Cascada de la solicitud"
+  },
+  "request": {
+    "empty": "No hay detalles de la solicitud. Envía una solicitud primero.",
+    "heading": "Solicitud",
+    "headersCount": "Encabezados ({{count}})",
+    "paramsCount": "Parámetros de consulta ({{count}})",
+    "body": "Cuerpo",
+    "auth": "Autenticación"
+  },
+  "transform": {
+    "cheatsheet": "Chuleta",
+    "readsHint": "lee la respuesta — el original queda intacto",
+    "notJson": "El cuerpo de la respuesta no es JSON válido — no hay nada que transformar.",
+    "resultPlaceholder": "El resultado aparece aquí.",
+    "docs": "docs",
+    "useExpression": "Usar esta expresión"
+  },
+  "cheat": {
+    "jmespath": {
+      "whole": "el documento completo",
+      "nested": "un campo anidado",
+      "first": "primer elemento de un arreglo",
+      "pluck": "extraer un campo de cada elemento",
+      "filterPluck": "filtrar por un campo y luego extraer",
+      "count": "contar elementos",
+      "reshape": "reestructurar en nuevos objetos"
+    },
+    "jq": {
+      "identity": "el documento completo (identidad)",
+      "first": "primer elemento de un arreglo",
+      "stream": "emitir un campo de cada elemento",
+      "map": "mapear a un arreglo de un solo campo",
+      "filter": "filtrar con select()",
+      "count": "contar elementos",
+      "group": "agrupar + agregar"
+    },
+    "jsonpath": {
+      "root": "documento raíz",
+      "all": "todos los elementos de un arreglo",
+      "first": "primer elemento",
+      "pluck": "extraer un campo de cada elemento",
+      "filter": "filtrar por un campo",
+      "recursive": "descenso recursivo — encontrar una clave en cualquier lugar"
+    }
+  },
+  "save": {
+    "title": "Guardar respuesta",
+    "description": "Guarda esta petición y su respuesta en una colección: ábrela después desde “Respuestas guardadas” de la colección o vuelve a enviarla.",
+    "name": "Nombre",
+    "collection": "Colección o carpeta",
+    "pick": "Elige una colección…",
+    "noCollections": "Crea primero una colección: las respuestas guardadas se guardan dentro de una.",
+    "saved": "Respuesta guardada",
+    "truncated": "Guardada en {{where}} (el cuerpo superaba los 5 MB y se recortó).",
+    "view": "Ver",
+    "failed": "No se pudo guardar la respuesta"
+  }
+}

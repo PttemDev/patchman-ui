@@ -1,0 +1,76 @@
+{
+  "validation": {
+    "nameRequired": "Ad gerekli"
+  },
+  "error": {
+    "operationFailed": "İşlem başarısız",
+    "inviteFailed": "Davet başarısız",
+    "changeRoleFailed": "Rol değiştirilemedi",
+    "removeMemberFailed": "Üye kaldırılamadı"
+  },
+  "selector": {
+    "placeholder": "Çalışma alanı seçin",
+    "all": "Tüm Çalışma Alanları",
+    "none": "Çalışma Alanı Yok",
+    "manageWorkspaces": "Çalışma alanlarını yönet",
+    "manageTeams": "Ekipleri yönet"
+  },
+  "manager": {
+    "title": "Çalışma Alanı Yöneticisi",
+    "description": "Çalışma alanları kendi koleksiyonlarınızı ve ortamlarınızı düzenler. Bunları bir grupla paylaşmak için Ekipleri kullanın.",
+    "tabList": "Çalışma Alanları",
+    "countOne": "{{count}} çalışma alanı",
+    "countOther": "{{count}} çalışma alanı",
+    "newWorkspace": "Yeni Çalışma Alanı",
+    "empty": "Henüz çalışma alanı yok",
+    "createFirst": "İlk çalışma alanınızı oluşturun",
+    "teamFallback": "ekip",
+    "personal": "kişisel",
+    "sharedWithYou": "sizinle paylaşıldı",
+    "created": "Oluşturuldu {{date}}"
+  },
+  "teams": {
+    "title": "Ekipler",
+    "description": "Koleksiyonları ve ortamları bir grup kişiyle aynı anda paylaşmak için ekipler oluşturun. Ekipler bu çalışma alanındaki herkese görünür — yalnızca yöneticiler bir ekibin listesini düzenleyebilir. Bir ekiple paylaşılan çalışma alanında yöneticiler içeriği de düzenleyebilir.",
+    "tabList": "Ekipler",
+    "tabMembers": "Üyeler",
+    "countOne": "{{count}} ekip",
+    "countOther": "{{count}} ekip",
+    "newTeam": "Yeni Ekip",
+    "empty": "Henüz ekip yok",
+    "createFirst": "İlk ekibinizi oluşturun",
+    "roleAdmin": "yönetici",
+    "roleMember": "üye",
+    "memberCountOne": "{{count}} üye",
+    "memberCountOther": "{{count}} üye",
+    "byCreator": " · {{name}} tarafından"
+  },
+  "members": {
+    "viewOnly": "salt görüntüleme",
+    "addMember": "Üye Ekle",
+    "searchPlaceholder": "Ada veya e-postaya göre ara...",
+    "roleAdmin": "Yönetici",
+    "roleMember": "Üye",
+    "selected": "Seçili:",
+    "empty": "Henüz üye yok"
+  },
+  "form": {
+    "namePlaceholder": "Çalışma Alanım",
+    "description": "Açıklama",
+    "descriptionPlaceholder": "İsteğe bağlı açıklama",
+    "personal": "Kişisel",
+    "team": "Ekip",
+    "shareWithTeam": "Ekiple paylaş",
+    "personalNoTeam": "Kişisel — ekip yok",
+    "shareHint": "Ekip üyeleri bu çalışma alanını ve içindeki her şeyi görür: ekip yöneticileri koleksiyonlara, ortamlara, beyaz tahtalara ve notlara Editör olarak erişir, üyeler yalnızca görüntüleyebilir.",
+    "teamNamePlaceholder": "QA Ekibi",
+    "create": "Oluştur",
+    "saveChanges": "Değişiklikleri Kaydet"
+  },
+  "delete": {
+    "workspaceTitle": "Çalışma Alanını Sil",
+    "workspaceDescription": "\"{{name}}\" öğesini silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.",
+    "teamTitle": "Ekibi Sil",
+    "teamDescription": "\"{{name}}\" öğesini silmek istediğinizden emin misiniz? Bu ekibe işaret eden koleksiyon / ortam yetkileri devre dışı kalır (kaynaklar sahiplerine ve bireysel iş arkadaşlarına erişilebilir kalır)."
+  }
+}

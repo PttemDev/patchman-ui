@@ -1,0 +1,90 @@
+{
+  "saving": "Guardando...",
+  "toast": {
+    "serverCreated": "Servidor creado",
+    "serverCreatedDesc": "El servidor mock \"{{name}}\" está listo",
+    "createServerFailed": "Error al crear el servidor",
+    "serverUpdated": "Servidor actualizado",
+    "updateServerFailed": "Error al actualizar el servidor",
+    "serverDeleted": "Servidor eliminado",
+    "routeDeleted": "Ruta eliminada",
+    "deleteFailed": "Error al eliminar",
+    "routeUpdated": "Ruta actualizada",
+    "routeCreated": "Ruta creada",
+    "saveRouteFailed": "Error al guardar la ruta"
+  },
+  "list": {
+    "title": "Servidores mock",
+    "emptyTitle": "Aún no hay servidores mock",
+    "emptyDescription": "Los servidores mock te permiten simular endpoints de API para pruebas sin un backend real.",
+    "createServer": "Crear servidor mock",
+    "routeCountOne": "{{count}} ruta",
+    "routeCountOther": "{{count}} rutas"
+  },
+  "delete": {
+    "serverTitle": "¿Eliminar servidor?",
+    "routeTitle": "¿Eliminar ruta?",
+    "description": "¿Seguro que quieres eliminar \"{{label}}\"? Esta acción no se puede deshacer."
+  },
+  "header": {
+    "newServer": "Nuevo servidor mock",
+    "editServer": "Editar servidor"
+  },
+  "wizard": {
+    "setup": "Configuración"
+  },
+  "form": {
+    "serverName": "Nombre del servidor",
+    "serverNamePlaceholder": "p. ej., API de pagos, Servicio de usuarios",
+    "urlPrefix": "Prefijo de URL",
+    "namespaceTitle": "Tu espacio de nombres obligatorio — se fija para evitar colisiones de prefijos entre usuarios",
+    "prefixPlaceholder": "p. ej., payment-api",
+    "prefixHintNs": "Tus mocks viven bajo {{namespace}}/ — deja vacío para autogenerar el sufijo a partir del nombre",
+    "prefixHint": "Deja vacío para autogenerar a partir del nombre",
+    "baseUrl": "URL base del mock",
+    "baseUrlHint": "Las rutas que añadas serán accesibles bajo esta URL",
+    "creating": "Creando...",
+    "createServer": "Crear servidor",
+    "saveChanges": "Guardar cambios"
+  },
+  "detail": {
+    "notFound": "Servidor no encontrado",
+    "backToList": "Volver a la lista",
+    "editServer": "Editar servidor",
+    "disable": "Desactivar",
+    "enable": "Activar",
+    "deleteServer": "Eliminar servidor",
+    "active": "Activo",
+    "disabled": "Desactivado",
+    "copyBaseUrl": "Copiar URL base",
+    "routesCount": "Rutas ({{count}})",
+    "noRoutes": "Aún no hay rutas. Añade tu primera ruta para empezar a simular endpoints.",
+    "addRoute": "Añadir ruta",
+    "copyFullUrl": "Copiar URL completa",
+    "copyUrl": "Copiar URL",
+    "openTabName": "Mock · {{name}} {{method}} {{path}}",
+    "openAsRequest": "Abrir como solicitud",
+    "open": "Abrir"
+  },
+  "editor": {
+    "editRoute": "Editar ruta",
+    "newRoute": "Nueva ruta",
+    "description": "Configura la ruta mock y su respuesta.",
+    "saveRoute": "Guardar ruta"
+  },
+  "route": {
+    "method": "Método",
+    "path": "Ruta",
+    "statusCode": "Código de estado",
+    "delay": "Retardo (ms)",
+    "responseBody": "Cuerpo de la respuesta",
+    "delayLabel": "Retardo:",
+    "bodyLabel": "Cuerpo:"
+  },
+  "routeForm": {
+    "endpoint": "Endpoint",
+    "fullUrlLabel": "URL completa:",
+    "responseHeaders": "Cabeceras de respuesta (JSON)",
+    "updateRoute": "Actualizar ruta"
+  }
+}

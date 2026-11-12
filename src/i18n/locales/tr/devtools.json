@@ -1,0 +1,432 @@
+{
+  "panel": {
+    "unknownTool": "Bilinmeyen araç."
+  },
+  "sidebar": {
+    "utilities": "Araçlar",
+    "openInNewTab": "Yeni sekmede aç"
+  },
+  "tools": {
+    "jsonDiff": { "label": "JSON Diff", "description": "İki JSON/metin bloğunu yan yana karşılaştır" },
+    "jwt": { "label": "JWT", "description": "JSON Web Token'ları çöz, doğrula + imzala" },
+    "base64": { "label": "Base64", "description": "Metin + dosya kodla / çöz" },
+    "url": { "label": "URL Kodla/Çöz", "description": "Yüzde kodlama / çözme" },
+    "timestamp": { "label": "Zaman damgası", "description": "Epoch ↔ tarih, saat dilimleri" },
+    "uuid": { "label": "UUID / ULID", "description": "Tanımlayıcı üret" },
+    "hash": { "label": "Hash", "description": "SHA-1 / SHA-256 / SHA-512" },
+    "regex": { "label": "Regex", "description": "Test + yaygın kalıp kütüphanesi" },
+    "jsConsole": { "label": "JS Konsolu", "description": "Kum havuzunda JavaScript çalıştır" },
+    "snippets": { "label": "Tarifler", "description": "Sık yanlış yapılan işler için doğru kod parçaları" },
+    "mockData": { "label": "Sahte veri", "description": "Sahte veri üret — JSON / CSV / SQL / NDJSON" },
+    "dns": { "label": "DNS Araçları", "description": "DNS sorguları — A/AAAA/MX/TXT/NS/CNAME/SRV/PTR + ters" },
+    "webAudit": { "label": "Web Denetimi", "description": "SEO + web kalitesi kontrolleri (tarayıcısız)" }
+  },
+  "copy": {
+    "toClipboard": "Panoya kopyalandı",
+    "failed": "Kopyalama başarısız",
+    "copiedLabel": "{{label}} kopyalandı",
+    "all": "Tümünü kopyala"
+  },
+  "actions": {
+    "clear": "Temizle",
+    "generate": "Oluştur",
+    "download": "İndir",
+    "run": "Çalıştır",
+    "now": "Şimdi",
+    "sample": "Örnek"
+  },
+  "units": {
+    "charsBytes": "{{chars}} karakter · {{bytes}} bayt"
+  },
+  "placeholders": {
+    "empty": "(boş)",
+    "undefined": "undefined"
+  },
+  "datetime": {
+    "time": "Saat",
+    "weekday": {
+      "mon": "Pt",
+      "tue": "Sa",
+      "wed": "Ça",
+      "thu": "Pe",
+      "fri": "Cu",
+      "sat": "Ct",
+      "sun": "Pz"
+    }
+  },
+  "base64": {
+    "intro": "Canlı çift yönlü dönüştürücü — bir tarafı düzenleyin, diğeri anında güncellenir (UTF-8 güvenli).",
+    "urlSafe": "URL-safe",
+    "plainText": "Düz metin",
+    "textPlaceholder": "Merhaba dünya!",
+    "paneLabel": "Base64",
+    "paneLabelUrlSafe": "Base64 (url-safe)",
+    "invalid": "Geçerli base64 değil — hatalı karakterleri kontrol edin.",
+    "invalidUrlSafeHint": "Geçerli base64 değil — hatalı karakterleri kontrol edin veya - ve _ kullanılıyorsa URL-safe'i açın.",
+    "fileToBase64": "Dosya → base64",
+    "dropIdle": "Dosya bırakın veya göz atmak için tıklayın",
+    "dropActive": "Yüklemek için bırakın",
+    "dropHint": "Yukarıdaki Base64 bölmesi kodlanmış baytlarla dolar.",
+    "readError": "Dosya okunamadı"
+  },
+  "hash": {
+    "text": "Metin",
+    "uppercaseHex": "Büyük harf hex",
+    "textPlaceholder": "Canlı hash için metin yazın veya yapıştırın…",
+    "hashFile": "Dosya hash'le",
+    "fileDescription": "Herhangi bir dosyanın kriptografik sağlama toplamını hesaplayın — indirmeleri doğrulamak veya değişiklikleri saptamak için kullanışlıdır. Dosya tarayıcınızda yerel olarak okunur; hiçbir şey yüklenmez.",
+    "dropAria": "Buraya bir dosya bırakın veya göz atmak için tıklayın",
+    "dropText": "Buraya bir dosya bırakın veya <1>göz atmak için tıklayın</1>",
+    "hashing": "hash'leniyor…",
+    "hashError": "Dosya hash'lenemedi",
+    "md5Note": "MD5 kasıtlı olarak dışarıda bırakıldı — tarayıcı Web Crypto API'si onu desteklemiyor. Hash'ler crypto.subtle.digest ile yerel olarak hesaplanır."
+  },
+  "uuid": {
+    "count": "Adet (1–100)",
+    "generateV4": "v4 üret",
+    "nilUuid": "Nil UUID",
+    "uppercase": "Büyük harf",
+    "hyphens": "Tireler",
+    "uuidV4Label": "UUID v4",
+    "ulidLabel": "ULID",
+    "sortable": "sıralanabilir",
+    "regenerate": "Yeniden üret",
+    "footer": "v4 crypto.randomUUID() kullanır; ULID = 48 bit zaman damgası + 80 bit rastgelelik."
+  },
+  "jsonDiff": {
+    "formatBoth": "İkisini biçimlendir",
+    "swapSides": "Tarafları değiştir",
+    "ignoreWhitespace": "Boşlukları yoksay",
+    "original": "Özgün",
+    "modified": "Değiştirilmiş",
+    "neitherValid": "Hiçbir taraf geçerli JSON değil",
+    "leftInvalid": "Sol taraf geçerli JSON değil",
+    "rightInvalid": "Sağ taraf geçerli JSON değil",
+    "diffingAsText": "— düz metin olarak karşılaştırılıyor."
+  },
+  "url": {
+    "component": "Bileşen",
+    "fullUrl": "Tam URL",
+    "componentDesc": "encodeURIComponent — & = ? / gibi ayrılmış karakterleri kaçırır, böylece bir değer sorgu parametresi içinde güvenli olur.",
+    "fullDesc": "encodeURI — URL yapısını korur (: / ? & = # bozulmaz), tüm bir URL'yi kodlamak için.",
+    "decodedRaw": "Çözülmüş (ham)",
+    "encoded": "Kodlanmış",
+    "cantDecode": "Çözülemiyor — % kaçışlarını kontrol edin",
+    "liveBidirectional": "Canlı & çift yönlü — bir bölmeyi düzenleyin, diğeri otomatik güncellenir.",
+    "breakdown": "URL dökümü (çözülmüş)",
+    "origin": "kaynak",
+    "path": "yol",
+    "key": "Anahtar",
+    "valueDecoded": "Değer (çözülmüş)",
+    "noQueryParams": "Sorgu parametresi yok."
+  },
+  "timestamp": {
+    "timezone": "Saat dilimi",
+    "resetToLocal": "Yerele sıfırla",
+    "nowEpoch": "şimdi: {{epoch}}",
+    "epochOrDate": "Epoch veya tarih dizesi",
+    "inputPlaceholder": "1516239022, 1516239022000 veya 2026-07-24T12:00:00Z",
+    "parseError": "Bu bir epoch veya tarih olarak çözümlenemedi.",
+    "unixSeconds": "Unix (saniye)",
+    "unixMillis": "Unix (milisaniye)",
+    "iso8601Utc": "ISO 8601 (UTC)",
+    "relative": "Göreli",
+    "local": "Yerel",
+    "inZone": "{{zone}} diliminde",
+    "dateToEpoch": "Tarih → epoch",
+    "isoSyncHint": "Yukarıdan bir tarih seçin veya buraya ISO 8601 yazın — ikisi de senkron kalır.",
+    "invalidDate": "Geçerli bir tarih dizesi değil."
+  },
+  "dns": {
+    "hostPlaceholder": "Ana bilgisayar adı veya IP — example.com ya da 8.8.8.8",
+    "serverPlaceholder": "Özel DNS sunucusu (isteğe bağlı) — 1.1.1.1",
+    "lookup": "Sorgula",
+    "records": "Kayıtlar",
+    "all": "Tümü",
+    "none": "Hiçbiri",
+    "ipNudge": "Bir IP gibi görünüyor — ters sorgu için PTR'yi etkinleştirin",
+    "lookupFailed": "Sorgu başarısız",
+    "resolving": "Çözümleniyor…",
+    "emptyState": "Bir ana bilgisayar adı veya IP girin, kayıt türlerini seçin, sonra <1>Sorgula</1>'ya basın.",
+    "resolverLabel": "çözümleyici",
+    "recordCountOne": "{{count}} kayıt",
+    "recordCountOther": "{{count}} kayıt",
+    "typeRecords": "{{type}} kayıtları",
+    "noRecords": "Kayıt yok.",
+    "footer": "Sunucu tarafında gerçek bir DNS çözümleyici (miekg/dns) ile çözümlendi, böylece her kayıt kendi TTL'sini taşır ve SOA/CAA mevcuttur. PTR bir ters sorgudur — kullanmak için bir IP girin."
+  },
+  "jwt": {
+    "tokenPlaceholder": "Bir JWT yapıştırın (header.payload.signature)",
+    "encoded": "Kodlanmış",
+    "expired": "Süresi dolmuş",
+    "notYetValid": "Henüz geçerli değil",
+    "validTime": "Geçerli (zaman)",
+    "noExpiryClaim": "Son kullanma talebi yok",
+    "header": "BAŞLIK",
+    "headerSub": "(algoritma & token türü)",
+    "payload": "YÜK",
+    "payloadSub": "(talepler / veri)",
+    "beautify": "Güzelleştir",
+    "beautifyJson": "JSON'u güzelleştir",
+    "verifySignature": "İMZAYI DOĞRULA",
+    "algorithm": "Algoritma",
+    "secret": "Gizli anahtar",
+    "secretPlaceholder": "HMAC paylaşılan gizli anahtarı",
+    "hsHint": "Gizli anahtarı, başlığı veya yükü düzenlemek token'ı canlı olarak yeniden imzalar.",
+    "publicKey": "Açık anahtar (PEM, SPKI)",
+    "rsHint": "RS256 burada yalnızca doğrulamalıdır — başlık/yük düzenlemek özel anahtar olmadan yeniden imzalayamaz.",
+    "signatureVerified": "İmza Doğrulandı",
+    "invalidSignature": "Geçersiz İmza",
+    "unsigned": "İmzasız — imza bölümü yok",
+    "enterSecret": "İmzayı doğrulamak için bir gizli anahtar girin",
+    "enterPublicKey": "İmzayı doğrulamak için bir açık anahtar girin",
+    "unsupportedAlg": "Desteklenmeyen algoritma: {{alg}}",
+    "verificationFailed": "Doğrulama başarısız.",
+    "signingFailed": "İmzalama başarısız.",
+    "headerInvalidJson": "Başlık geçerli JSON değil.",
+    "payloadInvalidJson": "Yük geçerli JSON değil.",
+    "decode": {
+      "tooFewSegments": "Bir JWT'nin en az iki noktayla ayrılmış bölümü vardır (header.payload).",
+      "decodeFailed": "Token base64url ile çözülemedi."
+    }
+  },
+  "regex": {
+    "commonPatterns": "Yaygın kalıplar",
+    "pattern": "Kalıp",
+    "testString": "Test dizesi",
+    "testPlaceholder": "Karşı test için metin yazın veya yapıştırın…",
+    "matches": "Eşleşmeler",
+    "noTestString": "Test dizesi yok.",
+    "matchCountOne": "{{count}} eşleşme",
+    "matchCountOther": "{{count}} eşleşme",
+    "cappedAt": "({{max}} ile sınırlı)",
+    "andMore": "…ve {{count}} tane daha.",
+    "replaceWith": "Şununla değiştir",
+    "result": "Sonuç",
+    "invalidLabel": "Geçersiz regex",
+    "invalidFallback": "Geçersiz düzenli ifade.",
+    "invalidReplacement": "Geçersiz değiştirme.",
+    "flag": {
+      "g": "Global: yalnızca ilkini değil, tüm eşleşmeleri bul",
+      "i": "Büyük/küçük harf duyarsız",
+      "m": "Multiline: ^ ve $ satır sonlarında eşleşir",
+      "s": "Dotall: . yeni satırlarla da eşleşir",
+      "u": "Unicode: \\p{…} sınıflarını ve tam Unicode'u etkinleştir",
+      "y": "Sticky: yalnızca lastIndex'ten başlayarak eşleş"
+    }
+  },
+  "snippets": {
+    "commonMistake": "Sık yapılan hata:",
+    "copied": "Kod parçası kopyalandı"
+  },
+  "mockData": {
+    "title": "Sahte veri",
+    "rows": "Satırlar",
+    "sqlInsert": "SQL insert",
+    "tablePlaceholder": "tablo",
+    "copiedDesc": "{{format}} olarak {{count}} satır",
+    "schemaFieldsOne": "Şema · {{count}} alan",
+    "schemaFieldsOther": "Şema · {{count}} alan",
+    "field": "Alan",
+    "fieldNamePlaceholder": "alan adı",
+    "noFields": "Alan yok — başlamak için bir tane ekleyin.",
+    "output": "Çıktı",
+    "outputRowsOne": "· {{count}} satır",
+    "outputRowsOther": "· {{count}} satır",
+    "values": "· ~{{count}} değer",
+    "emptyState": "Şemanızı tanımlayın, sonra <1>Oluştur</1>'a basın.",
+    "listPlaceholder": "a, b, c",
+    "constantPlaceholder": "sabit",
+    "opt": {
+      "min": "min",
+      "max": "maks",
+      "dec": "ondalık",
+      "blank": "% boş",
+      "from": "başlangıç",
+      "to": "bitiş",
+      "list": "liste",
+      "value": "değer"
+    },
+    "group": {
+      "Basic": "Temel",
+      "Number": "Sayı",
+      "Person": "Kişi",
+      "Location": "Konum",
+      "Commerce": "Ticaret",
+      "Time": "Zaman",
+      "Text": "Metin",
+      "Custom": "Özel"
+    },
+    "fieldType": {
+      "rowNumber": "Satır numarası",
+      "uuid": "UUID",
+      "boolean": "Boolean",
+      "integer": "Tam sayı",
+      "decimal": "Ondalık",
+      "firstName": "Ad",
+      "lastName": "Soyad",
+      "fullName": "Tam ad",
+      "email": "E-posta",
+      "username": "Kullanıcı adı",
+      "phone": "Telefon",
+      "city": "Şehir",
+      "country": "Ülke",
+      "ipv4": "IPv4",
+      "company": "Şirket",
+      "url": "URL",
+      "color": "Renk (hex)",
+      "date": "Tarih",
+      "datetime": "Tarih-saat (ISO)",
+      "word": "Kelime",
+      "sentence": "Cümle",
+      "paragraph": "Paragraf",
+      "enum": "Enum (listeden seç)",
+      "constant": "Sabit"
+    }
+  },
+  "jsConsole": {
+    "stop": "Durdur",
+    "runHint": "Çalıştırmak için ⌘/Ctrl + Enter",
+    "console": "Konsol",
+    "consoleEmpty": "Çıktı burada görünür. Kum havuzunda — DOM yok, uygulamaya erişim yok.",
+    "dragResize": "Yeniden boyutlandırmak için sürükleyin",
+    "variables": "Değişkenler",
+    "varsEmpty": "Üst düzey değişkenler bir çalıştırmadan sonra burada görünür.",
+    "stopped": "⏹ Durduruldu.",
+    "timedOut": "⏱ Yürütme {{seconds}}s sonra zaman aşımına uğradı — worker sonlandırıldı.",
+    "workerError": "Worker hatası"
+  },
+  "webAudit": {
+    "urlPlaceholder": "example.com",
+    "followRedirects": "Yönlendirmeleri izle",
+    "auditing": "Denetleniyor…",
+    "auditFailed": "Denetim başarısız",
+    "emptyState": "Bir URL girin, sonra <1>Çalıştır</1>'a basın.",
+    "errorCountOne": "{{count}} hata",
+    "errorCountOther": "{{count}} hata",
+    "warningCountOne": "{{count}} uyarı",
+    "warningCountOther": "{{count}} uyarı",
+    "okCount": "{{count}} tamam",
+    "infoCount": "{{count}} bilgi",
+    "checkCountOne": "{{count}} kontrol",
+    "checkCountOther": "{{count}} kontrol",
+    "typeCountOne": "{{count}} tür",
+    "typeCountOther": "{{count}} tür",
+    "hopCountOne": "{{count}} adım",
+    "hopCountOther": "{{count}} adım",
+    "chars": "{{count}} karakter",
+    "imagesTotal": "{{count}} toplam",
+    "imagesMissingAlt": "{{count}} alt eksik",
+    "socialMeta": "{{og}} OG · {{twitter}} Twitter",
+    "openGraph": "Open Graph",
+    "noOpenGraph": "Open Graph etiketi yok.",
+    "noTwitter": "Twitter etiketi yok.",
+    "noJsonLd": "JSON-LD bulunamadı.",
+    "none": "yok",
+    "robotsPresent": "robots.txt mevcut",
+    "robotsSitemap": "robots.txt bir site haritası bildiriyor",
+    "sitemapPresent": "sitemap.xml mevcut",
+    "noRedirects": "Yönlendirme yok.",
+    "footer": "Sunucu tarafında getirildi + ayrıştırıldı (tarayıcısız). JavaScript ile oluşturulan içerik değerlendirilmez — kontroller ham HTML yanıtına karşı çalışır.",
+    "severity": {
+      "error": "hata",
+      "warn": "uyarı",
+      "ok": "tamam",
+      "info": "bilgi"
+    },
+    "section": {
+      "seo": "SEO",
+      "social": "Sosyal",
+      "structuredData": "Yapılandırılmış veri",
+      "performance": "Performans",
+      "securityHeaders": "Güvenlik başlıkları",
+      "crawlability": "Taranabilirlik",
+      "redirectChain": "Yönlendirme zinciri"
+    },
+    "kv": {
+      "title": "Başlık",
+      "metaDesc": "Meta açıklama",
+      "canonical": "Canonical",
+      "robotsMeta": "Robots meta",
+      "lang": "Dil",
+      "viewport": "Viewport",
+      "images": "Görseller",
+      "hreflang": "Hreflang",
+      "compression": "Sıkıştırma",
+      "htmlSize": "HTML boyutu",
+      "h1": "H1 ({{count}})"
+    }
+  },
+  "regexLib": {
+    "cat": {
+      "validation": "Doğrulama",
+      "extraction": "Çıkarma"
+    },
+    "emailPragmatic": { "name": "E-posta (pratik)", "description": "Pratik e-posta kontrolü — tam RFC 5322 değil." },
+    "emailStrict": { "name": "E-posta (daha katı)", "description": "2+ harfli TLD ile kısıtlı yerel/alan karakter kümesi." },
+    "passwordStrong": { "name": "Parola (8+, büyük, küçük, rakam, özel)", "description": "En az 8 karakter, en az bir küçük harf, büyük harf, rakam ve özel karakter." },
+    "passwordMedium": { "name": "Parola (8+, büyük, küçük, rakam)", "description": "En az 8 karakter, en az bir küçük harf, büyük harf ve rakam." },
+    "fullName": { "name": "Tam ad (Ad Soyad, Unicode)", "description": "İki veya daha fazla Unicode kelime (Türkçe harfleri destekler); boşluk, kesme işareti, tire içerebilir." },
+    "urlHttp": { "name": "URL (http/https)", "description": "Mutlak http veya https URL." },
+    "slug": { "name": "Slug", "description": "Küçük harf URL slug — tek tirelerle birleştirilmiş kelimeler." },
+    "uuidV4": { "name": "UUID (v4)", "description": "RFC 4122 sürüm-4 UUID." },
+    "hexColor": { "name": "Hex renk", "description": "Başında # olan 3 veya 6 haneli hex renk." },
+    "ipv4": { "name": "IPv4", "description": "Noktalı-dörtlü IPv4 adresi (oktet başına 0–255)." },
+    "isoDate": { "name": "ISO tarih (YYYY-MM-DD)", "description": "YYYY-MM-DD biçiminde takvim tarihi." },
+    "time24h": { "name": "Saat (24s HH:MM)", "description": "24 saatlik saat, HH:MM." },
+    "phoneTr": { "name": "Türkiye telefonu", "description": "Türkiye GSM numarası, isteğe bağlı +90/0 öneki ve boşluklar." },
+    "phoneE164": { "name": "Telefon (E.164)", "description": "E.164 biçiminde uluslararası telefon numarası." },
+    "tcKimlik": { "name": "TC Kimlik No (yalnızca biçim)", "description": "11 rakam, 0 ile başlamaz (yalnızca biçim kontrolü, sağlama yok)." },
+    "iban": { "name": "IBAN (genel)", "description": "Genel IBAN — 2 harfli ülke, 2 kontrol hanesi, 11–30 alfasayısal." },
+    "numbers": { "name": "Sayılar (tam/ondalık)", "description": "Tam sayılar ve ondalıklar, isteğe bağlı başında eksi ile." },
+    "words": { "name": "Kelimeler", "description": "Kelime belirteçleri — harfler, rakamlar ve alt çizgi." },
+    "hashtags": { "name": "Hashtag'ler", "description": "#konu gibi hashtag'ler." },
+    "mentions": { "name": "Bahsetmeler", "description": "@kullanıcı gibi bahsetmeler." },
+    "htmlTags": { "name": "HTML etiketleri", "description": "Açılış ve kapanış HTML etiketleri." },
+    "dupWord": { "name": "Tekrarlanan kelime", "description": "Hemen tekrarlanan bir kelime, grup 1'de yakalanır." }
+  },
+  "snippetsLib": {
+    "cat": {
+      "dateTime": "Tarih & Saat",
+      "auth": "Kimlik & Token",
+      "encoding": "Kodlama",
+      "data": "Veri & Güvenilirlik"
+    },
+    "time-parse": {
+      "title": "Zaman damgalarını ayrıştır & biçimlendir (saat dilimi duyarlı)",
+      "pitfall": "Duvar saati dizelerini sunucunun yerel diliminde ayrıştırmak veya dilimsiz biçimlendirmek — zamanları DST ve makineler arasında sessizce kaydırır."
+    },
+    "epoch-convert": {
+      "title": "Epoch ↔ tarih dönüştür",
+      "pitfall": "Saniye ile milisaniyeyi karıştırmak — sizi 1970'e ya da 52000 yılına götüren sessiz bir 1000× hatası."
+    },
+    "jwt-verify": {
+      "title": "Bir JWT doğrula",
+      "pitfall": "İmzayı doğrulamadan çözmek, alg:none kabul etmek, algoritmayı sabitlememek (RS→HS anahtar karışması) veya exp/aud/iss'i atlamak."
+    },
+    "password-hash": {
+      "title": "Parolaları hash'le & doğrula",
+      "pitfall": "Parolaları SHA-256/MD5 ile hash'lemek — bunlar fazlasıyla hızlıdır. Yavaş, tuzlanmış bir KDF kullanın (bcrypt / scrypt / argon2)."
+    },
+    "hmac-verify": {
+      "title": "Bir HMAC imzasını doğrula",
+      "pitfall": "İmzaları == / bytes.Equal ile karşılaştırmak zamanlama sızdırır. Sabit zamanlı bir karşılaştırma kullanın."
+    },
+    "secure-token": {
+      "title": "Güvenli rastgele token üret",
+      "pitfall": "math/rand · Math.random() · random.random() kriptografik olarak güvenli DEĞİLDİR — token, kimlik veya gizli anahtarlar için asla kullanmayın."
+    },
+    "base64url": {
+      "title": "Base64url kodla / çöz",
+      "pitfall": "Standart base64, URL'lerde ve JWT'lerde bozulan + / ve = dolgusu kullanır. Bunlar dolgusuz base64url (- _) kullanır."
+    },
+    "sql-param": {
+      "title": "Parametreli SQL sorgusu",
+      "pitfall": "SQL'i dize birleştirme / format ile oluşturmak = SQL enjeksiyonu. Her zaman yer tutucu kullanın ve değerleri sürücünün bağlamasına bırakın."
+    },
+    "retry-backoff": {
+      "title": "Üstel geri çekilme + jitter ile yeniden dene",
+      "pitfall": "Sabit aralıklı yeniden denemeler zorlanan bir sunucuyu boğar. Jitter ile üstel geri çekilme kullanın, gecikmeyi sınırlayın ve toplam deneme sayısını bağlayın."
+    }
+  }
+}

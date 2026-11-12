@@ -1,0 +1,40 @@
+{
+  "title": "WebSocket",
+  "status": {
+    "disconnected": "Bağlantı kesildi",
+    "connecting": "Bağlanıyor",
+    "connected": "Bağlandı",
+    "error": "Hata"
+  },
+  "urlPlaceholder": "ws://localhost:8080/ws",
+  "headers": "Başlıklar",
+  "headerNamePlaceholder": "Başlık adı",
+  "headerValuePlaceholder": "Değer",
+  "messagesCount": "Mesajlar ({{n}})",
+  "emptyTitle": "Henüz mesaj yok",
+  "emptyHintConnected": "Bir mesaj gönderin veya gelen mesajları bekleyin",
+  "emptyHintDisconnected": "Mesaj alışverişine başlamak için bağlanın",
+  "sent": "Gönderildi",
+  "received": "Alındı",
+  "binaryBadge": "ikili",
+  "binaryDataPreview": "[İkili veri: {{n}} bayt]",
+  "messageKind": {
+    "text": "Metin",
+    "binary": "İkili"
+  },
+  "binaryFormat": {
+    "hex": "Hex",
+    "base64": "Base64",
+    "utf8": "UTF-8"
+  },
+  "copyHex": "Hex kopyala",
+  "copyBase64": "Base64 kopyala",
+  "composePlaceholderConnected": "Bir mesaj yazın... (göndermek için Ctrl+Enter)",
+  "composePlaceholderDisconnected": "Mesaj göndermeye başlamak için bağlanın",
+  "errors": {
+    "connectionError": "WebSocket bağlantı hatası",
+    "closedUnexpectedly": "Bağlantı beklenmedik şekilde kapandı (kod: {{code}})",
+    "connectFailed": "Bağlanılamadı",
+    "sendFailed": "Mesaj gönderilemedi"
+  }
+}

@@ -1,0 +1,358 @@
+{
+  "title": "Service map",
+  "conn": {
+    "titleNew": "New observability connection",
+    "titleEdit": "Edit observability connection",
+    "description": "Connect an APM or observability backend. PatchMan reads its view of who calls whom (and how much) to draw the live service map. Everything is read-only.",
+    "provider": "Backend",
+    "providerHelp": {
+      "coroot": "Coroot's application map plus its eBPF metrics: requests/s, errors and latency per call, without changing your apps.",
+      "prometheus": "Any Prometheus-compatible API (Prometheus, VictoriaMetrics, Thanos, Mimir). PatchMan recognises coroot-node-agent, Istio, Linkerd, OpenTelemetry / Tempo service graph and Cilium Hubble metrics.",
+      "jaeger": "Jaeger's dependency graph: who calls whom and how often (no errors or latency).",
+      "kiali": "Kiali's Istio traffic graph: requests/s, error rate and response time per call.",
+      "signoz": "SigNoz's service dependency graph: call rate, error rate and latency per call.",
+      "datadog": "Datadog APM service dependencies for one env (which service calls which; Datadog's API gives no per-call rates)."
+    },
+    "name": "Name",
+    "url": "URL",
+    "authKind": "Sign-in",
+    "auth": {
+      "none": "None",
+      "basic": "User + password",
+      "bearer": "Token",
+      "apikey": "API key",
+      "session": "Session cookie",
+      "login": "Email + password",
+      "datadog": "API + application key"
+    },
+    "authHelp": {
+      "coroot": {
+        "bearer": "Recommended: an API key of a Viewer service account (crt_…). Create one in Coroot under Settings → Users.",
+        "login": "A Coroot user's email and password; PatchMan signs in and renews the session.",
+        "session": "For SSO users: paste the coroot_session cookie from your browser. It lasts 7 days.",
+        "apikey": "A project API key only unlocks metrics: no map from Coroot and no health. Note: it is also the key agents send data with."
+      },
+      "datadog": {
+        "bearer": "Datadog: API + application key, or a personal / service access token."
+      }
+    },
+    "authHelpGeneric": {
+      "none": "The API is open (or behind your network).",
+      "basic": "HTTP Basic authentication.",
+      "bearer": "Sent as Authorization: Bearer <token>.",
+      "apikey": "Sent in the provider's API key header (change it under Advanced).",
+      "session": "A session cookie pasted from your browser.",
+      "login": "PatchMan signs in and keeps the session.",
+      "datadog": "Both keys are needed."
+    },
+    "email": "Email",
+    "username": "User name",
+    "password": "Password",
+    "token": "Token",
+    "apiKey": "API key",
+    "appKey": "Application key",
+    "session": "Session cookie",
+    "sessionHelp": "The value of the coroot_session cookie (from the browser's developer tools).",
+    "scope": {
+      "project": "Project",
+      "env": "Env",
+      "namespaces": "Namespaces"
+    },
+    "scopeHelp": {
+      "project": "The Coroot project the map opens with. A new connection lists its projects after Test.",
+      "env": "The Datadog env to map, e.g. prod.",
+      "namespaces": "Comma-separated; empty = every namespace Kiali shows (up to 20)."
+    },
+    "corootProjectKey": "Project API key (optional)",
+    "corootProjectKeyHelp": "Lets PatchMan query Coroot's metrics directly for per-call errors and latency. Without it they come through Coroot's dashboards API, which also works.",
+    "optional": "Optional",
+    "backend": "Runs on",
+    "backendLocal": "This computer",
+    "backendLocalDesc": "Reaches backends on your VPN / local network.",
+    "backendRemote": "PatchMan server",
+    "backendRemoteDesc": "Shared with your team; reaches what the server can.",
+    "backendNoteSession": "A session cookie lives on one backend, so it is saved only there.",
+    "advanced": "Advanced",
+    "headerName": "API key header",
+    "headerNameHelp": "Leave empty for the provider's default.",
+    "insecure": "Skip TLS verification",
+    "insecureHelp": "Only for self-signed certificates you trust.",
+    "caCert": "CA certificate (PEM)",
+    "datadogNote": "Use your site's API host as the URL, e.g. https://api.datadoghq.eu for EU.",
+    "test": "Test",
+    "create": "Create",
+    "testOk": "Connected",
+    "testVersion": "version {{version}}",
+    "testUser": "signed in as {{user}}",
+    "testFailed": "Test failed",
+    "saveFailed": "Could not save the connection",
+    "errName": "Enter a name.",
+    "errUrl": "Enter the URL.",
+    "errUsername": "Enter the user name / email.",
+    "errEnv": "Enter the env.",
+    "errPassword": "Enter the password.",
+    "errToken": "Enter the token.",
+    "errApiKey": "Enter the API key.",
+    "errAppKey": "Enter the application key.",
+    "errSession": "Paste the session cookie.",
+    "keepStored": "•••••• (unchanged)"
+  },
+  "notes": {
+    "family": "{{value}} metrics found",
+    "no_service_metrics": "no service-to-service metrics found",
+    "family_error": "a metric family failed: {{value}}",
+    "metrics_only": "metrics only (no map or health from Coroot)",
+    "no_projects": "this user sees no projects",
+    "project_key_ok": "project API key works",
+    "project_key_rejected": "project API key was rejected",
+    "services": "{{value}} services",
+    "rates_only": "call rates only — no errors or latency",
+    "no_rates": "dependencies only — no rates",
+    "env_required": "set the env to draw a map",
+    "coroot_red_unavailable": "per-call metrics unavailable: {{value}}",
+    "coroot_health_unavailable": "health unavailable",
+    "namespaces_capped": "first {{value}} namespaces",
+    "secrets_skipped": "{{value}} Secret references not read (enable \"Read hosts from Secrets\" on the connection)",
+    "forbidden": "not allowed to list {{value}}",
+    "references_capped": "first {{value}} ConfigMaps / Secrets",
+    "prometheus_not_found": "no Prometheus found in the cluster",
+    "target": "Prometheus: {{value}}"
+  },
+  "share": {
+    "title": "Share {{name}}",
+    "description": "People and teams you add can draw service maps through this connection. The credentials never leave PatchMan.",
+    "identityWarning": "They will read the backend as the signed-in user of this connection.",
+    "searchPlaceholder": "Search people or teams…",
+    "roleRead": "Read",
+    "granted": "Has access",
+    "empty": "Not shared yet.",
+    "teamSuffix": "team",
+    "addFailed": "Could not share"
+  },
+  "sidebar": {
+    "loading": "Loading…",
+    "empty": "No observability connections yet.",
+    "sessionBadge": "session",
+    "actions": "Actions",
+    "openMap": "Open service map",
+    "openSite": "Open {{provider}}",
+    "share": "Share",
+    "deleteTitle": "Delete {{name}}?",
+    "deleteDescription": "The connection and its shares are removed. Open maps that use it stop updating."
+  },
+  "rail": {
+    "newConnection": "New connection",
+    "newGrafana": "Grafana connection",
+    "newGraylog": "Graylog connection",
+    "newObservability": "Observability / APM connection",
+    "observability": "Observability"
+  },
+  "sources": {
+    "pick": "Pick sources",
+    "kubernetes": "Kubernetes",
+    "noK8s": "None",
+    "context": "Context",
+    "defaultContext": "Default",
+    "namespaces": "Namespaces",
+    "allNamespaces": "All allowed",
+    "clusterProm": "Cluster Prometheus",
+    "clusterPromHelp": "Also read traffic metrics from the cluster's own Prometheus (Istio, Linkerd, Hubble, OpenTelemetry).",
+    "observability": "Observability",
+    "noObservability": "No observability connections yet.",
+    "addObservability": "Add a connection",
+    "backend": "Build the map on",
+    "backend_auto": "Automatic",
+    "backend_local": "This computer",
+    "backend_remote": "Server",
+    "apply": "Show map"
+  },
+  "toolbar": {
+    "range": "Time range",
+    "refresh": "Auto-refresh",
+    "reload": "Refresh now",
+    "search": "Search  /",
+    "filters": "Filters",
+    "motion": "Animation",
+    "view": "View",
+    "map": "Map",
+    "table": "Table",
+    "fit": "Fit to screen (F)",
+    "export": "Add to a whiteboard",
+    "namespaces": "Namespaces",
+    "group": "Group",
+    "groupHint": "Fold each namespace into one node (automatic above {{count}} nodes). Double-click a namespace to open it.",
+    "searchHint": "Enter: focus on the first match"
+  },
+  "range": {
+    "5m": "5 min",
+    "15m": "15 min",
+    "1h": "1 hour",
+    "6h": "6 hours",
+    "24h": "24 hours"
+  },
+  "refresh": {
+    "off": "No refresh",
+    "s30": "Every 30 s",
+    "m1": "Every minute",
+    "m5": "Every 5 min"
+  },
+  "filters": {
+    "hideSystem": "Hide system components",
+    "onlyErrors": "Only calls with errors",
+    "hideIsolated": "Hide unconnected",
+    "trafficOnly": "Only links with traffic",
+    "show": "Show"
+  },
+  "motion": {
+    "full": "Full",
+    "calm": "Calm",
+    "off": "Off"
+  },
+  "hud": {
+    "rps": "Requests/s",
+    "errors": "Errors",
+    "services": "Nodes",
+    "calls": "Calls",
+    "callsHint": "With traffic data / all",
+    "updated": "updated {{time}}",
+    "sourceOk": "Working",
+    "grouped": "{{count}} namespaces folded — double-click one to open it"
+  },
+  "sourceName": {
+    "config": "Kubernetes config",
+    "cluster-prometheus": "Cluster Prometheus"
+  },
+  "empty": {
+    "title": "Draw a live service map",
+    "text": "Pick a Kubernetes connection and/or an observability connection (Coroot, Prometheus, Jaeger, Kiali, SigNoz, Datadog)."
+  },
+  "loading": {
+    "title": "Building the map…",
+    "text": "Reading workloads, configuration and traffic from every source."
+  },
+  "error": {
+    "title": "The map could not be built"
+  },
+  "emptyGraph": {
+    "title": "Nothing to draw",
+    "text": "No services matched. Check the sources' notes above, or loosen the filters."
+  },
+  "card": {
+    "noTraffic": "no traffic data",
+    "conn": "Has a PatchMan connection",
+    "rps": "rps"
+  },
+  "health": {
+    "ok": "OK",
+    "warning": "Warning",
+    "critical": "Critical",
+    "unknown": "Unknown"
+  },
+  "kind": {
+    "service": "Service",
+    "datastore": "Data store",
+    "messaging": "Messaging",
+    "external": "External",
+    "ingress": "Ingress"
+  },
+  "flow": {
+    "request": "request",
+    "publish": "publishes",
+    "consume": "consumes"
+  },
+  "evidence": {
+    "env": "Env",
+    "configMap": "ConfigMap",
+    "secret": "Secret",
+    "ingress": "Ingress",
+    "coroot": "Coroot"
+  },
+  "detail": {
+    "title": "Details",
+    "rps": "Requests/s",
+    "errors": "Errors",
+    "p95": "p95",
+    "replicas": "{{value}} ready",
+    "openConnection": "Open {{name}}",
+    "openK8s": "Open in Kubernetes",
+    "openCoroot": "Open in Coroot",
+    "address": "Address",
+    "services": "Services",
+    "images": "Images",
+    "sources": "Sources",
+    "calls": "Calls",
+    "calledBy": "Called by",
+    "conns": "{{count}} open connections",
+    "declaredOnly": "Declared in configuration — no traffic observed for it.",
+    "evidence": "Found in",
+    "evidenceNote": "Only key names and the extracted host:port are shown — never values.",
+    "namespaceGroup": "Namespace · {{count}} nodes",
+    "foldedCalls": "{{count}} calls",
+    "expand": "Open namespace",
+    "collapse": "Fold {{name}}",
+    "focus": "Focus",
+    "focusHops": "Only what is within {{count}} hop(s)",
+    "onlyNamespace": "Only this namespace",
+    "members": "Nodes",
+    "colTarget": "Calls to",
+    "colCaller": "Caller",
+    "colProtocol": "Protocol",
+    "colRps": "Req/s",
+    "colErrors": "Errors",
+    "colErrorsHint": "Share of calls that failed: 5xx, failed or a gRPC error (4xx is not counted)",
+    "openCall": "Show this call's details",
+    "goToNode": "Go to {{name}}",
+    "responses": "Responses",
+    "responsesNote": "Requests/s per status as the source reports it. Only 5xx, failed and gRPC errors count as errors.",
+    "colNode": "Node",
+    "openMember": "Open the namespace and show {{name}}",
+    "p95Worst": "p95 (worst)",
+    "errorsFrom": "Where the errors come from",
+    "colErrRps": "Err/s",
+    "errRpsHint": "Failed requests per second on this call",
+    "colShare": "Share",
+    "foldedInto": "Folded into {{name}} on the map",
+    "hiddenByFilters": "Hidden by the filters or namespace selection — still counted in the totals"
+  },
+  "table": {
+    "from": "From",
+    "to": "To",
+    "protocol": "Protocol",
+    "rps": "Requests/s",
+    "errors": "Errors",
+    "p95": "p95",
+    "sources": "Sources",
+    "conns": "{{count}} conns",
+    "empty": "No calls."
+  },
+  "export": {
+    "failed": "Could not add the map to a whiteboard",
+    "capped": "The whiteboard got the first {{count}} nodes."
+  },
+  "ns": {
+    "search": "Filter namespaces…",
+    "all": "All namespaces",
+    "only": "Only",
+    "outside": "(outside namespaces)",
+    "contextHint": "What the chosen namespaces call, or are called by, elsewhere stays on the map, faded."
+  },
+  "group": {
+    "outside": "Outside namespaces",
+    "nodes": "{{count}} nodes",
+    "datastores": "{{count}} DB",
+    "messaging": "{{count}} MQ",
+    "open": "Double-click to open this namespace"
+  },
+  "focus": {
+    "clear": "Show the whole map (Esc)"
+  },
+  "status": {
+    "unknown": "Not recognised by the agent — not counted as an error",
+    "failed": "Failed: connection error, timeout or an error reply",
+    "ok": "Succeeded",
+    "grpc": "gRPC error",
+    "5xx": "Server error",
+    "4xx": "Client error — not counted as an error",
+    "3xx": "Redirect"
+  }
+}

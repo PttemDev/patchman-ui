@@ -1,0 +1,22 @@
+{
+  "tabs": {
+    "auditLogs": "Denetim Kayıtları",
+    "activity": "Etkinlik"
+  },
+  "logs": {
+    "countOne": "{{count}} kayıt",
+    "countOther": "{{count}} kayıt",
+    "empty": "Denetim kaydı yok"
+  },
+  "activity": {
+    "countOne": "{{count}} etkinlik",
+    "countOther": "{{count}} etkinlik",
+    "empty": "Son etkinlik yok"
+  },
+  "time": {
+    "justNow": "az önce",
+    "minutesAgo": "{{count}} dk önce",
+    "hoursAgo": "{{count}} sa önce",
+    "daysAgo": "{{count}} g önce"
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
+  "_comment": [
+    "Per-tenant overlay for tauri.conf.json. Copy to tauri.tenant.json",
+    "(gitignored) and fill in for the target deployment. The Tauri CLI",
+    "merges this on top of tauri.conf.json when you pass `--config`,",
+    "which the `npm run tauri:build` script does automatically when this",
+    "file is present. Anything you omit here keeps the tauri.conf.json",
+    "default."
+  ],
+
+  "bundle": {
+    "macOS": {
+      "signingIdentity": "",
+      "providerShortName": ""
+    }
+  },
+
+  "plugins": {
+    "updater": {
+      "endpoints": [],
+      "pubkey": ""
+    }
+  }
+}

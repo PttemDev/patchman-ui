@@ -1,0 +1,31 @@
+{
+  "public": "公开",
+  "kindCollection": "集合",
+  "kindEnvironment": "环境",
+  "publicDescPublic": "访问权限通过下方的编辑者 / 查看者列表管理。此{{kind}}上的所有 share code 在设为公开时已被吊销。",
+  "publicDescPrivate": "只有你（以及通过 share code 邀请的人）可以查看此{{kind}}。开启公开会吊销 share code——两种方式互斥。",
+  "editors": "编辑者",
+  "editorsSubtitle": "可编辑 + 查看",
+  "viewers": "查看者",
+  "viewersSubtitle": "仅可查看",
+  "addToList": "添加到列表",
+  "searchPlaceholder": "搜索用户、团队，或输入 'everyone'...",
+  "roleEditor": "编辑者",
+  "roleViewer": "查看者",
+  "everyoneOption": "所有人（所有已注册用户）",
+  "teamSuffix": "团队",
+  "everyoneHint": "添加<b>所有人</b>会清空该列表中的其余项。你不能将所有人与特定团队 / 用户混用——后端会阻止此操作。",
+  "makePrivateConfirm": "将 \"{{name}}\" 设为私密？",
+  "makePrivateBody": "所有编辑者和查看者条目都将被清除。通过 share-link 单独添加的协作者不受影响。",
+  "makePrivate": "设为私密",
+  "noOne": "无",
+  "ownerBadge": "所有者",
+  "errors": {
+    "makePublic": "设为公开失败",
+    "makePrivate": "设为私密失败",
+    "add": "添加失败",
+    "remove": "移除失败"
+  },
+  "kindWhiteboard": "白板",
+  "kindNote": "笔记"
+}

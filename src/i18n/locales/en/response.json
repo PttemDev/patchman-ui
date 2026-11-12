@@ -1,0 +1,130 @@
+{
+  "tabs": {
+    "body": "Body",
+    "transform": "Transform",
+    "headers": "Headers",
+    "cookies": "Cookies",
+    "timing": "Timing",
+    "request": "Request",
+    "console": "Console"
+  },
+  "loading": "Sending request…",
+  "empty": {
+    "title": "Enter a URL and click Send to get a response",
+    "hint": "Or press Ctrl+Enter / Cmd+Enter"
+  },
+  "clickToCopyValue": "Click to copy value",
+  "meta": {
+    "copyBody": "Copy response body",
+    "encodingTooltip": "Wire payload was {{encoding}}-encoded; PatchMan decoded it for you.",
+    "sizeRequest": "Request — {{size}}",
+    "sizeResponse": "Response — {{size}}",
+    "sizeHeaders": "Headers",
+    "sizeBody": "Body",
+    "sizeCookies": "Cookies",
+    "remoteAria": "Remote address — click to copy",
+    "remoteTitle": "Remote server address",
+    "clickToCopy": "click to copy",
+    "remoteHint": "The IP:port this request actually connected to — the final host after any redirects."
+  },
+  "console": {
+    "empty": "No console output. Test script logs will appear here."
+  },
+  "body": {
+    "pretty": "Pretty",
+    "raw": "Raw",
+    "preview": "Preview",
+    "download": "Download",
+    "unknownType": "unknown",
+    "previewTitle": "Response preview",
+    "imageAlt": "Response",
+    "pdfTitle": "PDF response",
+    "soapFault": "SOAP Fault",
+    "save": "Save"
+  },
+  "headers": {
+    "empty": "No response headers"
+  },
+  "table": {
+    "value": "Value",
+    "key": "Key"
+  },
+  "cookies": {
+    "emptyTitle": "No Set-Cookie headers in this response",
+    "emptyHint": "Cookies set by the server will appear here with a Save button.",
+    "countOne": "{{count}} cookie",
+    "countOther": "{{count}} cookies",
+    "newCount": "{{count}} new",
+    "autoSave": "Auto-save",
+    "autoSaveTooltip": "Automatically save response cookies to the jar after every request — no manual Save. Applies to all tabs and is remembered across sessions.",
+    "saveAll": "Save all",
+    "empty": "(empty)",
+    "saved": "Saved",
+    "session": "Session",
+    "expired": "Expired"
+  },
+  "timing": {
+    "dns": "DNS Lookup",
+    "tcp": "TCP Connection",
+    "tls": "TLS Handshake",
+    "ttfb": "Time to First Byte",
+    "total": "Total",
+    "waterfall": "Request Waterfall"
+  },
+  "request": {
+    "empty": "No request details available. Send a request first.",
+    "heading": "Request",
+    "headersCount": "Headers ({{count}})",
+    "paramsCount": "Query Parameters ({{count}})",
+    "body": "Body",
+    "auth": "Authentication"
+  },
+  "transform": {
+    "cheatsheet": "Cheatsheet",
+    "readsHint": "reads the response — original untouched",
+    "notJson": "Response body is not valid JSON — nothing to transform.",
+    "resultPlaceholder": "Result appears here.",
+    "docs": "docs",
+    "useExpression": "Use this expression"
+  },
+  "cheat": {
+    "jmespath": {
+      "whole": "the whole document",
+      "nested": "a nested field",
+      "first": "first element of an array",
+      "pluck": "pluck a field from every element",
+      "filterPluck": "filter by a field, then pluck",
+      "count": "count elements",
+      "reshape": "reshape into new objects"
+    },
+    "jq": {
+      "identity": "the whole document (identity)",
+      "first": "first element of an array",
+      "stream": "stream a field from each element",
+      "map": "map to an array of one field",
+      "filter": "filter with select()",
+      "count": "count elements",
+      "group": "group + aggregate"
+    },
+    "jsonpath": {
+      "root": "root document",
+      "all": "all elements of an array",
+      "first": "first element",
+      "pluck": "pluck a field from every element",
+      "filter": "filter by a field",
+      "recursive": "recursive descent — find a key anywhere"
+    }
+  },
+  "save": {
+    "title": "Save response",
+    "description": "Keep this request and its response under a collection — open it later from the collection’s “Saved responses”, or send it again.",
+    "name": "Name",
+    "collection": "Collection or folder",
+    "pick": "Pick a collection…",
+    "noCollections": "Create a collection first — saved responses are kept under one.",
+    "saved": "Response saved",
+    "truncated": "Saved to {{where}} (the body was over 5 MB and was cut).",
+    "view": "View",
+    "failed": "Could not save the response"
+  }
+}

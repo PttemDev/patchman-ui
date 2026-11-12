@@ -1,0 +1,33 @@
+{
+  "groups": {
+    "requests": "Requests",
+    "collections": "Collections",
+    "connections": "Connections",
+    "history": "History",
+    "environments": "Environments",
+    "testcases": "Test Cases",
+    "mock": "Mock Servers",
+    "notes": "Notes"
+  },
+  "scopes": {
+    "all": "All",
+    "requests": "Requests",
+    "collections": "Collections",
+    "connections": "Connections"
+  },
+  "triggerTitle": "Search requests, collections & connections",
+  "triggerText": "Search requests, collections, connections…",
+  "placeholder": "Search requests, collections, connections…",
+  "dialogTitle": "Global search",
+  "idle": {
+    "title": "Search across requests, collections & connections",
+    "hint": "Start typing — use ↑ ↓ to move, Enter to open, Esc to close"
+  },
+  "noResults": {
+    "title": "No results found",
+    "hint": "Try a different term or scope"
+  },
+  "variablesCountOne": "{{n}} variable",
+  "variablesCountOther": "{{n}} variables",
+  "durationMs": "{{n}}ms"
+}

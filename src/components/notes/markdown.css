@@ -1,0 +1,88 @@
+/* Rendered markdown for Notes (preview + read mode + AI answers). Tailwind v4
+   here has no typography plugin, so the prose styles live in this one file and
+   read the app's theme tokens (light/dark/presets all just work). */
+
+.md-view {
+  color: var(--foreground);
+  font-size: 0.875rem;
+  line-height: 1.65;
+  overflow-wrap: anywhere;
+}
+.md-view > :first-child { margin-top: 0; }
+.md-view > :last-child { margin-bottom: 0; }
+
+.md-view h1, .md-view h2, .md-view h3, .md-view h4, .md-view h5, .md-view h6 {
+  font-weight: 600;
+  line-height: 1.3;
+  margin: 1.4em 0 0.5em;
+  scroll-margin-top: 0.75rem;
+}
+.md-view h1 { font-size: 1.6em; padding-bottom: 0.25em; border-bottom: 1px solid var(--border); }
+.md-view h2 { font-size: 1.3em; padding-bottom: 0.2em; border-bottom: 1px solid var(--border); }
+.md-view h3 { font-size: 1.12em; }
+.md-view h4, .md-view h5, .md-view h6 { font-size: 1em; }
+
+.md-view p, .md-view ul, .md-view ol, .md-view blockquote, .md-view pre, .md-view table { margin: 0 0 0.9em; }
+.md-view ul { list-style: disc; padding-left: 1.5em; }
+.md-view ol { list-style: decimal; padding-left: 1.5em; }
+.md-view li + li { margin-top: 0.2em; }
+.md-view li > ul, .md-view li > ol { margin: 0.2em 0 0; }
+.md-view li.task-list-item { list-style: none; margin-left: -1.3em; }
+.md-view li.task-list-item input[type='checkbox'] { margin-right: 0.45em; vertical-align: -0.1em; accent-color: var(--primary); }
+.md-view li.task-list-item input[type='checkbox']:not(:disabled) { cursor: pointer; }
+
+.md-view a { color: var(--primary); text-decoration: underline; text-underline-offset: 2px; }
+.md-view a.md-note-link { text-decoration-style: dotted; }
+.md-view a.md-note-link.md-missing { color: var(--destructive); }
+
+.md-view blockquote {
+  padding: 0.1em 0.9em;
+  border-left: 3px solid var(--border);
+  color: var(--muted-foreground);
+}
+
+.md-view hr { border: 0; border-top: 1px solid var(--border); margin: 1.5em 0; }
+
+.md-view img { max-width: 100%; height: auto; border-radius: 0.375rem; border: 1px solid var(--border); }
+
+.md-view table { border-collapse: collapse; display: block; overflow-x: auto; max-width: 100%; }
+.md-view th, .md-view td { border: 1px solid var(--border); padding: 0.35em 0.7em; text-align: left; }
+.md-view th { background: var(--muted); font-weight: 600; }
+
+.md-view code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.85em;
+  background: var(--muted);
+  border-radius: 0.25rem;
+  padding: 0.1em 0.35em;
+}
+.md-view pre {
+  background: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: 0.375rem;
+  padding: 0.75em 0.9em;
+  overflow-x: auto;
+  line-height: 1.5;
+}
+.md-view pre code { background: none; padding: 0; font-size: 0.8rem; }
+
+.md-view .md-mermaid { margin: 0 0 0.9em; display: flex; justify-content: center; overflow-x: auto; }
+.md-view .md-mermaid svg { max-width: 100%; height: auto; }
+
+/* highlight.js tokens (rehype-highlight) — theme-aware. */
+.md-view .hljs-comment, .md-view .hljs-quote { color: var(--muted-foreground); font-style: italic; }
+.md-view .hljs-keyword, .md-view .hljs-selector-tag, .md-view .hljs-built_in, .md-view .hljs-meta .hljs-keyword { color: #a626a4; }
+.md-view .hljs-string, .md-view .hljs-attr-value, .md-view .hljs-template-tag, .md-view .hljs-regexp { color: #50a14f; }
+.md-view .hljs-number, .md-view .hljs-literal, .md-view .hljs-symbol { color: #b76b01; }
+.md-view .hljs-title, .md-view .hljs-title.function_, .md-view .hljs-section { color: #4078f2; }
+.md-view .hljs-attr, .md-view .hljs-attribute, .md-view .hljs-property, .md-view .hljs-variable { color: #986801; }
+.md-view .hljs-type, .md-view .hljs-class .hljs-title { color: #c18401; }
+.md-view .hljs-deletion { color: #e45649; }
+.md-view .hljs-addition { color: #50a14f; }
+.dark .md-view .hljs-keyword, .dark .md-view .hljs-selector-tag, .dark .md-view .hljs-built_in { color: #c678dd; }
+.dark .md-view .hljs-string, .dark .md-view .hljs-attr-value, .dark .md-view .hljs-regexp { color: #98c379; }
+.dark .md-view .hljs-number, .dark .md-view .hljs-literal, .dark .md-view .hljs-symbol { color: #d19a66; }
+.dark .md-view .hljs-title, .dark .md-view .hljs-title.function_, .dark .md-view .hljs-section { color: #61afef; }
+.dark .md-view .hljs-attr, .dark .md-view .hljs-attribute, .dark .md-view .hljs-property, .dark .md-view .hljs-variable { color: #e5c07b; }
+.dark .md-view .hljs-type { color: #e5c07b; }
+.dark .md-view .hljs-deletion { color: #e06c75; }

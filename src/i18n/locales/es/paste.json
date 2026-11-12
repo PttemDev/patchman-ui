@@ -1,0 +1,23 @@
+{
+  "title": "Historial de pegado",
+  "searchPlaceholder": "Buscar en el historial de pegado...",
+  "clearAll": "Borrar todo",
+  "empty": {
+    "titleEmpty": "Aún no hay historial de pegado",
+    "titleNoMatch": "Sin coincidencias",
+    "hintEmpty": "El texto que pegues en los campos aparecerá aquí",
+    "hintNoMatch": "Prueba con otro término de búsqueda"
+  },
+  "deleteEntry": "Eliminar entrada",
+  "hints": {
+    "navigate": "Navegar",
+    "insert": "Insertar"
+  },
+  "relativeTime": {
+    "justNow": "ahora mismo",
+    "secondsAgo": "hace {{n}}s",
+    "minutesAgo": "hace {{n}}min",
+    "hoursAgo": "hace {{n}}h",
+    "daysAgo": "hace {{n}}d"
+  }
+}

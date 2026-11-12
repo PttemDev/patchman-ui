@@ -1,0 +1,130 @@
+{
+  "tabs": {
+    "body": "正文",
+    "transform": "转换",
+    "headers": "标头",
+    "cookies": "Cookie",
+    "timing": "耗时",
+    "request": "请求",
+    "console": "控制台"
+  },
+  "loading": "正在发送请求…",
+  "empty": {
+    "title": "输入 URL 并点击发送以获取响应",
+    "hint": "或按 Ctrl+Enter / Cmd+Enter"
+  },
+  "clickToCopyValue": "点击复制值",
+  "meta": {
+    "copyBody": "复制响应正文",
+    "encodingTooltip": "传输数据采用 {{encoding}} 编码；PatchMan 已为你解码。",
+    "sizeRequest": "请求 — {{size}}",
+    "sizeResponse": "响应 — {{size}}",
+    "sizeHeaders": "标头",
+    "sizeBody": "正文",
+    "sizeCookies": "Cookie",
+    "remoteAria": "远程地址 — 点击复制",
+    "remoteTitle": "远程服务器地址",
+    "clickToCopy": "点击复制",
+    "remoteHint": "此请求实际连接的 IP:端口 — 经过所有重定向后的最终主机。"
+  },
+  "console": {
+    "empty": "无控制台输出。测试脚本日志将显示在此处。"
+  },
+  "body": {
+    "pretty": "美化",
+    "raw": "原始",
+    "preview": "预览",
+    "download": "下载",
+    "unknownType": "未知",
+    "previewTitle": "响应预览",
+    "imageAlt": "响应",
+    "pdfTitle": "PDF 响应",
+    "soapFault": "SOAP Fault",
+    "save": "保存"
+  },
+  "headers": {
+    "empty": "无响应标头"
+  },
+  "table": {
+    "value": "值",
+    "key": "键"
+  },
+  "cookies": {
+    "emptyTitle": "此响应中没有 Set-Cookie 标头",
+    "emptyHint": "服务器设置的 Cookie 将显示在此处，并带有保存按钮。",
+    "countOne": "{{count}} 个 Cookie",
+    "countOther": "{{count}} 个 Cookie",
+    "newCount": "{{count}} 个新增",
+    "autoSave": "自动保存",
+    "autoSaveTooltip": "每次请求后自动将响应 Cookie 保存到 Cookie 罐 — 无需手动保存。适用于所有标签页并在会话间保留。",
+    "saveAll": "全部保存",
+    "empty": "（空）",
+    "saved": "已保存",
+    "session": "会话",
+    "expired": "已过期"
+  },
+  "timing": {
+    "dns": "DNS 查询",
+    "tcp": "TCP 连接",
+    "tls": "TLS 握手",
+    "ttfb": "首字节时间",
+    "total": "总计",
+    "waterfall": "请求瀑布图"
+  },
+  "request": {
+    "empty": "无请求详情。请先发送请求。",
+    "heading": "请求",
+    "headersCount": "标头 ({{count}})",
+    "paramsCount": "查询参数 ({{count}})",
+    "body": "正文",
+    "auth": "身份验证"
+  },
+  "transform": {
+    "cheatsheet": "速查表",
+    "readsHint": "读取响应 — 原始内容不受影响",
+    "notJson": "响应正文不是有效的 JSON — 无内容可转换。",
+    "resultPlaceholder": "结果显示在此处。",
+    "docs": "文档",
+    "useExpression": "使用此表达式"
+  },
+  "cheat": {
+    "jmespath": {
+      "whole": "整个文档",
+      "nested": "嵌套字段",
+      "first": "数组的第一个元素",
+      "pluck": "从每个元素中提取一个字段",
+      "filterPluck": "按字段筛选，然后提取",
+      "count": "统计元素数量",
+      "reshape": "重塑为新对象"
+    },
+    "jq": {
+      "identity": "整个文档（恒等）",
+      "first": "数组的第一个元素",
+      "stream": "从每个元素中流式输出一个字段",
+      "map": "映射为单字段数组",
+      "filter": "使用 select() 筛选",
+      "count": "统计元素数量",
+      "group": "分组 + 聚合"
+    },
+    "jsonpath": {
+      "root": "根文档",
+      "all": "数组的所有元素",
+      "first": "第一个元素",
+      "pluck": "从每个元素中提取一个字段",
+      "filter": "按字段筛选",
+      "recursive": "递归下降 — 在任意位置查找键"
+    }
+  },
+  "save": {
+    "title": "保存响应",
+    "description": "把此请求及其响应保存在一个集合中 — 之后可从集合的“已保存的响应”中打开，或再次发送。",
+    "name": "名称",
+    "collection": "集合或文件夹",
+    "pick": "选择集合…",
+    "noCollections": "请先创建一个集合 — 已保存的响应保存在集合中。",
+    "saved": "响应已保存",
+    "truncated": "已保存到 {{where}}（正文超过 5 MB，已截断）。",
+    "view": "查看",
+    "failed": "无法保存响应"
+  }
+}

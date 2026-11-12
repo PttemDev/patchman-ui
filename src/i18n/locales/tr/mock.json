@@ -1,0 +1,90 @@
+{
+  "saving": "Kaydediliyor...",
+  "toast": {
+    "serverCreated": "Sunucu oluşturuldu",
+    "serverCreatedDesc": "\"{{name}}\" mock sunucusu hazır",
+    "createServerFailed": "Sunucu oluşturulamadı",
+    "serverUpdated": "Sunucu güncellendi",
+    "updateServerFailed": "Sunucu güncellenemedi",
+    "serverDeleted": "Sunucu silindi",
+    "routeDeleted": "Rota silindi",
+    "deleteFailed": "Silme başarısız",
+    "routeUpdated": "Rota güncellendi",
+    "routeCreated": "Rota oluşturuldu",
+    "saveRouteFailed": "Rota kaydedilemedi"
+  },
+  "list": {
+    "title": "Mock Sunucular",
+    "emptyTitle": "Henüz mock sunucu yok",
+    "emptyDescription": "Mock sunucular, gerçek bir arka uç olmadan test için API uç noktalarını taklit etmenizi sağlar.",
+    "createServer": "Mock Sunucu Oluştur",
+    "routeCountOne": "{{count}} rota",
+    "routeCountOther": "{{count}} rota"
+  },
+  "delete": {
+    "serverTitle": "Sunucu silinsin mi?",
+    "routeTitle": "Rota silinsin mi?",
+    "description": "\"{{label}}\" öğesini silmek istediğinizden emin misiniz? Bu işlem geri alınamaz."
+  },
+  "header": {
+    "newServer": "Yeni Mock Sunucu",
+    "editServer": "Sunucuyu Düzenle"
+  },
+  "wizard": {
+    "setup": "Kurulum"
+  },
+  "form": {
+    "serverName": "Sunucu Adı",
+    "serverNamePlaceholder": "örn. Ödeme API'si, Kullanıcı Servisi",
+    "urlPrefix": "URL Öneki",
+    "namespaceTitle": "Zorunlu ad alanınız — kullanıcılar arası önek çakışmalarını önlemek için sabitlenir",
+    "prefixPlaceholder": "örn. payment-api",
+    "prefixHintNs": "Mock'larınız {{namespace}}/ altında bulunur — sonekini addan otomatik oluşturmak için boş bırakın",
+    "prefixHint": "Addan otomatik oluşturmak için boş bırakın",
+    "baseUrl": "Mock Temel URL",
+    "baseUrlHint": "Eklediğiniz rotalar bu URL altında erişilebilir olacak",
+    "creating": "Oluşturuluyor...",
+    "createServer": "Sunucu Oluştur",
+    "saveChanges": "Değişiklikleri Kaydet"
+  },
+  "detail": {
+    "notFound": "Sunucu bulunamadı",
+    "backToList": "Listeye dön",
+    "editServer": "Sunucuyu Düzenle",
+    "disable": "Devre dışı bırak",
+    "enable": "Etkinleştir",
+    "deleteServer": "Sunucuyu Sil",
+    "active": "Etkin",
+    "disabled": "Devre dışı",
+    "copyBaseUrl": "Temel URL'yi kopyala",
+    "routesCount": "Rotalar ({{count}})",
+    "noRoutes": "Henüz rota yok. Uç noktaları taklit etmeye başlamak için ilk rotanızı ekleyin.",
+    "addRoute": "Rota Ekle",
+    "copyFullUrl": "Tam URL'yi kopyala",
+    "copyUrl": "URL'yi kopyala",
+    "openTabName": "Mock · {{name}} {{method}} {{path}}",
+    "openAsRequest": "İstek olarak aç",
+    "open": "Aç"
+  },
+  "editor": {
+    "editRoute": "Rotayı Düzenle",
+    "newRoute": "Yeni Rota",
+    "description": "Mock rotasını ve yanıtını yapılandırın.",
+    "saveRoute": "Rotayı Kaydet"
+  },
+  "route": {
+    "method": "Metot",
+    "path": "Yol",
+    "statusCode": "Durum Kodu",
+    "delay": "Gecikme (ms)",
+    "responseBody": "Yanıt Gövdesi",
+    "delayLabel": "Gecikme:",
+    "bodyLabel": "Gövde:"
+  },
+  "routeForm": {
+    "endpoint": "Uç Nokta",
+    "fullUrlLabel": "Tam URL:",
+    "responseHeaders": "Yanıt Başlıkları (JSON)",
+    "updateRoute": "Rotayı Güncelle"
+  }
+}

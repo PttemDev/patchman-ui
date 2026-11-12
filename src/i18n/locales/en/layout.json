@@ -1,0 +1,78 @@
+{
+  "tabs": {
+    "collections": "Collections",
+    "history": "History",
+    "database": "Database",
+    "kafka": "Messaging",
+    "storage": "Storage (S3)",
+    "redis": "Redis",
+    "elasticsearch": "Elasticsearch",
+    "kubernetes": "Kubernetes",
+    "git": "Git",
+    "ai": "AI",
+    "excalidraw": "Whiteboards",
+    "devtools": "Dev Tools",
+    "qa": "QA Testing",
+    "qa-planning": "QA Planning",
+    "mock": "Mock Servers",
+    "websocket": "WebSocket",
+    "cookies": "Cookies",
+    "audit": "Audit & Activity",
+    "notes": "Notes & Brain",
+    "dashboards": "Dashboards"
+  },
+  "beta": "beta",
+  "settingsProxyOn": "Settings (custom proxy on)",
+  "settingsProxyOnShort": "Settings (proxy on)",
+  "update": "Update",
+  "updateTooltip": "A new version is available — click to update",
+  "darkMode": "Dark mode",
+  "lightMode": "Light mode",
+  "expandSidebar": "Expand sidebar",
+  "collapseToIcons": "Collapse to icons",
+  "collapseSidebar": "Collapse sidebar",
+  "expandSidebarShortcut": "Expand sidebar (Cmd+B)",
+  "syncBadge": {
+    "localLabel": "Local",
+    "localSub": "No account",
+    "localDbLabel": "Local DB",
+    "localDbSub": "Logged in · embedded",
+    "syncedLabel": "Synced",
+    "syncedSub": "Remote DB",
+    "localTooltip": "Working without an account. Click to sign in.",
+    "localDbTooltip": "Reading the embedded SQLite, not your remote account. Click to manage.",
+    "syncedTooltip": "Reading your remote account. Click to switch data source."
+  },
+  "actions": {
+    "refreshCollections": "Refresh collections",
+    "joinShared": "Join shared collection",
+    "importCollection": "Import collection",
+    "newCollection": "New collection"
+  },
+  "userMenu": {
+    "userFallback": "User",
+    "adminPanel": "Admin panel",
+    "logout": "Log out"
+  },
+  "download": {
+    "desktopApp": "Download desktop app",
+    "subtitle": "for offline & QA tools",
+    "getApp": "Get desktop app",
+    "tooltip": "Download the PatchMan desktop app",
+    "steps": {
+      "heading": "Get the desktop app",
+      "step1Title": "Download",
+      "step1Action": "Download for Mac",
+      "step2Title": "Install",
+      "step2Desc": "Open the file and drag PatchMan to Applications.",
+      "step3Title": "Connect",
+      "step3Desc": "Open PatchMan, then click to point it at this backend.",
+      "step3Action": "Connect to this backend"
+    }
+  },
+  "statusBar": {
+    "updateAvailable": "Update available",
+    "changelogTooltip": "What’s new — open the changelog"
+  },
+  "moreTools": "More tools"
+}

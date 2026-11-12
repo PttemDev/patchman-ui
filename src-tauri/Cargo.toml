@@ -1,0 +1,46 @@
+[package]
+name = "patchman-desktop"
+version = "1.59.2"
+description = "PatchMan desktop shell — spawns the embedded Go BE and renders the FE."
+authors = ["PatchMan"]
+license = ""
+repository = ""
+edition = "2021"
+rust-version = "1.77.2"
+
+[lib]
+name = "patchman_desktop_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2.5.6", features = [] }
+
+[dependencies]
+serde_json = "1.0"
+serde = { version = "1.0", features = ["derive"] }
+log = "0.4"
+tauri = { version = "2.10.3", features = ["tray-icon", "image-png"] }
+tauri-plugin-log = "2"
+tauri-plugin-shell = "2"
+tauri-plugin-deep-link = "2"
+tauri-plugin-updater = "2"
+tauri-plugin-process = "2"
+tauri-plugin-dialog = "2"
+tauri-plugin-opener = "2.5.5"
+
+# Release profile — minimal tuning only.
+#
+# Landmines we stepped on and must avoid:
+#   * LTO ("thin"/"fat") forces embed-bitcode=on → a ~2GB __TEXT,__const
+#     bitcode blob on macOS that `strip` can't remove.
+#   * opt-level="s" shrinks code but leaves per-object files big enough to
+#     overflow Mach-O's 32-bit relocation offset ("object file too large").
+#   * A lib+bin split produces a 4.5GB rlib that overflows the Mach-O
+#     archive string-table limit — see src/main.rs for why we're bin-only.
+# Leaving opt-level/codegen-units at Cargo's release defaults + strip gets
+# us a working signed build. Size tuning can be revisited once the build
+# is stable.
+[profile.release]
+strip = true
+panic = "abort"
+incremental = false

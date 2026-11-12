@@ -1,0 +1,58 @@
+{
+  "title": "Koleksiyon Çalıştırıcı",
+  "description": "Bir koleksiyondaki tüm istekleri sırayla çalıştırın ve sonuçları görün.",
+  "localOnly": "Koleksiyon çalıştırıcı yalnızca oturum açtığınızda kullanılabilir — yinelemeleri düzenlemek, sonuçları yakalamak ve çalıştırmaları saklamak için arka uca ihtiyaç duyar. Bu özelliği kullanmak için oturum açın.",
+  "fields": {
+    "collection": "Koleksiyon",
+    "selectCollection": "Bir koleksiyon seçin",
+    "environment": "Ortam",
+    "noEnvironment": "Ortam yok",
+    "active": "(etkin)"
+  },
+  "tabs": {
+    "options": "Seçenekler",
+    "dataDriven": "Veri Odaklı"
+  },
+  "options": {
+    "iterations": "Yineleme",
+    "delay": "İstekler arası gecikme (ms)"
+  },
+  "data": {
+    "variableSets": "Değişken kümeleri (JSON dizisi)",
+    "loadFromFile": "Dosyadan yükle",
+    "iterationCountOne": "{{count}} yineleme çalışacak",
+    "iterationCountOther": "{{count}} yineleme çalışacak",
+    "firstRow": "İlk satır:",
+    "hint": "Dizideki her nesne, kendi değişken kümesine sahip bir yinelemeyi temsil eder. Değişkenler istek URL'lerinde, başlıklarda ve gövdede yerine konur."
+  },
+  "validation": {
+    "notArray": "Veri bir JSON dizisi olmalıdır",
+    "empty": "Dizi en az bir öğe içermelidir",
+    "itemNotObject": "{{index}} dizinindeki öğe bir JSON nesnesi olmalıdır",
+    "invalidJson": "Geçersiz JSON",
+    "readFailed": "Dosya okunamadı"
+  },
+  "progress": {
+    "running": "Koleksiyon çalışıyor..."
+  },
+  "run": {
+    "running": "Çalışıyor...",
+    "runCollection": "Koleksiyonu Çalıştır",
+    "invalidData": "Geçersiz JSON verisi: {{message}}",
+    "invalidDataGeneric": "Geçersiz JSON verisi",
+    "failed": "Koleksiyon çalıştırılamadı",
+    "retryFailed": "Yeniden denenemedi"
+  },
+  "results": {
+    "runFailed": "Çalıştırma Başarısız",
+    "tryAgain": "Tekrar Dene",
+    "total": "Toplam",
+    "passed": "Geçti",
+    "failed": "Başarısız",
+    "duration": "Süre",
+    "untitledRequest": "Adsız İstek",
+    "responseBody": "Yanıt gövdesi:",
+    "retryFailedCount": "Başarısızları Yeniden Dene ({{count}})",
+    "runAgain": "Yeniden Çalıştır"
+  }
+}
