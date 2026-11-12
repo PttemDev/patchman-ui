@@ -11,6 +11,16 @@
 </p>
 
 <p align="center">
+  <a href="https://github.com/PttemDev/patchman-ui/raw/master/downloads/PatchMan-1.59.2-aarch64.dmg"><img src="https://img.shields.io/badge/Download_for_macOS-Apple_Silicon-000000?style=for-the-badge&logo=apple&logoColor=white" alt="Download PatchMan for macOS (Apple Silicon)"/></a><br/>
+  <sub>Signed and notarized · <a href="#download-macos-apple-silicon">download details</a></sub>
+</p>
+
+<p align="center">
+  <strong>Use it standalone or as a team.</strong> On your own, the desktop app runs its own backend on your Mac, with no server or account needed.<br/>
+  For a team, self-host <a href="https://github.com/PttemDev/patchman-api">patchman-api</a> and sign in from the web or desktop app to share collections, connections and notes.
+</p>
+
+<p align="center">
   <a href="#quick-start">Quick start</a> ·
   <a href="#features">Features</a> ·
   <a href="#ai-agents-mcp">AI agents (MCP)</a> ·
@@ -42,7 +52,7 @@ PatchMan started as a Postman-style API client and grew into a single place for 
 
 ## Download (macOS, Apple Silicon)
 
-The prebuilt desktop app is **not published yet**. A signed and notarized macOS build (Apple Silicon) will be added to the [`downloads/`](downloads/) folder. Until then, you can build the desktop app from source (see [Desktop app (macOS)](#desktop-app-macos)).
+You can download the signed and notarized macOS build (Apple Silicon) here: [`PatchMan-1.59.2-aarch64.dmg`](https://github.com/PttemDev/patchman-ui/raw/master/downloads/PatchMan-1.59.2-aarch64.dmg) (about 40 MB). The SHA-256 checksum is in [`downloads/SHA256SUMS`](downloads/SHA256SUMS). For other platforms, build the desktop app from source (see [Desktop app (macOS)](#desktop-app-macos)).
 
 The desktop app runs **standalone and offline**. It bundles its own backend (SQLite), so you do not need a server or the `patchman-api` repository to use a built copy. Sign in to a server later if you want to sync.
 
