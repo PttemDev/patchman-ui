@@ -27,7 +27,7 @@
 ---
 
 > [!IMPORTANT]
-> **This repository is only the front end.** PatchMan UI depends on the PatchMan backend, [patchman-api](https://github.com/PttemDev/patchman-api), and does not work without it. You need a running API (local or remote) for sign-in, collections, connections and every other feature. The desktop app is the exception: it bundles the backend as a sidecar, but building it still requires the `patchman-api` source. See the [Quick start](#quick-start).
+> **This repository is only the front end.** PatchMan UI depends on the PatchMan backend, [patchman-api](https://github.com/PttemDev/patchman-api), and does not work without it. You need a running API (local or remote) for sign-in, collections, connections and every other feature. The one exception is the desktop app: the [prebuilt macOS app](#download-macos-apple-silicon) bundles its own backend and runs standalone and offline. Building the desktop app from source still requires the `patchman-api` source. See the [Quick start](#quick-start).
 
 ## What is PatchMan?
 
@@ -37,6 +37,25 @@ PatchMan started as a Postman-style API client and grew into a single place for 
 - **Self-hosted, for teams.** Run one backend for your team. Workspaces, roles and per-person sharing control who can see and change what. Connection secrets are encrypted at rest.
 - **Desktop and web.** Use it in the browser against your server, or install the desktop app. The desktop app also works offline without an account.
 - **Built for AI agents.** PatchMan is an MCP server with **119 tools**. Agents such as Claude Code, Claude Desktop or Cursor can send requests, query data, file test cases, draw diagrams and keep a shared long-term memory, with per-token permissions.
+
+---
+
+## Download (macOS, Apple Silicon)
+
+A ready-to-use desktop build is included in this repository: [`downloads/PatchMan-1.59.2-aarch64.dmg`](downloads/PatchMan-1.59.2-aarch64.dmg) (about 40 MB). The SHA-256 checksum is in [`downloads/SHA256SUMS`](downloads/SHA256SUMS).
+
+The desktop app runs **standalone and offline**. It bundles its own backend (SQLite), so you do not need a server or the `patchman-api` repository to use it. Sign in to a server later if you want to sync.
+
+1. Open the DMG and drag **PatchMan** to **Applications**.
+2. The build is **not signed with an Apple Developer ID and not notarized**, so macOS blocks the first launch. Open **System Settings → Privacy & Security**, scroll to the message about PatchMan and choose **Open Anyway**. Alternatively, remove the quarantine flag in a terminal:
+
+   ```bash
+   xattr -dr com.apple.quarantine /Applications/PatchMan.app
+   ```
+
+3. Verify the download before you open it: `shasum -a 256 -c downloads/SHA256SUMS`.
+
+Only Apple Silicon (arm64) macOS is built. For Intel Macs, Windows or Linux, build from source (see [Desktop app (macOS)](#desktop-app-macos)). Auto-update is turned off in this build.
 
 ---
 
@@ -112,7 +131,7 @@ Every connection uses the same model: credentials are stored encrypted, and the 
 ### Desktop app
 - A Tauri 2 desktop app with an embedded backend (a Go sidecar using SQLite).
 - Works offline without an account. Sign in later to sync to your server.
-- Menu-bar tray, an auto-update channel and a built-in Claude Code terminal. Updates for your own builds need your own endpoint and signing key (see [Desktop app notes](#desktop-app-notes)).
+- Menu-bar tray, support for an auto-update channel and a built-in Claude Code terminal. Auto-update is off in the bundled build. To enable it for your own builds you need your own endpoint and signing key (see [Desktop app notes](#desktop-app-notes)).
 - macOS is the supported desktop target. Windows and Linux builds are not verified yet.
 
 ---
@@ -274,7 +293,7 @@ The image only serves the static UI. It expects a running [patchman-api](https:/
 
 ### Desktop app notes
 
-This repository does not ship release binaries, signing keys or a working auto-update endpoint. The following values are intentionally left empty or generic. Provide your own to publish desktop builds:
+The macOS build in `downloads/` is a plain build from this source tree: ad-hoc signed (no Developer ID), not notarized, with auto-update disabled. This repository does not contain signing keys or a working auto-update endpoint. The following values are intentionally left empty or generic. Provide your own to publish signed, auto-updating desktop builds:
 
 - `plugins.updater.endpoints` and `plugins.updater.pubkey` in `src-tauri/tauri.conf.json` (or in a local `src-tauri/tauri.tenant.json`, see `src-tauri/tauri.tenant.json.example`)
 - Your Tauri updater signing key (`TAURI_SIGNING_PRIVATE_KEY`, kept in the gitignored `src-tauri/.keys/`)
@@ -283,6 +302,19 @@ This repository does not ship release binaries, signing keys or a working auto-u
 - `public/downloads/latest.json`, the update manifest, which `scripts/stage-desktop.mjs` generates on each build. See `public/downloads/latest.json.example` for the format.
 
 The bundle identifier `com.pttem.patchman` in `tauri.conf.json` is the upstream default. Change it if you publish your own fork.
+
+**Reproducing the bundled build.** Without a tenant overlay, `tauri build` fails on purpose (empty signing identity, updater artifacts need a key). The bundled build used a local, gitignored `src-tauri/tauri.tenant.json`:
+
+```json
+{
+  "bundle": {
+    "createUpdaterArtifacts": false,
+    "macOS": { "signingIdentity": "-" }
+  }
+}
+```
+
+Then run `npm run tauri:build` with Rust 1.88 (pinned in `src-tauri/rust-toolchain.toml`) and a patched Go toolchain (`GOTOOLCHAIN=go1.26.11`). The command also copies a DMG into `public/downloads/`, which is gitignored.
 
 ---
 
@@ -359,7 +391,8 @@ Checks run on this repository before the initial public release (November 2026):
 
 - [x] `npm run build` and `npm run check:i18n` pass
 - [x] Source tree and production bundle scanned for committed secrets, `.env` files, signing keys and internal hostnames; none found
-- [x] Release binaries and update manifests are not part of the repository
+- [x] The bundled macOS app (`downloads/`) was built from this source tree, is ad-hoc signed (no company certificate), is not notarized, and its binaries were scanned for internal hostnames and signing identities; none found
+- [x] No update manifests, updater keys or signing keys are part of the repository
 - [x] `npm audit` reports no critical or high severity advisories
 - [ ] `npm audit` still reports 13 moderate/low advisories that need major upgrades or have no upstream fix yet (`react-router-dom` 6 → 7, `katex` via `mermaid`, `@excalidraw/*`, and the `typescript-eslint` / `minimatch` dev tooling). See [SECURITY.md](SECURITY.md).
 

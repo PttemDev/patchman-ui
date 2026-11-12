@@ -4,6 +4,7 @@ dist/
 .env.*
 !.env.example
 public/downloads/
+downloads/
 src-tauri/target/
 .git
 .gitignore
