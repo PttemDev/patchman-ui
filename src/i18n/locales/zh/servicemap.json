@@ -11,7 +11,8 @@
       "jaeger": "Jaeger 的依赖图：谁调用谁以及调用频率（没有错误和延迟）。",
       "kiali": "Kiali 的 Istio 流量图：每次调用的请求/秒、错误率和响应时间。",
       "signoz": "SigNoz 的服务依赖图：每次调用的调用速率、错误率和延迟。",
-      "datadog": "某个 env 的 Datadog APM 服务依赖（哪个服务调用哪个；Datadog 的 API 不提供按调用的速率）。"
+      "datadog": "某个 env 的 Datadog APM 服务依赖（哪个服务调用哪个；Datadog 的 API 不提供按调用的速率）。",
+      "newrelic": "通过 NerdGraph 使用 user key（NRAK-…）连接 New Relic：APM 应用及其健康状态，来自 NRQL 的请求速率、错误率和 p95，以及服务之间的调用关系。欧盟账户请使用 https://api.eu.newrelic.com。"
     },
     "name": "名称",
     "url": "URL",
@@ -56,12 +57,14 @@
     "scope": {
       "project": "项目",
       "env": "Env",
-      "namespaces": "命名空间"
+      "namespaces": "命名空间",
+      "account": "账户"
     },
     "scopeHelp": {
       "project": "地图默认打开的 Coroot 项目。新建连接时，点击“测试”后会列出项目。",
       "env": "要绘制的 Datadog env，例如 prod。",
-      "namespaces": "用逗号分隔；留空 = Kiali 显示的所有命名空间（最多 20 个）。"
+      "namespaces": "用逗号分隔；留空 = Kiali 显示的所有命名空间（最多 20 个）。",
+      "account": "地图、NRQL 和告警使用的 New Relic 账户。测试后列出（你的 user key 可访问的账户）。"
     },
     "corootProjectKey": "项目 API 密钥（可选）",
     "corootProjectKeyHelp": "让 PatchMan 直接查询 Coroot 指标，获取每次调用的错误和延迟。不填也可以，数据会通过 Coroot 的面板 API 获取。",
@@ -116,7 +119,12 @@
     "forbidden": "无权列出 {{value}}",
     "references_capped": "前 {{value}} 个 ConfigMap / Secret",
     "prometheus_not_found": "集群中未找到 Prometheus",
-    "target": "Prometheus：{{value}}"
+    "target": "Prometheus：{{value}}",
+    "accounts": "{{value}} 个账户",
+    "no_edge_rates": "服务间调用没有速率数据",
+    "account_required_for_stats": "选择一个账户以查看请求速率",
+    "stats_failed": "请求统计不可用",
+    "relationships_failed": "服务间调用不可用"
   },
   "share": {
     "title": "共享 {{name}}",
@@ -354,5 +362,24 @@
     "5xx": "服务器错误",
     "4xx": "客户端错误 — 不计为错误",
     "3xx": "重定向"
+  },
+  "newrelic": {
+    "open": "New Relic 控制台",
+    "title": "New Relic · {{name}}",
+    "tabNrql": "NRQL",
+    "tabAlerts": "告警",
+    "tabEntities": "实体",
+    "run": "运行",
+    "runHint": "⌘/Ctrl + Enter 运行。NRQL 只读。",
+    "rows": "{{count}} 行 · {{ms}} 毫秒",
+    "noRows": "没有数据行。",
+    "failed": "New Relic 请求失败",
+    "openOnly": "仅未关闭",
+    "last24h": "最近 24 小时",
+    "refresh": "刷新",
+    "noAlerts": "没有告警事件。",
+    "entitySearch": "名称，或实体搜索：domainType IN ('APM-APPLICATION')",
+    "search": "搜索",
+    "noEntities": "没有实体。"
   }
 }

@@ -223,7 +223,7 @@ export function ExcalidrawCanvas({ tab }: { tab: Tab }) {
   type PointerPayload = { pointer: { x: number; y: number } };
   const handlePointer = useCallback(
     (payload: PointerPayload) => {
-      if (readOnly) return;
+      // A read-only viewer's cursor is shared too (the server relays only that).
       const conn = collab.current;
       if (!conn) return;
       const now = Date.now();
@@ -231,7 +231,7 @@ export function ExcalidrawCanvas({ tab }: { tab: Tab }) {
       pointerThrottle.current = now;
       conn.sendPointer(payload.pointer.x, payload.pointer.y);
     },
-    [readOnly],
+    [],
   );
 
   // Poll for diagrams queued by the MCP draw_on_whiteboard tool and render each

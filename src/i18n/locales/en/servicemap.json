@@ -11,7 +11,8 @@
       "jaeger": "Jaeger's dependency graph: who calls whom and how often (no errors or latency).",
       "kiali": "Kiali's Istio traffic graph: requests/s, error rate and response time per call.",
       "signoz": "SigNoz's service dependency graph: call rate, error rate and latency per call.",
-      "datadog": "Datadog APM service dependencies for one env (which service calls which; Datadog's API gives no per-call rates)."
+      "datadog": "Datadog APM service dependencies for one env (which service calls which; Datadog's API gives no per-call rates).",
+      "newrelic": "New Relic through NerdGraph with a user key (NRAK-…): APM applications with their health and request rate, error % and p95 from NRQL, and which service calls which. Use https://api.eu.newrelic.com for EU accounts."
     },
     "name": "Name",
     "url": "URL",
@@ -56,12 +57,14 @@
     "scope": {
       "project": "Project",
       "env": "Env",
-      "namespaces": "Namespaces"
+      "namespaces": "Namespaces",
+      "account": "Account"
     },
     "scopeHelp": {
       "project": "The Coroot project the map opens with. A new connection lists its projects after Test.",
       "env": "The Datadog env to map, e.g. prod.",
-      "namespaces": "Comma-separated; empty = every namespace Kiali shows (up to 20)."
+      "namespaces": "Comma-separated; empty = every namespace Kiali shows (up to 20).",
+      "account": "The New Relic account the map, NRQL and alerts use. Listed after Test (your user key’s accounts)."
     },
     "corootProjectKey": "Project API key (optional)",
     "corootProjectKeyHelp": "Lets PatchMan query Coroot's metrics directly for per-call errors and latency. Without it they come through Coroot's dashboards API, which also works.",
@@ -116,7 +119,12 @@
     "forbidden": "not allowed to list {{value}}",
     "references_capped": "first {{value}} ConfigMaps / Secrets",
     "prometheus_not_found": "no Prometheus found in the cluster",
-    "target": "Prometheus: {{value}}"
+    "target": "Prometheus: {{value}}",
+    "accounts": "{{value}} accounts",
+    "no_edge_rates": "calls between services carry no rates",
+    "account_required_for_stats": "pick an account to see request rates",
+    "stats_failed": "request stats unavailable",
+    "relationships_failed": "calls between services unavailable"
   },
   "share": {
     "title": "Share {{name}}",
@@ -354,5 +362,24 @@
     "5xx": "Server error",
     "4xx": "Client error — not counted as an error",
     "3xx": "Redirect"
+  },
+  "newrelic": {
+    "open": "New Relic console",
+    "title": "New Relic · {{name}}",
+    "tabNrql": "NRQL",
+    "tabAlerts": "Alerts",
+    "tabEntities": "Entities",
+    "run": "Run",
+    "runHint": "⌘/Ctrl + Enter runs it. NRQL only reads.",
+    "rows": "{{count}} rows · {{ms}} ms",
+    "noRows": "No rows.",
+    "failed": "New Relic request failed",
+    "openOnly": "Open only",
+    "last24h": "Last 24 hours",
+    "refresh": "Refresh",
+    "noAlerts": "No alert incidents.",
+    "entitySearch": "A name, or entity search: domainType IN ('APM-APPLICATION')",
+    "search": "Search",
+    "noEntities": "No entities."
   }
 }

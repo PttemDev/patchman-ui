@@ -76,7 +76,9 @@
     "noMatches": "No matches.",
     "selectPrompt": "Select an environment to edit variables, or create a new one.",
     "expandValue": "Expand value",
-    "expandHint": "Enter or Esc to close"
+    "expandHint": "Enter or Esc to close",
+    "mcpSecrets": "Show secret values to AI agents",
+    "mcpSecretsHint": "Off (default): AI agents (MCP) see secret variables as ***; writing *** back keeps the value."
   },
   "export": {
     "title": "Export Environments",

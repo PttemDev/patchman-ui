@@ -798,7 +798,10 @@
     "noConnections": "Bu bilgisayarda henüz git connection yok. Önce Git panelinden ekleyin.",
     "loadFailed": "Projeler yüklenemedi",
     "failed": "Klasör bağlanamadı",
-    "done": "{{project}} projesine bağlandı"
+    "done": "{{project}} projesine bağlandı",
+    "change": "Bağlı projeyi değiştir",
+    "fix": "Proje bağlantısını düzelt",
+    "brokenHint": "Bu klasörün eşleştiği connection burada merge request ve CI/CD yükleyemiyor (sunucuda yok). Sunucuda olan bir connection seçin."
   },
   "mdView": {
     "preview": "Önizleme",

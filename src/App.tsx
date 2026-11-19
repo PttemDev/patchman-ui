@@ -30,7 +30,7 @@ import { usePasteCapture } from '@/hooks/usePasteCapture';
 import { useGitLabDeepLink } from '@/hooks/useGitLabDeepLink';
 import { useRemoteConnectDeepLink } from '@/hooks/useRemoteConnectDeepLink';
 import { useTrayEvents } from '@/hooks/useTrayEvents';
-import { isDesktop } from '@/lib/platform';
+import { hasOverlayTitleBar, isDesktop } from '@/lib/platform';
 import { RemoteConnectGate, useBackendGate } from '@/components/RemoteConnectGate';
 import { RemoteNoticeBanner } from '@/components/RemoteNoticeBanner';
 import { runBackendGuard } from '@/lib/backendGuard';
@@ -307,7 +307,7 @@ function App() {
             at the very top to drag the window by. Skipped once the authed
             TopBar is present (it owns the drag region) so this never overlays
             its right-side controls. No-op in the browser build. */}
-        {isDesktop() && (!isAuthenticated || gate.show) && (
+        {hasOverlayTitleBar() && (!isAuthenticated || gate.show) && (
           <div data-tauri-drag-region aria-hidden className="fixed top-0 inset-x-0 h-8 z-50" />
         )}
         {gate.show ? (

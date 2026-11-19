@@ -76,7 +76,9 @@
     "noMatches": "没有匹配项。",
     "selectPrompt": "选择一个环境来编辑变量，或创建一个新的。",
     "expandValue": "展开值",
-    "expandHint": "按 Enter 或 Esc 关闭"
+    "expandHint": "按 Enter 或 Esc 关闭",
+    "mcpSecrets": "向 AI 代理显示机密值",
+    "mcpSecretsHint": "关闭（默认）：AI 代理（MCP）看到机密变量为 ***；写回 *** 时保留原值。"
   },
   "export": {
     "title": "导出环境",

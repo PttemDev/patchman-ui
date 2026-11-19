@@ -798,7 +798,10 @@
     "noConnections": "Aún no hay conexiones git en este equipo. Añade una en el panel Git primero.",
     "loadFailed": "No se pudieron cargar los proyectos",
     "failed": "No se pudo vincular la carpeta",
-    "done": "Vinculada a {{project}}"
+    "done": "Vinculada a {{project}}",
+    "change": "Cambiar el proyecto vinculado",
+    "fix": "Corregir el vínculo del proyecto",
+    "brokenHint": "La conexión con la que coincidió esta carpeta no puede cargar merge requests ni CI/CD aquí (no está en el servidor). Elige una que sí lo esté."
   },
   "mdView": {
     "preview": "Vista previa",

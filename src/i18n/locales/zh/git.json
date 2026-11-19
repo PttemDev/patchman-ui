@@ -798,7 +798,10 @@
     "noConnections": "此电脑上还没有 git 连接。请先在 Git 面板中添加。",
     "loadFailed": "无法加载项目",
     "failed": "无法关联文件夹",
-    "done": "已关联到 {{project}}"
+    "done": "已关联到 {{project}}",
+    "change": "更改关联的项目",
+    "fix": "修复项目关联",
+    "brokenHint": "此文件夹匹配到的连接在这里无法加载合并请求或 CI/CD（它不在服务器上）。请选择一个在服务器上的连接。"
   },
   "mdView": {
     "preview": "预览",

@@ -25,7 +25,9 @@
     "saving": "正在保存…",
     "creating": "正在创建…",
     "saveChanges": "保存更改",
-    "create": "创建"
+    "create": "创建",
+    "mcpSecretsLabel": "向 AI 代理显示机密值",
+    "mcpSecretsHint": "关闭时：AI 代理（MCP）看到此集合中请求的令牌、密码以及 Authorization / Cookie / API key 请求头均为 ***，写回 *** 时保留已存储的值。仅在代理需要真实值时开启。"
   },
   "request": {
     "open": "打开",

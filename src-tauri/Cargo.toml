@@ -1,6 +1,6 @@
 [package]
 name = "patchman-desktop"
-version = "1.68.2"
+version = "1.70.0"
 description = "PatchMan desktop shell — spawns the embedded Go BE and renders the FE."
 authors = ["PatchMan"]
 license = ""
@@ -40,6 +40,11 @@ objc2-foundation = { version = "0.3", features = ["NSString"] }
 core-foundation = "0.10"
 # Cipher key in the login Keychain instead of a file next to the DB (RFC L5).
 security-framework = "3"
+
+# Windows / Linux: forward a patchman:// deep link from a second launch to the
+# running app (see run() in src/lib.rs). macOS does this natively.
+[target.'cfg(any(target_os = "windows", target_os = "linux"))'.dependencies]
+tauri-plugin-single-instance = { version = "2", features = ["deep-link"] }
 
 # Release profile — minimal tuning only.
 #

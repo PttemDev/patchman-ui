@@ -14,7 +14,7 @@ import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/components/ui/use-toast';
 import { cn } from '@/lib/utils';
 import type { ObservabilityAuthKind, ObservabilityConnection, ObservabilityProviderName } from '@/types';
-import { PROVIDERS, providerMeta, noteText } from './providers';
+import { PROVIDERS, providerMeta, noteText, scopeIsPicked } from './providers';
 import { ProviderGlyph } from './ProviderGlyph';
 import { ProjectSelect } from './ProjectSelect';
 import { useProviderScopes } from './providerScopes';
@@ -74,7 +74,7 @@ export function ObservabilityConnectionDialog({ open, onOpenChange, editing, onS
   const meta = providerMeta(provider);
   // Editing a Coroot connection: list its projects with the stored sign-in
   // so the project is picked by name; a Test result replaces the list.
-  const storedId = open && editing && editing.provider === provider && meta.scope === 'project' ? editing.id : undefined;
+  const storedId = open && editing && editing.provider === provider && scopeIsPicked(meta.scope) ? editing.id : undefined;
   const stored = useProviderScopes(storedId, editing?.beScope);
   const projectList = testResult?.scopes?.length ? testResult.scopes : stored.scopes;
   /** Coroot sessions may also carry a project API key for per-call metrics. */
@@ -174,7 +174,7 @@ export function ObservabilityConnectionDialog({ open, onOpenChange, editing, onS
         : await observabilityConnectionAPI.test(null, buildPayload(), beScope);
       const r = res.data as TestResult;
       setTestResult(r);
-      if (r.ok && r.scopes?.length && !scopeValue.trim() && meta.scope === 'project') setScopeValue(r.scopes[0].id);
+      if (r.ok && r.scopes?.length && !scopeValue.trim() && scopeIsPicked(meta.scope)) setScopeValue(r.scopes[0].id);
     } catch (err) {
       setTestResult({ ok: false, error: extractErr(err, t('conn.testFailed')) });
     }
@@ -328,8 +328,8 @@ export function ObservabilityConnectionDialog({ open, onOpenChange, editing, onS
 
           {meta.scope && (
             <Field label={t(`conn.scope.${meta.scope}`)} help={t(`conn.scopeHelp.${meta.scope}`)}>
-              {meta.scope === 'project' ? (
-                <ProjectSelect value={scopeValue} onChange={setScopeValue} scopes={projectList}
+              {scopeIsPicked(meta.scope) ? (
+                <ProjectSelect value={scopeValue} onChange={setScopeValue} scopes={projectList} kind={meta.scope === 'account' ? 'account' : 'project'}
                   loading={!!storedId && !testResult && !stored.scopes && !stored.failed} />
               ) : (
                 <Input value={scopeValue} onChange={(e) => setScopeValue(e.target.value)} className="font-mono text-xs"
@@ -354,7 +354,7 @@ export function ObservabilityConnectionDialog({ open, onOpenChange, editing, onS
           </button>
           {advanced && (
             <div className="space-y-3 rounded-md border p-3">
-              {authKind === 'apikey' && (
+              {authKind === 'apikey' && provider !== 'newrelic' && (
                 <Field label={t('conn.headerName')} help={t('conn.headerNameHelp')}>
                   <Input value={headerName} onChange={(e) => setHeaderName(e.target.value)} className="font-mono text-xs" placeholder={provider === 'coroot' ? 'X-API-Key' : provider === 'signoz' ? 'SIGNOZ-API-KEY' : 'Authorization'} />
                 </Field>

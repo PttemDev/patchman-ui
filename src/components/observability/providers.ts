@@ -9,7 +9,7 @@ export interface ProviderMeta {
   auth: ObservabilityAuthKind[];
   urlPlaceholder: string;
   /** What the connection scope means for this backend, if anything. */
-  scope?: 'project' | 'env' | 'namespaces';
+  scope?: 'project' | 'env' | 'namespaces' | 'account';
   scopeRequired?: boolean;
   /** Brand-neutral accent for the sidebar glyph. */
   accent: string;
@@ -22,7 +22,13 @@ export const PROVIDERS: ProviderMeta[] = [
   { name: 'kiali', title: 'Kiali', auth: ['none', 'bearer', 'basic'], urlPlaceholder: 'https://kiali.example.com/kiali', scope: 'namespaces', accent: 'text-indigo-500' },
   { name: 'signoz', title: 'SigNoz', auth: ['apikey', 'bearer', 'none'], urlPlaceholder: 'https://signoz.example.com', accent: 'text-rose-500' },
   { name: 'datadog', title: 'Datadog', auth: ['datadog', 'bearer'], urlPlaceholder: 'https://api.datadoghq.com', scope: 'env', scopeRequired: true, accent: 'text-violet-500' },
+  { name: 'newrelic', title: 'New Relic', auth: ['apikey'], urlPlaceholder: 'https://api.newrelic.com', scope: 'account', accent: 'text-teal-500' },
 ];
+
+/** Scopes picked from the backend's own list (Coroot projects, New Relic accounts). */
+export function scopeIsPicked(scope?: ProviderMeta['scope']): boolean {
+  return scope === 'project' || scope === 'account';
+}
 
 export function providerMeta(name?: string): ProviderMeta {
   return PROVIDERS.find((p) => p.name === name) ?? PROVIDERS[0];

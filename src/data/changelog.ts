@@ -7,6 +7,37 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '1.70.0',
+    date: '2026-11-19',
+    title: 'Windows and Linux builds, updates from GitHub Releases',
+    changes: [
+      'Desktop: preview builds for Windows (x64, installer or MSI) and Linux (x64, AppImage or .deb) are published with each release. They use the native title bar. On Windows and Linux there is no app lock or step-up check yet, and the key for saved secrets is kept in a file next to the local database instead of the macOS Keychain.',
+      'Desktop: patchman:// links (connect to a backend, sign-in callbacks) reach the app that is already running on Windows and Linux instead of starting a second copy.',
+      'Updates: Settings → Updates checks the latest GitHub Release, and the app also checks in the background. A new version is downloaded, its signature verified, and installed after a restart.',
+    ],
+  },
+  {
+    version: '1.69.0',
+    date: '2026-11-19',
+    title: 'New Relic, safer secrets for AI agents, rated agent memory',
+    changes: [
+      'New Relic: add it as an observability connection with a user key (US or EU). The service map shows your APM applications with their alert health, requests/s, error % and p95, and which service calls which. A New Relic console (connection menu) runs NRQL, lists alert incidents and searches entities. AI agents get newrelic_nrql, newrelic_entities and newrelic_alerts.',
+      'AI agents (MCP): secret values are hidden from them by default. Tokens, passwords, Authorization / Cookie / API-key headers and secret environment variables come back as ***, and an agent writing *** back keeps the stored value. To let agents see the real values, turn on "Show secret values to AI agents" in a collection’s settings or an environment’s menu. Only a person can turn it on.',
+      'AI agents (MCP): list_collections returns a compact tree (requests as name, method and URL) and can be narrowed by name, collection or depth. A big collection no longer hides the others.',
+      'Agent memory: agents say how they know what they remember (verified, stated by you, inferred, hearsay) and how widely it applies. Cards show it instead of a fixed "80%", recall ranks verified and core cards higher and asks to check an unverified top answer, and "Mark verified" on a card makes it fully trusted.',
+      'Whiteboard: people viewing through a read-only link now show their cursor to everyone on the board, and see the others’ cursors.',
+    ],
+  },
+  {
+    version: '1.68.3',
+    date: '2026-11-19',
+    title: 'Folders opened from disk get working MRs and CI/CD',
+    changes: [
+      'Git: a folder opened from your computer could match a git connection saved only on this computer. Merge requests and CI/CD then said "Connection not found". The folder now switches to a connection on the same GitLab that works.',
+      'Git: every folder opened from your computer has a project-link button: "Link to a GitLab project" when it isn’t linked, "Fix project link" when its link can’t load MRs or CI/CD, and "Change linked project" otherwise. The dialog lists only connections that work for it.',
+    ],
+  },
+  {
     version: '1.68.2',
     date: '2026-11-19',
     title: 'Sharing connections from the desktop works',

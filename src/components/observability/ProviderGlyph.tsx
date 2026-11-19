@@ -1,4 +1,4 @@
-import { Activity, Dog, Flame, Network, Radar, Waypoints } from 'lucide-react';
+import { Activity, Dog, Flame, Gauge, Network, Radar, Waypoints } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { ObservabilityProviderName } from '@/types';
 import { providerMeta } from './providers';
@@ -19,6 +19,8 @@ export function ProviderGlyph({ provider, className }: { provider: Observability
       return <Activity className={cls} />;
     case 'datadog':
       return <Dog className={cls} />;
+    case 'newrelic':
+      return <Gauge className={cls} />;
   }
   return <Activity className={cls} />;
 }

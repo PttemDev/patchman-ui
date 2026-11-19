@@ -29,6 +29,8 @@ export interface Collection {
   // (only owner / editor see the request 3-dot menu in the Public
   // section). Empty on the legacy Private path where ownership is
   // implied.
+  /** Top-level collections: AI agents (MCP) see its secret values. Off by default. */
+  mcpShowSecrets?: boolean;
   myRole?: 'owner' | 'editor' | 'viewer';
   sortOrder: number;
   children?: Collection[];
@@ -254,6 +256,8 @@ export interface Environment {
   id: string;
   name: string;
   isActive: boolean;
+  /** AI agents (MCP) see the values of secret variables. Off by default. */
+  mcpShowSecrets?: boolean;
   // Empty/undefined = global (visible in every workspace); a value scopes the
   // env to just that workspace.
   workspaceId?: string;
@@ -366,6 +370,10 @@ export interface NoteMeta {
 export interface Note extends Omit<NoteMeta, 'role'> {
   body: string;
   confidence?: number;
+  /** How the writer knows it (cards): verified | stated | inferred | hearsay; unset = not stated. */
+  evidence?: 'verified' | 'stated' | 'inferred' | 'hearsay' | '';
+  /** How widely it applies (cards): core | normal | detail. */
+  importance?: 'core' | 'normal' | 'detail' | '';
   supersededBy?: string | null;
   createdBy: string;
   updatedByName: string;
@@ -1907,7 +1915,7 @@ export interface GrafanaConnection {
   updatedAt: string;
 }
 
-export type ObservabilityProviderName = 'coroot' | 'prometheus' | 'jaeger' | 'kiali' | 'signoz' | 'datadog';
+export type ObservabilityProviderName = 'coroot' | 'prometheus' | 'jaeger' | 'kiali' | 'signoz' | 'datadog' | 'newrelic';
 export type ObservabilityAuthKind = 'none' | 'basic' | 'bearer' | 'apikey' | 'session' | 'login' | 'datadog';
 
 /** APM / observability backend the service map reads (Coroot, Prometheus,

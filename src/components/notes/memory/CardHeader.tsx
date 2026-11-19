@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { History } from 'lucide-react';
+import { BadgeCheck, History } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 import { useAutoGrow } from '@/hooks/useAutoGrow';
 import { notesAPI } from '@/services/api';
 import { useNotesStore } from '@/stores/notesStore';
 import type { Note } from '@/types';
+import { cn } from '@/lib/utils';
 import { SourceBadge } from './MemoryBits';
 
 // CardHeader sits under a knowledge card's title: its one-line summary
@@ -47,7 +48,22 @@ export function CardHeader({ note, canEdit, onOpen, onChanged }: {
     }
   };
 
-  const confidence = typeof note.confidence === 'number' && note.confidence > 0 && note.confidence < 1 ? Math.round(note.confidence * 100) : null;
+  const verify = async () => {
+    try {
+      await notesAPI.update(note.id, { evidence: 'verified' });
+      onChanged({ evidence: 'verified', confidence: 1 });
+    } catch {
+      toast({ title: t('memory.saveFailed'), variant: 'destructive' });
+    }
+  };
+
+  // A rating is what the writer stated: an evidence value, or a confidence
+  // other than 1 (a person's card) and 0.8 (an agent card that said nothing —
+  // that used to show as a meaningless "80%").
+  const conf = typeof note.confidence === 'number' ? note.confidence : undefined;
+  const rated = !!note.evidence || (conf !== undefined && conf > 0 && conf < 1 && conf !== 0.8);
+  const pct = rated && conf !== undefined && conf < 1 ? Math.round(conf * 100) : null;
+  const isAgent = note.source === 'agent';
   return (
     <div className="mt-2 space-y-2">
       {note.stale && (
@@ -83,7 +99,30 @@ export function CardHeader({ note, canEdit, onOpen, onChanged }: {
       )}
       <div className="flex items-center gap-1.5">
         <SourceBadge source={note.source} agent={note.agent} />
-        {confidence !== null && <span className="text-[10px] text-muted-foreground">{t('memory.confidence', { pct: confidence })}</span>}
+        {isAgent && (rated ? (
+          <span
+            className={cn(
+              'rounded px-1.5 py-0.5 text-[10px] font-medium',
+              note.evidence === 'verified' ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400'
+                : note.evidence === 'hearsay' ? 'bg-amber-500/15 text-amber-700 dark:text-amber-400'
+                : 'bg-muted text-muted-foreground',
+            )}
+            title={t('memory.ratingHint')}
+          >
+            {note.evidence ? t(`memory.evidence.${note.evidence}`) : t('memory.confidenceOnly')}
+            {pct !== null && ` · ${pct}%`}
+          </span>
+        ) : (
+          <span className="text-[10px] text-muted-foreground" title={t('memory.ratingHint')}>{t('memory.unrated')}</span>
+        ))}
+        {(note.importance === 'core' || note.importance === 'detail') && (
+          <span className="rounded bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground">{t(`memory.importance.${note.importance}`)}</span>
+        )}
+        {canEdit && isAgent && note.evidence !== 'verified' && (
+          <Button size="sm" variant="ghost" className="ml-auto h-6 gap-1 px-2 text-[11px]" onClick={() => void verify()} title={t('memory.verifyHint')}>
+            <BadgeCheck className="h-3.5 w-3.5" /> {t('memory.verify')}
+          </Button>
+        )}
       </div>
     </div>
   );

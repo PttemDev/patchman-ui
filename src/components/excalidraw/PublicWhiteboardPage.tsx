@@ -183,7 +183,7 @@ function PublicBoard({ token, board, boardId }: { token: string; board: PublicBo
   type PointerPayload = { pointer: { x: number; y: number } };
   const handlePointer = useCallback(
     (payload: PointerPayload) => {
-      if (role !== 'editor') return;
+      // Viewers send their cursor too (the server relays only that from them).
       const conn = collab.current;
       if (!conn) return;
       const now = Date.now();
@@ -191,7 +191,7 @@ function PublicBoard({ token, board, boardId }: { token: string; board: PublicBo
       pointerThrottle.current = now;
       conn.sendPointer(payload.pointer.x, payload.pointer.y);
     },
-    [role],
+    [],
   );
 
   const handleChange = useCallback<ChangeHandler>(

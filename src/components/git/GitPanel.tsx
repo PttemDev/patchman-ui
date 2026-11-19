@@ -50,7 +50,7 @@ import { GitCIPanel } from './GitCIPanel';
 import { GitDiffViewer } from './GitDiffViewer';
 import { SplitHandle } from './SplitHandle';
 import { usePersistedWidth } from './usePersistedWidth';
-import { decodeGitContent, extractErr, timeAgo } from './util';
+import { decodeGitContent, extractErr, timeAgo, usableForFolder } from './util';
 import { GitBranchPopup, GitOperationBanner } from './GitBranchPopup';
 import { GitNamePrompt, GitRemotesDialog, GitUpdateDialog, type NamePromptState, type PullStrategy } from './GitVcsDialogs';
 import { useGitRepoOps } from './useGitRepoOps';
@@ -160,6 +160,12 @@ export function GitPanel({ tab }: { tab: Tab }) {
   // project behind it for MRs / CI.
   const folderMode = project.startsWith('local:');
   const [linkOpen, setLinkOpen] = useState(false);
+  // A folder opened from disk (not a managed clone) can be (re)linked to a
+  // project. Its link is "broken" when the connection it matched can't serve
+  // MRs / CI here (e.g. an OAuth connection kept only on this computer).
+  const externalFolder = !!(desktop && localRepo && localRepo.cloneKind === 'external');
+  const linkedConn = localRepo?.connectionId ? connections.find((c) => c.id === localRepo.connectionId) : undefined;
+  const linkBroken = externalFolder && !folderMode && connections.length > 0 && (!linkedConn || !usableForFolder(linkedConn));
   // GitHub connections: pull requests (phase 3) and Actions (phase 4) aren't
   // wired yet — their views are hidden rather than failing.
   const isGitHubConn = conn?.provider === 'github';
@@ -562,6 +568,31 @@ export function GitPanel({ tab }: { tab: Tab }) {
     setCloning(false);
   }, [conn, selectedRepo, toast, loadLocalRepos, tab.id, updateTab, t, touchRecent]);
 
+  // A folder that auto-matched a connection unusable here (CI/CD then said
+  // "Connection not found") is moved, once, to a usable connection on the
+  // same host; the BE re-checks the origin host before linking.
+  const healTried = useRef('');
+  useEffect(() => {
+    if (!linkBroken || !localRepo || healTried.current === localRepo.id) return;
+    healTried.current = localRepo.id;
+    const hostOf = (u?: string): string => {
+      if (!u) return '';
+      const scp = u.match(/^[^@/]+@([^:/]+):/);
+      if (scp) return scp[1].toLowerCase();
+      try { return new URL(u).hostname.toLowerCase(); } catch { return ''; }
+    };
+    const want = hostOf(linkedConn?.baseUrl) || hostOf(localRepo.remoteUrl);
+    const alt = want ? connections.find((c) => c.id !== localRepo.connectionId && usableForFolder(c) && hostOf(c.baseUrl) === want) : undefined;
+    if (!alt) return;
+    void gitAPI.linkRepo(localRepo.id, { connectionId: alt.id, projectRef: localRepo.projectRef, projectName: localRepo.projectName })
+      .then(async (res) => {
+        const r = (res.data as { repo: GitLocalRepo }).repo;
+        await loadLocalRepos();
+        updateTab(tab.id, { gitConnectionId: r.connectionId, gitScope: 'local', gitRepoRef: r.projectRef, gitRepoName: r.projectName || r.localPath, gitRepoId: r.id });
+      })
+      .catch(() => { /* the "Fix link" button stays */ });
+  }, [linkBroken, localRepo, linkedConn, connections, loadLocalRepos, updateTab, tab.id]);
+
   // ── open folder (any git work tree on this machine) ────────────────
   const openFolderPath = useCallback(async (path: string, recentId?: string) => {
     if (!(await confirmDiscard())) return;
@@ -869,12 +900,13 @@ export function GitPanel({ tab }: { tab: Tab }) {
           />
           <GitRemotesDialog repoId={localRepo.id} open={remotesOpen} onOpenChange={setRemotesOpen} onChanged={afterOp} />
           <GitNamePrompt state={namePrompt} onClose={() => setNamePrompt(null)} />
-          {localRepo && folderMode && (
+          {localRepo && externalFolder && (
             <GitLinkProjectDialog
               open={linkOpen}
               onOpenChange={setLinkOpen}
               repoId={localRepo.id}
               origin={localRepo.remoteUrl}
+              currentConnectionId={localRepo.connectionId}
               onLinked={async (r) => {
                 await loadLocalRepos();
                 updateTab(tab.id, {
@@ -1009,14 +1041,20 @@ export function GitPanel({ tab }: { tab: Tab }) {
               {useLocal && (
                 <ModeButton icon={FileDiff} label={t('mode.changes')} active={mode === 'changes'} onClick={async () => { if (await confirmDiscard()) updateTab(tab.id, { gitView: 'changes' }); }} />
               )}
-              {folderMode && localRepo && desktop && (
+              {externalFolder && (
                 <button
                   type="button"
                   onClick={() => setLinkOpen(true)}
-                  className="mt-1 w-full rounded-md border border-dashed px-2 py-1.5 text-left text-[11px] text-muted-foreground hover:border-primary hover:text-foreground"
-                  title={t('link.hint')}
+                  className={cn(
+                    'mt-1 w-full rounded-md border border-dashed px-2 py-1.5 text-left text-[11px] hover:border-primary hover:text-foreground',
+                    linkBroken ? 'border-amber-500/60 text-amber-700 dark:text-amber-400' : 'text-muted-foreground',
+                  )}
+                  title={linkBroken ? t('link.brokenHint') : t('link.hint')}
                 >
-                  <span className="flex items-center gap-1.5"><Workflow className="h-3 w-3" />{t('link.button')}</span>
+                  <span className="flex items-center gap-1.5">
+                    <Workflow className="h-3 w-3" />
+                    {folderMode ? t('link.button') : linkBroken ? t('link.fix') : t('link.change')}
+                  </span>
                 </button>
               )}
               {!folderMode && (

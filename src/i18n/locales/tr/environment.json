@@ -76,7 +76,9 @@
     "noMatches": "Eşleşme yok.",
     "selectPrompt": "Değişkenleri düzenlemek için bir ortam seçin veya yeni bir tane oluşturun.",
     "expandValue": "Değeri büyüt",
-    "expandHint": "Kapatmak için Enter veya Esc"
+    "expandHint": "Kapatmak için Enter veya Esc",
+    "mcpSecrets": "Gizli değerleri AI agent'lara göster",
+    "mcpSecretsHint": "Kapalı (varsayılan): AI agent'lar (MCP) gizli değişkenleri *** olarak görür; *** geri yazılırsa değer korunur."
   },
   "export": {
     "title": "Ortamları Dışa Aktar",

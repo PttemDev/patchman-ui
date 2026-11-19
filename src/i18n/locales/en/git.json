@@ -798,7 +798,10 @@
     "noConnections": "No git connection on this computer yet. Add one in the Git panel first.",
     "loadFailed": "Couldn't load projects",
     "failed": "Couldn't link the folder",
-    "done": "Linked to {{project}}"
+    "done": "Linked to {{project}}",
+    "change": "Change linked project",
+    "fix": "Fix project link",
+    "brokenHint": "The connection this folder matched can't load merge requests or CI/CD here (it isn't on the server). Pick a connection that is."
   },
   "mdView": {
     "preview": "Preview",

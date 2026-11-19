@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Switch } from '@/components/ui/switch';
 import { toast } from '@/components/ui/use-toast';
 import type { AxiosError } from 'axios';
 
@@ -21,7 +22,7 @@ interface CollectionDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   parentId?: string | null;
-  editCollection?: { id: string; name: string; description: string; baseUrl?: string; parentId?: string | null } | null;
+  editCollection?: { id: string; name: string; description: string; baseUrl?: string; parentId?: string | null; mcpShowSecrets?: boolean; shared?: boolean; myRole?: string } | null;
 }
 
 export function CollectionDialog({
@@ -42,12 +43,16 @@ export function CollectionDialog({
   // was hiding an existing model field — the BE has always stored
   // baseUrl per-row.
   const showBaseUrl = !!editCollection;
+  // "Show secret values to AI agents" — a top-level collection's owner only.
+  const showMcpSecrets = !!editCollection && !editCollection.parentId && !editCollection.shared && (!editCollection.myRole || editCollection.myRole === 'owner');
+  const [mcpSecrets, setMcpSecrets] = useState(false);
 
   useEffect(() => {
     if (open && editCollection) {
       setName(editCollection.name || '');
       setDescription(editCollection.description || '');
       setBaseUrl(editCollection.baseUrl || '');
+      setMcpSecrets(!!editCollection.mcpShowSecrets);
     } else if (open) {
       setName('');
       setDescription('');
@@ -74,6 +79,7 @@ export function CollectionDialog({
           name: name.trim(),
           description: description.trim(),
           baseUrl: baseUrl.trim(),
+          ...(showMcpSecrets && mcpSecrets !== !!editCollection.mcpShowSecrets ? { mcpShowSecrets: mcpSecrets } : {}),
         });
         tt.update({
           id: tt.id,
@@ -170,6 +176,15 @@ export function CollectionDialog({
               <p className="text-xs text-muted-foreground">
                 {t('dialog.baseUrlHint')}
               </p>
+            </div>
+          )}
+          {showMcpSecrets && (
+            <div className="flex items-start justify-between gap-3 rounded-md border p-3">
+              <div className="min-w-0">
+                <Label htmlFor="mcpSecrets" className="text-sm">{t('dialog.mcpSecretsLabel')}</Label>
+                <p className="mt-0.5 text-xs text-muted-foreground">{t('dialog.mcpSecretsHint')}</p>
+              </div>
+              <Switch id="mcpSecrets" checked={mcpSecrets} onCheckedChange={setMcpSecrets} disabled={submitting} />
             </div>
           )}
         </div>

@@ -1370,6 +1370,13 @@ export const observabilityConnectionAPI = {
       ? api.post(`/observability-connections/${id}/test`, undefined, dbCfg(scope, { timeout: 30000 }))
       : api.post('/observability-connections/test', data, dbCfg(scope, { timeout: 30000 })),
   scopes: (id: string, scope?: DBScope) => api.get(`/observability-connections/${id}/scopes`, dbCfg(scope, { timeout: 25000 })),
+  // New Relic (provider "newrelic"): NRQL, entity search, alert incidents.
+  newRelicNRQL: (id: string, body: { query: string; accountId?: string }, scope?: DBScope) =>
+    api.post(`/observability-connections/${id}/newrelic/nrql`, body, dbCfg(scope, { timeout: 90000 })),
+  newRelicEntities: (id: string, q: string, scope?: DBScope) =>
+    api.get(`/observability-connections/${id}/newrelic/entities`, dbCfg(scope, { params: { q: q || undefined }, timeout: 35000 })),
+  newRelicAlerts: (id: string, p: { accountId?: string; hours?: number; open?: boolean }, scope?: DBScope) =>
+    api.get(`/observability-connections/${id}/newrelic/alerts`, dbCfg(scope, { params: { accountId: p.accountId, hours: p.hours, open: p.open ? '1' : undefined }, timeout: 90000 })),
   revealSecret: (id: string, which: 'password' | 'token' | 'apiKey' | 'appKey' | 'session', scope?: DBScope) =>
     api.post(`/observability-connections/${id}/reveal-secret`, { which }, dbCfg(scope)),
   listGrants: (id: string, scope?: DBScope) => api.get(`/observability-connections/${id}/grants`, dbCfg(scope)),
@@ -1592,7 +1599,7 @@ export const notesAPI = {
   create: (data: { id?: string; parentId?: string | null; type?: 'page' | 'folder' | 'card'; title: string; body?: string; icon?: string; sortOrder?: number; summary?: string; memory?: boolean }) =>
     api.post('/notes', data),
   // title/body edits must carry baseVersion (409 + `current` when stale).
-  update: (id: string, data: { title?: string; body?: string; baseVersion?: number; icon?: string; parentId?: string | null; sortOrder?: number; summary?: string; stale?: boolean; memory?: boolean }) =>
+  update: (id: string, data: { title?: string; body?: string; baseVersion?: number; icon?: string; parentId?: string | null; sortOrder?: number; summary?: string; stale?: boolean; memory?: boolean; evidence?: string; confidence?: number; importance?: string }) =>
     api.patch(`/notes/${id}`, data),
   remove: (id: string) => api.delete(`/notes/${id}`),
   revisions: (id: string) => api.get(`/notes/${id}/revisions`),

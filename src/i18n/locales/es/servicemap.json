@@ -11,7 +11,8 @@
       "jaeger": "El grafo de dependencias de Jaeger: quién llama a quién y con qué frecuencia (sin errores ni latencia).",
       "kiali": "El grafo de tráfico Istio de Kiali: peticiones/s, tasa de error y tiempo de respuesta por llamada.",
       "signoz": "El grafo de dependencias de SigNoz: tasa de llamadas, tasa de error y latencia por llamada.",
-      "datadog": "Dependencias de servicios de Datadog APM para un env (qué servicio llama a cuál; la API de Datadog no da tasas por llamada)."
+      "datadog": "Dependencias de servicios de Datadog APM para un env (qué servicio llama a cuál; la API de Datadog no da tasas por llamada).",
+      "newrelic": "New Relic a través de NerdGraph con una user key (NRAK-…): aplicaciones APM con su salud y tasa de peticiones, % de errores y p95 desde NRQL, y qué servicio llama a cuál. Usa https://api.eu.newrelic.com para cuentas de la UE."
     },
     "name": "Nombre",
     "url": "URL",
@@ -56,12 +57,14 @@
     "scope": {
       "project": "Proyecto",
       "env": "Env",
-      "namespaces": "Namespaces"
+      "namespaces": "Namespaces",
+      "account": "Cuenta"
     },
     "scopeHelp": {
       "project": "El proyecto de Coroot con el que se abre el mapa. En una conexión nueva, los proyectos aparecen después de Probar.",
       "env": "El env de Datadog a mapear, p. ej. prod.",
-      "namespaces": "Separados por comas; vacío = todos los namespaces que muestra Kiali (hasta 20)."
+      "namespaces": "Separados por comas; vacío = todos los namespaces que muestra Kiali (hasta 20).",
+      "account": "La cuenta de New Relic que usan el mapa, NRQL y las alertas. Se lista tras Probar (las cuentas de tu user key)."
     },
     "corootProjectKey": "Clave de API del proyecto (opcional)",
     "corootProjectKeyHelp": "Permite a PatchMan consultar directamente las métricas de Coroot para errores y latencia por llamada. Sin ella llegan por la API de paneles de Coroot, que también funciona.",
@@ -116,7 +119,12 @@
     "forbidden": "sin permiso para listar {{value}}",
     "references_capped": "primeros {{value}} ConfigMaps / Secrets",
     "prometheus_not_found": "no se encontró Prometheus en el clúster",
-    "target": "Prometheus: {{value}}"
+    "target": "Prometheus: {{value}}",
+    "accounts": "{{value}} cuentas",
+    "no_edge_rates": "las llamadas entre servicios no llevan tasas",
+    "account_required_for_stats": "elige una cuenta para ver las tasas de peticiones",
+    "stats_failed": "estadísticas de peticiones no disponibles",
+    "relationships_failed": "llamadas entre servicios no disponibles"
   },
   "share": {
     "title": "Compartir {{name}}",
@@ -354,5 +362,24 @@
     "5xx": "Error del servidor",
     "4xx": "Error del cliente — no cuenta como error",
     "3xx": "Redirección"
+  },
+  "newrelic": {
+    "open": "Consola de New Relic",
+    "title": "New Relic · {{name}}",
+    "tabNrql": "NRQL",
+    "tabAlerts": "Alertas",
+    "tabEntities": "Entidades",
+    "run": "Ejecutar",
+    "runHint": "⌘/Ctrl + Enter la ejecuta. NRQL solo lee.",
+    "rows": "{{count}} filas · {{ms}} ms",
+    "noRows": "Sin filas.",
+    "failed": "Falló la solicitud a New Relic",
+    "openOnly": "Solo abiertas",
+    "last24h": "Últimas 24 horas",
+    "refresh": "Actualizar",
+    "noAlerts": "No hay incidentes de alerta.",
+    "entitySearch": "Un nombre o una búsqueda de entidades: domainType IN ('APM-APPLICATION')",
+    "search": "Buscar",
+    "noEntities": "No hay entidades."
   }
 }

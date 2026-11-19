@@ -25,7 +25,9 @@
     "saving": "Guardando…",
     "creating": "Creando…",
     "saveChanges": "Guardar cambios",
-    "create": "Crear"
+    "create": "Crear",
+    "mcpSecretsLabel": "Mostrar valores secretos a los agentes de IA",
+    "mcpSecretsHint": "Desactivado: los agentes de IA (MCP) ven como *** los tokens, contraseñas y cabeceras Authorization / Cookie / API key de las peticiones de esta colección, y escribir *** de vuelta conserva el valor guardado. Actívalo solo si tus agentes necesitan los valores reales."
   },
   "request": {
     "open": "Abrir",

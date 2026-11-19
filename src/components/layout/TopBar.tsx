@@ -23,7 +23,7 @@ import { SettingsDialog } from '@/components/settings/SettingsDialog';
 import { SavedResponsesDialog } from '@/components/collections/SavedResponsesDialog';
 import { ImportCurlDialog } from '@/components/request/ImportCurlDialog';
 import { cn } from '@/lib/utils';
-import { isDesktop } from '@/lib/platform';
+import { hasOverlayTitleBar } from '@/lib/platform';
 
 export function TopBar() {
   const { t } = useTranslation(['layout', 'common']);
@@ -32,7 +32,8 @@ export function TopBar() {
   const { user, logout } = useAuthStore();
   const proxyEnabled = useProxyConfigStore((s) => s.enabled && !!s.endpoint);
   const openSettings = useSettingsUIStore((s) => s.openSettings);
-  const desktop = isDesktop();
+  // macOS only: Windows/Linux keep a native title bar (see hasOverlayTitleBar).
+  const desktop = hasOverlayTitleBar();
 
   return (
     // Two explicit rows instead of flex-wrap acrobatics — at xl+ the

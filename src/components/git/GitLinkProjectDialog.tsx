@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { gitAPI } from '@/services/api';
 import { useGitConnectionStore } from '@/stores/gitConnectionStore';
 import { cn } from '@/lib/utils';
-import { extractErr } from './util';
+import { extractErr, usableForFolder } from './util';
 import type { GitRepoSummary } from '@/types';
 
 export interface LinkedRepo { id: string; connectionId: string; projectRef: string; projectName: string; localPath: string }
@@ -16,21 +16,19 @@ export interface LinkedRepo { id: string; connectionId: string; projectRef: stri
 // connection's project, so the panel shows its MRs / CI on top of the local
 // working tree — no second clone. The BE only accepts a connection on the
 // folder's origin host.
-export function GitLinkProjectDialog({ open, onOpenChange, repoId, origin, onLinked }: {
+export function GitLinkProjectDialog({ open, onOpenChange, repoId, origin, currentConnectionId, onLinked }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   repoId: string;
   /** The folder's origin URL (shown as a hint). */
   origin?: string;
+  /** The connection it is tied to now (preselected when still usable). */
+  currentConnectionId?: string;
   onLinked: (repo: LinkedRepo) => void;
 }) {
   const { t } = useTranslation('git');
   const allConnections = useGitConnectionStore((s) => s.connections);
-  // The link lives on this computer's backend, so the connection must too.
-  const connections = useMemo(
-    () => allConnections.filter((c) => (c.availableScopes ?? [c.scope]).includes('local')),
-    [allConnections],
-  );
+  const connections = useMemo(() => allConnections.filter(usableForFolder), [allConnections]);
   const [connId, setConnId] = useState('');
   const [query, setQuery] = useState('');
   const [repos, setRepos] = useState<GitRepoSummary[]>([]);
@@ -39,8 +37,10 @@ export function GitLinkProjectDialog({ open, onOpenChange, repoId, origin, onLin
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    if (open && !connId && connections.length > 0) setConnId(connections[0].id);
-  }, [open, connId, connections]);
+    if (open && !connId && connections.length > 0) {
+      setConnId(connections.find((c) => c.id === currentConnectionId)?.id ?? connections[0].id);
+    }
+  }, [open, connId, connections, currentConnectionId]);
 
   // Search the connection's projects; seeded with the origin's project name.
   useEffect(() => {

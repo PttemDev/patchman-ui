@@ -11,7 +11,8 @@
       "jaeger": "Jaeger'ın bağımlılık grafiği: kim kimi ne sıklıkla çağırıyor (hata ve gecikme yok).",
       "kiali": "Kiali'nin Istio trafik grafiği: her çağrı için istek/sn, hata oranı ve yanıt süresi.",
       "signoz": "SigNoz'un servis bağımlılık grafiği: her çağrı için çağrı hızı, hata oranı ve gecikme.",
-      "datadog": "Tek bir env için Datadog APM servis bağımlılıkları (hangi servis hangisini çağırıyor; Datadog'un API'si çağrı bazında oran vermiyor)."
+      "datadog": "Tek bir env için Datadog APM servis bağımlılıkları (hangi servis hangisini çağırıyor; Datadog'un API'si çağrı bazında oran vermiyor).",
+      "newrelic": "User key (NRAK-…) ile NerdGraph üzerinden New Relic: APM uygulamaları ve sağlıkları, NRQL'den istek oranı, hata % ve p95, hangi servisin hangisini çağırdığı. EU hesapları için https://api.eu.newrelic.com kullanın."
     },
     "name": "Ad",
     "url": "URL",
@@ -56,12 +57,14 @@
     "scope": {
       "project": "Proje",
       "env": "Env",
-      "namespaces": "Namespace'ler"
+      "namespaces": "Namespace'ler",
+      "account": "Hesap"
     },
     "scopeHelp": {
       "project": "Haritanın açılacağı Coroot projesi. Yeni bir bağlantıda projeler Test'ten sonra listelenir.",
       "env": "Haritası çizilecek Datadog env'i, örn. prod.",
-      "namespaces": "Virgülle ayrılmış; boş = Kiali'nin gösterdiği tüm namespace'ler (en fazla 20)."
+      "namespaces": "Virgülle ayrılmış; boş = Kiali'nin gösterdiği tüm namespace'ler (en fazla 20).",
+      "account": "Harita, NRQL ve alarmların kullandığı New Relic hesabı. Test'ten sonra listelenir (user key'inizin hesapları)."
     },
     "corootProjectKey": "Proje API anahtarı (isteğe bağlı)",
     "corootProjectKeyHelp": "PatchMan'in çağrı bazında hata ve gecikme için Coroot metriklerini doğrudan sorgulamasını sağlar. Olmadan da Coroot'un dashboard API'si üzerinden gelir.",
@@ -116,7 +119,12 @@
     "forbidden": "{{value}} listeleme izni yok",
     "references_capped": "ilk {{value}} ConfigMap / Secret",
     "prometheus_not_found": "kümede Prometheus bulunamadı",
-    "target": "Prometheus: {{value}}"
+    "target": "Prometheus: {{value}}",
+    "accounts": "{{value}} hesap",
+    "no_edge_rates": "servisler arası çağrılarda oran yok",
+    "account_required_for_stats": "istek oranları için bir hesap seçin",
+    "stats_failed": "istek istatistikleri alınamadı",
+    "relationships_failed": "servisler arası çağrılar alınamadı"
   },
   "share": {
     "title": "{{name}} paylaş",
@@ -354,5 +362,24 @@
     "5xx": "Sunucu hatası",
     "4xx": "İstemci hatası — hata sayılmaz",
     "3xx": "Yönlendirme"
+  },
+  "newrelic": {
+    "open": "New Relic konsolu",
+    "title": "New Relic · {{name}}",
+    "tabNrql": "NRQL",
+    "tabAlerts": "Alarmlar",
+    "tabEntities": "Entity'ler",
+    "run": "Çalıştır",
+    "runHint": "⌘/Ctrl + Enter çalıştırır. NRQL yalnız okur.",
+    "rows": "{{count}} satır · {{ms}} ms",
+    "noRows": "Satır yok.",
+    "failed": "New Relic isteği başarısız",
+    "openOnly": "Yalnız açık olanlar",
+    "last24h": "Son 24 saat",
+    "refresh": "Yenile",
+    "noAlerts": "Alarm olayı yok.",
+    "entitySearch": "Bir isim ya da entity araması: domainType IN ('APM-APPLICATION')",
+    "search": "Ara",
+    "noEntities": "Entity yok."
   }
 }

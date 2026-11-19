@@ -69,6 +69,7 @@ import { Popover, PopoverAnchor, PopoverContent } from '@/components/ui/popover'
 import { useAutoGrow } from '@/hooks/useAutoGrow';
 import {
   DropdownMenu,
+  DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
@@ -580,6 +581,15 @@ export function EnvManager({ open, onOpenChange }: EnvManagerProps) {
                         <Download className="h-3.5 w-3.5 mr-2" />
                         {t('manager.exportEllipsis')}
                       </DropdownMenuItem>
+                      {role === 'owner' && (
+                        <DropdownMenuCheckboxItem
+                          checked={!!selectedEnv.mcpShowSecrets}
+                          onCheckedChange={(v) => void updateEnvironment(selectedEnv.id, { mcpShowSecrets: !!v })}
+                          title={t('manager.mcpSecretsHint')}
+                        >
+                          {t('manager.mcpSecrets')}
+                        </DropdownMenuCheckboxItem>
+                      )}
                       {canEdit && (
                         <DropdownMenuItem onClick={() => setBulkPasteOpen((b) => !b)}>
                           <Wand2 className="h-3.5 w-3.5 mr-2" />

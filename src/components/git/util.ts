@@ -1,3 +1,4 @@
+import type { GitConnection } from '@/types';
 // Shared helpers for the Git tab. Kept tiny so every git panel/dialog can
 // pull the same error-extraction + formatting logic.
 import i18n from '@/i18n';
@@ -240,4 +241,15 @@ export function parseConflictFile(content: string): ParsedConflicts {
 // suspenders gate on "Mark resolved" and the resolver's already-resolved check.
 export function hasConflictMarkers(text: string): boolean {
   return /^<{7}(\s|$)/m.test(text) || /^={7}\s*$/m.test(text) || /^>{7}(\s|$)/m.test(text);
+}
+
+// usableForFolder: a connection a folder opened on this computer can be tied
+// to. The link and every git op live on this computer's backend, so it must
+// be there; MR / CI reads of an OAuth connection go to the server (the linked
+// GitLab account lives there), so an OAuth one must be on the server too —
+// otherwise CI/CD answers "Connection not found". A token (PAT) connection
+// reads from its own backend.
+export function usableForFolder(c: GitConnection): boolean {
+  const avail = c.availableScopes?.length ? c.availableScopes : c.scope ? [c.scope] : [];
+  return avail.includes('local') && (c.authKind === 'pat' || avail.includes('remote'));
 }

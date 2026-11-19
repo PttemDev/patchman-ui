@@ -32,8 +32,10 @@ pub(crate) static ALLOW_EXIT: AtomicBool = AtomicBool::new(false);
 use tauri::{
     menu::{Menu, MenuItem, PredefinedMenuItem},
     tray::TrayIconBuilder,
-    Emitter, Manager, RunEvent, TitleBarStyle, WebviewUrl, WebviewWindowBuilder, WindowEvent,
+    Emitter, Manager, RunEvent, WebviewUrl, WebviewWindowBuilder, WindowEvent,
 };
+#[cfg(target_os = "macos")]
+use tauri::TitleBarStyle;
 #[cfg(any(target_os = "linux", all(debug_assertions, windows)))]
 use tauri_plugin_deep_link::DeepLinkExt;
 
@@ -308,8 +310,8 @@ fn boot(app: &tauri::App, sidecar: &SidecarHandle) -> Result<(), BootError> {
         // title bar (traffic lights over the content) + hidden title TEXT, so
         // there's no separate "PatchMan" strip above the in-app header.
         // trafficLightPosition below is only honored with this Overlay style.
-        .title_bar_style(TitleBarStyle::Overlay)
-        .hidden_title(true)
+        // (macOS only, set in the cfg block below; Windows and Linux keep
+        // their native title bar.)
         .inner_size(1400.0, 900.0)
         .initialization_script(&init_script)
         // Disable Tauri's OS-level drag-drop handler. When enabled (the
@@ -332,7 +334,10 @@ fn boot(app: &tauri::App, sidecar: &SidecarHandle) -> Result<(), BootError> {
     // inset from the window's top edge.
     #[cfg(target_os = "macos")]
     {
-        builder = builder.traffic_light_position(tauri::LogicalPosition::new(8.0, 25.0));
+        builder = builder
+            .title_bar_style(TitleBarStyle::Overlay)
+            .hidden_title(true)
+            .traffic_light_position(tauri::LogicalPosition::new(8.0, 25.0));
     }
 
     let window = builder.build()?;
@@ -532,7 +537,18 @@ pub fn run() {
     let sidecar_for_setup = sidecar.clone();
     let sidecar_for_exit = sidecar.clone();
 
-    let app = tauri::Builder::default()
+    let builder = tauri::Builder::default();
+    // Windows / Linux: a patchman:// link (connect gate, OAuth callback) starts
+    // a second process. The single-instance plugin hands its URL to the running
+    // app (deep-link feature → onOpenUrl) and the second process exits. Must be
+    // the first plugin registered. macOS delivers the URL to the running app
+    // natively, so it doesn't need this.
+    #[cfg(any(target_os = "windows", target_os = "linux"))]
+    let builder = builder.plugin(tauri_plugin_single_instance::init(|app, _argv, _cwd| {
+        show_main(app);
+    }));
+
+    let app = builder
         .invoke_handler(tauri::generate_handler![
             set_tray_labels,
             confirm_quit,
@@ -562,10 +578,16 @@ pub fn run() {
                 )?;
                 // In dev, no bundled Info.plist registers the scheme. Register at runtime
                 // so `open patchman://...` during development actually reaches this app.
-                #[cfg(any(target_os = "linux", all(debug_assertions, windows)))]
+                #[cfg(all(debug_assertions, windows))]
                 {
                     let _ = app.deep_link().register_all();
                 }
+            }
+            // Linux: the .deb registers the scheme through its .desktop file, but
+            // an AppImage has no installer, so register at runtime (release too).
+            #[cfg(target_os = "linux")]
+            {
+                let _ = app.deep_link().register_all();
             }
             if let Err(err) = boot(app, &sidecar_for_setup) {
                 // Returning the error would make Tauri panic → SIGABRT. Show

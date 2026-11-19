@@ -1,7 +1,7 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
   "productName": "PatchMan",
-  "version": "1.68.2",
+  "version": "1.70.0",
   "identifier": "com.pttem.patchman",
   "build": {
     "frontendDist": "../dist",
@@ -77,8 +77,8 @@
       }
     },
     "updater": {
-      "endpoints": [],
-      "pubkey": ""
+      "endpoints": ["https://github.com/PttemDev/patchman-ui/releases/latest/download/latest.json"],
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDFCMkMzMzA0QTcyODU5ODIKUldTQ1dTaW5CRE1zRytDaDgyenZOS1NkZzYzYmdlUTlGZ1hYMEZ6Ui91SklDcmozenMrZW84Mm0K"
     }
   }
 }

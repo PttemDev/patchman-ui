@@ -11,8 +11,10 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/PttemDev/patchman-ui/releases/latest"><img src="https://img.shields.io/badge/Download_for_macOS-Apple_Silicon-000000?style=for-the-badge&logo=apple&logoColor=white" alt="Download PatchMan for macOS (Apple Silicon)"/></a><br/>
-  <sub>Signed and notarized · <a href="#download-macos-apple-silicon">download details</a></sub>
+  <a href="https://github.com/PttemDev/patchman-ui/releases/latest"><img src="https://img.shields.io/badge/Download_for_macOS-Apple_Silicon-000000?style=for-the-badge&logo=apple&logoColor=white" alt="Download PatchMan for macOS (Apple Silicon)"/></a>
+  <a href="https://github.com/PttemDev/patchman-ui/releases/latest"><img src="https://img.shields.io/badge/Download_for_Windows-x64-0078D4?style=for-the-badge&logo=windows&logoColor=white" alt="Download PatchMan for Windows (x64)"/></a>
+  <a href="https://github.com/PttemDev/patchman-ui/releases/latest"><img src="https://img.shields.io/badge/Download_for_Linux-x64-FCC624?style=for-the-badge&logo=linux&logoColor=black" alt="Download PatchMan for Linux (x64)"/></a><br/>
+  <sub>macOS: signed and notarized · Windows and Linux: preview builds · <a href="#download">download details</a></sub>
 </p>
 
 <p align="center">
@@ -37,7 +39,7 @@
 ---
 
 > [!IMPORTANT]
-> **This repository is only the front end.** PatchMan UI depends on the PatchMan backend, [patchman-api](https://github.com/PttemDev/patchman-api), and does not work without it. You need a running API (local or remote) for sign-in, collections, connections and every other feature. The one exception is the desktop app: it bundles its own backend and runs standalone and offline (see [Download](#download-macos-apple-silicon)). Building the desktop app from source still requires the `patchman-api` source. See the [Quick start](#quick-start).
+> **This repository is only the front end.** PatchMan UI depends on the PatchMan backend, [patchman-api](https://github.com/PttemDev/patchman-api), and does not work without it. You need a running API (local or remote) for sign-in, collections, connections and every other feature. The one exception is the desktop app: it bundles its own backend and runs standalone and offline (see [Download](#download)). Building the desktop app from source still requires the `patchman-api` source. See the [Quick start](#quick-start).
 
 ## What is PatchMan?
 
@@ -50,15 +52,27 @@ PatchMan started as a Postman-style API client and grew into a single place for 
 
 ---
 
-## Download (macOS, Apple Silicon)
+## Download
 
-Download the signed and notarized macOS build (Apple Silicon) from the [latest GitHub Release](https://github.com/PttemDev/patchman-ui/releases/latest). Each release has the `PatchMan-<version>-aarch64.dmg` file and a `SHA256SUMS` file for checking it:
+Download the desktop app from the [latest GitHub Release](https://github.com/PttemDev/patchman-ui/releases/latest):
+
+| Platform | File | Notes |
+|---|---|---|
+| macOS (Apple Silicon) | `PatchMan-<version>-aarch64.dmg` | Signed with a Developer ID and notarized by Apple. |
+| Windows 10/11 (x64) | `PatchMan-<version>-x64-setup.exe` or `PatchMan-<version>-x64.msi` | Preview. Not code-signed: SmartScreen shows "Windows protected your PC"; choose **More info → Run anyway**. Needs WebView2, which the installer adds if it is missing. |
+| Linux (x64) | `PatchMan-<version>-amd64.AppImage` or `PatchMan-<version>-amd64.deb` | Preview. Built on Ubuntu 22.04; needs WebKitGTK 4.1. For the AppImage, run `chmod +x` first. |
+
+Each release also has a `SHA256SUMS` file for checking the downloads (only the lines for the files you downloaded are checked):
 
 ```bash
-shasum -a 256 -c SHA256SUMS
+shasum -a 256 -c SHA256SUMS --ignore-missing     # macOS
+sha256sum -c SHA256SUMS --ignore-missing         # Linux, or Git Bash / WSL on Windows
 ```
 
-Every release has a matching `v<version>` tag in this repository and in [patchman-api](https://github.com/PttemDev/patchman-api), so you can see which source a build came from. To get notified about new versions, use **Watch → Custom → Releases**. Earlier versions are on the [Releases page](https://github.com/PttemDev/patchman-ui/releases). For other platforms, build the desktop app from source (see [Desktop app (macOS)](#desktop-app-macos)).
+**Windows and Linux are preview builds.** They are built by GitHub Actions ([`desktop-release.yml`](.github/workflows/desktop-release.yml)) from the same tag, without code signing, and have fewer desktop security features than macOS: there is no app lock and no step-up check before a secret is revealed, and the key that encrypts your saved secrets is kept in a file next to the local database (readable only by your user account) instead of the macOS Keychain. 
+**Updates.** From 1.70.0, the app checks the latest GitHub Release (Settings → Updates, and in the background about once an hour). A new version is downloaded, its signature is checked against the public key built into the app, and it is installed after a restart. On Linux this works for the AppImage and the `.deb`; on Windows for the installer and the MSI. Earlier versions (1.69.x and older) can't update themselves: download 1.70.0 once by hand.
+
+Every release has a matching `v<version>` tag in this repository and in [patchman-api](https://github.com/PttemDev/patchman-api), so you can see which source a build came from. To get notified about new versions, use **Watch → Custom → Releases**. Earlier versions are on the [Releases page](https://github.com/PttemDev/patchman-ui/releases). To build the desktop app yourself, see [Desktop app (build from source)](#desktop-app-build-from-source).
 
 The desktop app runs **standalone and offline**. It bundles its own backend (SQLite), so you do not need a server or the `patchman-api` repository to use a built copy. Sign in to a server later if you want to sync.
 
@@ -111,7 +125,8 @@ Every connection uses the same model: credentials are stored encrypted, and the 
 ### Observability and dashboards
 - **Grafana:** native dashboard rendering through the Grafana HTTP API, using a token, basic auth or anonymous access.
 - **Graylog:** log search with a histogram, streams and field-level drill-down. Read-only.
-- **Service map:** a live, animated map built from APM providers (Coroot, Prometheus-compatible backends, Jaeger, Kiali, SigNoz, Datadog).
+- **Service map:** a live, animated map built from APM providers (Coroot, Prometheus-compatible backends, Jaeger, Kiali, SigNoz, Datadog, New Relic).
+- **New Relic:** APM applications with health, request rate, error % and p95, plus a console for NRQL queries, alerts and entities.
 
 ### Git and CI/CD (GitLab and GitHub)
 - GitLab and GitHub (including GitHub Enterprise Server) connections with a personal access token, or a GitLab account linked through OAuth.
@@ -147,8 +162,8 @@ Every connection uses the same model: credentials are stored encrypted, and the 
 - A Tauri 2 desktop app with an embedded backend (a Go sidecar using SQLite).
 - Security: only the app itself can talk to its embedded backend (a per-launch token and a strict origin check), a content security policy, an optional app lock with Touch ID or your Mac password (on open and after a period of inactivity), and Touch ID before every secret is revealed. The key that encrypts your saved secrets is kept in the macOS Keychain.
 - Works offline without an account. Sign in later to sync to your server.
-- Menu-bar tray, support for an auto-update channel and a built-in Claude Code terminal. Auto-update needs your own endpoint and signing key (see [Desktop app notes](#desktop-app-notes)).
-- macOS is the supported desktop target. Windows and Linux builds are not verified yet.
+- Menu-bar tray, updates from GitHub Releases (signed, checked in the background and in Settings → Updates) and a built-in Claude Code terminal.
+- macOS is the main desktop target. Windows (x64) and Linux (x64) preview builds are published with each release; the app lock, Touch ID step-up and Keychain storage are macOS only (see [Download](#download)).
 
 ---
 
@@ -251,9 +266,9 @@ JWT_SECRET=... GITLAB_TOKEN_ENC_KEY=... ./bin/patchman-server
 
 The database name, user and password above are local development defaults from the compose file. Use your own credentials for anything beyond a local try-out.
 
-### Desktop app (macOS)
+### Desktop app (build from source)
 
-The desktop build compiles the Go backend from the `patchman-api` repository as a sidecar. It looks for a sibling checkout named `patchman-api` (as in the clone step above). Set `PATCHMAN_API_DIR` if yours lives elsewhere. You also need a Rust toolchain.
+The desktop build compiles the Go backend from the `patchman-api` repository as a sidecar. It looks for a sibling checkout named `patchman-api` (as in the clone step above). Set `PATCHMAN_API_DIR` if yours lives elsewhere. You also need a Rust toolchain. On Linux, install the WebKitGTK 4.1 development packages first (on Ubuntu: `libwebkit2gtk-4.1-dev libxdo-dev libssl-dev libayatana-appindicator3-dev librsvg2-dev`). On Windows, use the MSVC Rust toolchain. To build Windows or Linux packages, run `npm run sidecar:build`, then `npx tauri build --config src-tauri/tauri.tenant.json` with an overlay that sets `"createUpdaterArtifacts": false`.
 
 ```bash
 cd patchman-ui
@@ -312,30 +327,34 @@ The image only serves the static UI. It expects a running [patchman-api](https:/
 
 ### Desktop app notes
 
-This repository does not contain signing keys, Apple credentials or a working auto-update endpoint. The following values are intentionally left empty or generic. Provide your own to publish signed, auto-updating desktop builds:
+This repository does not contain signing keys or Apple credentials. `src-tauri/tauri.conf.json` contains the updater **public** key and the GitHub Releases endpoint of the official builds; the matching private key stays with the maintainer and in the repository's Actions secrets.
 
-- `plugins.updater.endpoints` and `plugins.updater.pubkey` in `src-tauri/tauri.conf.json` (or in a local `src-tauri/tauri.tenant.json`, see `src-tauri/tauri.tenant.json.example`)
-- Your Tauri updater signing key (`TAURI_SIGNING_PRIVATE_KEY`, kept in the gitignored `src-tauri/.keys/`)
+If you publish your own builds, replace both in a local `src-tauri/tauri.tenant.json` (see `src-tauri/tauri.tenant.json.example`), or the app will look for updates from the official releases and refuse them because the signatures don't match your key:
+
+- `plugins.updater.endpoints` and `plugins.updater.pubkey`, from your own key pair (`npx tauri signer generate -w ~/.tauri/<name>.key`)
+- `TAURI_SIGNING_PRIVATE_KEY`, the private key, set in the environment when you build
 - macOS code-signing identity and notarization credentials (`APPLE_ID`, `APPLE_PASSWORD`, `APPLE_TEAM_ID`)
-- `PATCHMAN_DOWNLOAD_BASE_URL`, the public URL where you host the staged artifacts (defaults to the placeholder `https://downloads.example.com/patchman`)
-- `public/downloads/latest.json`, the update manifest, which `scripts/stage-desktop.mjs` generates on each build. See `public/downloads/latest.json.example` for the format.
+- The update manifest (`latest.json`) is written with `scripts/update-manifest.mjs` (see [Publishing a release](#publishing-a-release-maintainers)). `scripts/stage-desktop.mjs` can also write one for a self-hosted download folder (`PATCHMAN_DOWNLOAD_BASE_URL`, format in `public/downloads/latest.json.example`).
 
 The bundle identifier `com.pttem.patchman` in `tauri.conf.json` is the upstream default. Change it if you publish your own fork.
 
 ### Publishing a release (maintainers)
 
-Desktop builds are published as [GitHub Releases](https://github.com/PttemDev/patchman-ui/releases), never committed to the repository. Signing and notarization need the maintainer's Apple Developer ID certificate in the local Keychain and the notarization credentials, so the release build runs on the maintainer's Mac:
+Desktop builds are published as [GitHub Releases](https://github.com/PttemDev/patchman-ui/releases), never committed to the repository. Windows and Linux packages are built by GitHub Actions when a `v<version>` tag is pushed. Signing and notarization need the maintainer's Apple Developer ID certificate in the local Keychain and the notarization credentials, so the macOS build runs on the maintainer's Mac:
 
 1. Bump the version in `package.json`, `src-tauri/Cargo.toml` and `src-tauri/tauri.conf.json`, and add a `src/data/changelog.ts` entry.
-2. Build, sign and notarize: `GOTOOLCHAIN=go1.26.11 npm run tauri:build` with `APPLE_ID`, `APPLE_PASSWORD` and `APPLE_TEAM_ID` set and a local `src-tauri/tauri.tenant.json` that sets your Developer ID `signingIdentity` and turns updater artifacts off (`"createUpdaterArtifacts": false`, empty `endpoints`). The DMG is notarized, stapled and copied to `public/downloads/PatchMan-<version>-aarch64.dmg`. (`scripts/release-build.sh` is for builds that also publish auto-update artifacts and needs `TAURI_SIGNING_PRIVATE_KEY`.)
-3. Write the checksum file: `cd public/downloads && shasum -a 256 PatchMan-<version>-aarch64.dmg > SHA256SUMS`
-4. Tag the same version in both repositories (`git tag v<version>` here and in `patchman-api`) and push the tags.
-5. Create the release and attach the files:
-   `gh release create v<version> public/downloads/PatchMan-<version>-aarch64.dmg public/downloads/SHA256SUMS --title "PatchMan <version>" --notes-file <notes>`
+2. Build, sign and notarize: `TAURI_SIGNING_PRIVATE_KEY="$(cat ~/.tauri/patchman-oss.key)" GOTOOLCHAIN=go1.26.11 npm run tauri:build` with `APPLE_ID`, `APPLE_PASSWORD` and `APPLE_TEAM_ID` set and a local `src-tauri/tauri.tenant.json` that sets your Developer ID `signingIdentity`. The DMG is notarized, stapled and copied to `public/downloads/PatchMan-<version>-aarch64.dmg`; the signed update package is `src-tauri/target/release/bundle/macos/PatchMan.app.tar.gz` (+ `.sig`).
+3. Tag the same version in both repositories (`git tag -a v<version>` here and in `patchman-api`). Push the `patchman-api` tag first, then this one: the tag push starts [`desktop-release.yml`](.github/workflows/desktop-release.yml), which builds the Windows and Linux packages against the `patchman-api` tag of the same name, creates the release as a draft and attaches them with their `SHA256SUMS` lines and `latest.json` entries. The Actions secret `TAURI_SIGNING_PRIVATE_KEY` must hold the updater private key; without it the packages are built without update signatures. To test the workflow without a release, push to the `ci/desktop-release` branch or run it by hand (**Actions → Desktop release → Run workflow**); the packages are then kept as workflow artifacts only.
+4. When the workflow has finished, attach the DMG and add its line to `SHA256SUMS` (keep the Windows and Linux lines), then add the release notes and publish the draft:
+   `gh release download v<version> -p SHA256SUMS -O - | grep -v aarch64.dmg > SHA256SUMS && (cd public/downloads && shasum -a 256 PatchMan-<version>-aarch64.dmg) >> SHA256SUMS`
+   `cp src-tauri/target/release/bundle/macos/PatchMan.app.tar.gz PatchMan-<version>-aarch64.app.tar.gz && cp src-tauri/target/release/bundle/macos/PatchMan.app.tar.gz.sig PatchMan-<version>-aarch64.app.tar.gz.sig`
+   `gh release download v<version> -p latest.json && node scripts/update-manifest.mjs latest.json <version> darwin-aarch64-app=PatchMan-<version>-aarch64.app.tar.gz`
+   `gh release upload v<version> public/downloads/PatchMan-<version>-aarch64.dmg PatchMan-<version>-aarch64.app.tar.gz SHA256SUMS latest.json --clobber`
+   `gh release edit v<version> --notes-file <notes> --draft=false --latest`
 
 The download button in this README points at `releases/latest`, so it always gets the newest release.
 
-**Building without signing credentials.** Without a tenant overlay, `tauri build` fails on purpose (empty signing identity, updater artifacts need a key). For a local, ad-hoc signed build with auto-update disabled, create a local, gitignored `src-tauri/tauri.tenant.json`. macOS blocks such a build on first launch (Privacy & Security → Open Anyway). For a build that opens without that warning, sign it with your Apple Developer ID and notarize it (set `signingIdentity` in the overlay and `APPLE_ID`, `APPLE_PASSWORD` and `APPLE_TEAM_ID` in the environment).
+**Building without signing credentials.** Without a tenant overlay, `tauri build` fails on purpose (empty signing identity, updater artifacts need a key). For a local, ad-hoc signed build without update packages, create a local, gitignored `src-tauri/tauri.tenant.json`. macOS blocks such a build on first launch (Privacy & Security → Open Anyway). For a build that opens without that warning, sign it with your Apple Developer ID and notarize it (set `signingIdentity` in the overlay and `APPLE_ID`, `APPLE_PASSWORD` and `APPLE_TEAM_ID` in the environment).
 
 ```json
 {
@@ -424,13 +443,15 @@ Checks run on this repository before the initial public release (November 2026):
 - [x] `npm run build` and `npm run check:i18n` pass
 - [x] Source tree and production bundle scanned for committed secrets, `.env` files, signing keys and internal hostnames; none found
 - [x] A desktop build made from this source tree was scanned for internal hostnames and signing identities; none found
-- [x] No update manifests, updater keys or signing keys are part of the repository
+- [x] No update manifests or private signing keys are part of the repository (only the updater public key, in `src-tauri/tauri.conf.json`)
 - [x] `npm audit` reports no critical or high severity advisories
 - [ ] `npm audit` still reports 13 moderate/low advisories that need major upgrades or have no upstream fix yet (`react-router-dom` 6 → 7, `katex` via `mermaid`, `@excalidraw/*`, and the `typescript-eslint` / `minimatch` dev tooling). See [SECURITY.md](SECURITY.md).
 
 Re-checked for 1.67.1 (November 2026): `npm run build`, `npm run check:i18n` and `cargo check` (desktop shell) pass; the source tree was scanned again for secrets, internal hostnames and personal names; `npm audit` shows the same 13 moderate/low advisories listed above and nothing critical or high.
 
 Re-checked for 1.68.2 (November 2026): `npm run build`, `npm run check:i18n` and `cargo check` (desktop shell) pass; the changes since 1.67.1 were scanned for secrets, internal hostnames and personal names; `npm audit` shows the same 13 moderate/low advisories.
+
+Re-checked for 1.70.0 (November 2026): `npm run build`, `npm run check:i18n` and `cargo check` (desktop shell) pass; the changes since 1.68.2 (1.69.0 and 1.70.0) were scanned for secrets, internal hostnames and personal names; `npm audit` shows the same 13 moderate/low advisories. The Windows and Linux packages and update checks from GitHub Releases are new in this version and are built in CI, not on the maintainer's machine.
 
 Dependency notes: `xlsx` is installed from the SheetJS CDN (`0.20.3`) because newer releases are not published to npm, and `package.json` uses `overrides` to pin patched versions of `lodash-es`, `dompurify` and `nanoid`.
 

@@ -25,7 +25,9 @@
     "saving": "Kaydediliyor…",
     "creating": "Oluşturuluyor…",
     "saveChanges": "Değişiklikleri Kaydet",
-    "create": "Oluştur"
+    "create": "Oluştur",
+    "mcpSecretsLabel": "Gizli değerleri AI agent'lara göster",
+    "mcpSecretsHint": "Kapalı: AI agent'lar (MCP) bu collection'daki isteklerin token, şifre, Authorization / Cookie / API key header'larını *** olarak görür; *** geri yazılırsa saklı değer korunur. Yalnız agent'larınızın gerçek değerlere ihtiyacı varsa açın."
   },
   "request": {
     "open": "Aç",

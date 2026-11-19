@@ -14,7 +14,7 @@ import { isDesktop } from '@/lib/platform';
 import { cn } from '@/lib/utils';
 import type { ObservabilityConnection, Tab } from '@/types';
 import { ProviderGlyph } from '@/components/observability/ProviderGlyph';
-import { providerMeta } from '@/components/observability/providers';
+import { providerMeta, scopeIsPicked } from '@/components/observability/providers';
 import { useObservabilitySidebarUI } from '@/components/observability/obsSidebarUI';
 import { ProjectSelect } from '@/components/observability/ProjectSelect';
 import { useProviderScopes } from '@/components/observability/providerScopes';
@@ -138,10 +138,10 @@ export function SourcePicker({ tab, onApply, children }: { tab: Tab; onApply: (s
                         onChange={(e) => setApm((m) => ({ ...m, [c.id]: { on: e.target.checked, scope: v.scope || c.scope || '' } }))} />
                       <ProviderGlyph provider={c.provider} className="h-3.5 w-3.5" />
                       <span className="text-xs truncate flex-1">{c.name}</span>
-                      {meta.scope === 'project' && v.on && (
+                      {scopeIsPicked(meta.scope) && v.on && (
                         <ConnProjectSelect conn={c} value={v.scope} onChange={(scope) => setApm((m) => ({ ...m, [c.id]: { ...v, scope } }))} />
                       )}
-                      {meta.scope && meta.scope !== 'project' && v.on && (
+                      {meta.scope && !scopeIsPicked(meta.scope) && v.on && (
                         <Input value={v.scope} onChange={(e) => setApm((m) => ({ ...m, [c.id]: { ...v, scope: e.target.value } }))}
                           placeholder={t(`conn.scope.${meta.scope}`)} className="h-6 w-28 text-[11px] font-mono" />
                       )}
@@ -181,5 +181,5 @@ export function SourcePicker({ tab, onApply, children }: { tab: Tab; onApply: (s
 
 function ConnProjectSelect({ conn, value, onChange }: { conn: ObservabilityConnection; value: string; onChange: (id: string) => void }) {
   const { scopes, failed } = useProviderScopes(conn.id, conn.beScope);
-  return <ProjectSelect size="sm" className="w-40" value={value} onChange={onChange} scopes={scopes} loading={!scopes && !failed} />;
+  return <ProjectSelect size="sm" className="w-40" value={value} onChange={onChange} scopes={scopes} loading={!scopes && !failed} kind={providerMeta(conn.provider).scope === 'account' ? 'account' : 'project'} />;
 }

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Cloud, Edit3, KeyRound, MonitorSmartphone, MoreHorizontal, Share2, Trash2, Waypoints, ExternalLink } from 'lucide-react';
+import { Cloud, Edit3, KeyRound, MonitorSmartphone, MoreHorizontal, Share2, Trash2, Waypoints, ExternalLink, Terminal } from 'lucide-react';
 import { observabilityConnectionAPI, type DBScope } from '@/services/api';
 import { useObservabilityConnectionStore } from '@/stores/observabilityConnectionStore';
 import { dualWrite } from '@/stores/dbConnectionStore';
@@ -16,6 +16,7 @@ import { cn } from '@/lib/utils';
 import type { ObservabilityConnection } from '@/types';
 import { ObservabilityConnectionDialog } from './ObservabilityConnectionDialog';
 import { ObservabilityShareDialog } from './ObservabilityShareDialog';
+import { NewRelicConsoleDialog } from './NewRelicConsoleDialog';
 import { ProviderGlyph } from './ProviderGlyph';
 import { providerMeta } from './providers';
 import { useObservabilitySidebarUI } from './obsSidebarUI';
@@ -33,6 +34,7 @@ export function ObservabilitySidebar() {
   const setDialogOpen = useObservabilitySidebarUI((s) => s.setDialogOpen);
   const [sharing, setSharing] = useState<ObservabilityConnection | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<ObservabilityConnection | null>(null);
+  const [nrConsole, setNrConsole] = useState<ObservabilityConnection | null>(null);
 
   useEffect(() => { void fetchConnections(); }, [fetchConnections]);
 
@@ -73,7 +75,12 @@ export function ObservabilitySidebar() {
                 <DropdownMenuItem onClick={() => openConnectionMap(conn)}>
                   <Waypoints className="h-3.5 w-3.5 mr-2" /> {t('sidebar.openMap')}
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => window.open(conn.url, '_blank', 'noopener')}>
+                {conn.provider === 'newrelic' && (
+                  <DropdownMenuItem onClick={() => setNrConsole(conn)}>
+                    <Terminal className="h-3.5 w-3.5 mr-2" /> {t('newrelic.open')}
+                  </DropdownMenuItem>
+                )}
+                <DropdownMenuItem onClick={() => window.open(conn.provider === 'newrelic' ? (conn.url.includes('.eu.') ? 'https://one.eu.newrelic.com' : 'https://one.newrelic.com') : conn.url, '_blank', 'noopener')}>
                   <ExternalLink className="h-3.5 w-3.5 mr-2" /> {t('sidebar.openSite', { provider: providerMeta(conn.provider).title })}
                 </DropdownMenuItem>
                 {!conn.shared && (
@@ -107,6 +114,7 @@ export function ObservabilitySidebar() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      {nrConsole && <NewRelicConsoleDialog open={!!nrConsole} onOpenChange={(o) => { if (!o) setNrConsole(null); }} connection={nrConsole} />}
     </>
   );
 }

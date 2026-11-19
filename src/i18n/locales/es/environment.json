@@ -76,7 +76,9 @@
     "noMatches": "Sin coincidencias.",
     "selectPrompt": "Selecciona un entorno para editar variables, o crea uno nuevo.",
     "expandValue": "Ampliar valor",
-    "expandHint": "Enter o Esc para cerrar"
+    "expandHint": "Enter o Esc para cerrar",
+    "mcpSecrets": "Mostrar valores secretos a los agentes de IA",
+    "mcpSecretsHint": "Desactivado (por defecto): los agentes de IA (MCP) ven las variables secretas como ***; escribir *** de vuelta conserva el valor."
   },
   "export": {
     "title": "Exportar entornos",

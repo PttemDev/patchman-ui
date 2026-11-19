@@ -25,6 +25,17 @@ export function isDesktop(): boolean {
 }
 
 /**
+ * True when the desktop window has no OS title bar of its own: on macOS the
+ * title bar is a transparent overlay (src-tauri/src/lib.rs), so the app's top
+ * bar must leave room for the traffic lights and act as the drag region.
+ * Windows and Linux keep their native title bar, so neither applies there.
+ */
+export function hasOverlayTitleBar(): boolean {
+  if (!isDesktop() || typeof navigator === 'undefined') return false;
+  return /Mac/.test(navigator.platform || navigator.userAgent);
+}
+
+/**
  * URL of the embedded Go backend. Returns null when no embedded source is
  * available (e.g. plain browser build without VITE_LOCAL_API_URL set).
  *

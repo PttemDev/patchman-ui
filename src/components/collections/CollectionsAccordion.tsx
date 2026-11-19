@@ -470,6 +470,9 @@ function PublicNode({
             description: collection.description,
             baseUrl: collection.baseUrl,
             parentId: collection.parentId,
+            mcpShowSecrets: collection.mcpShowSecrets,
+            shared: collection.shared,
+            myRole: collection.myRole,
           }}
         />
       )}

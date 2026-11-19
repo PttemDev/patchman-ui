@@ -1,0 +1,216 @@
+# Windows and Linux desktop builds.
+#
+# On a v* tag push: builds the Windows (NSIS .exe, .msi) and Linux (.AppImage,
+# .deb) packages and attaches them to the GitHub Release of that tag, creating
+# it as a draft if it doesn't exist yet. SHA256SUMS on the release is merged,
+# so it keeps the macOS DMG line the maintainer uploads from their Mac, and so
+# is the updater manifest latest.json (Windows and Linux entries here, the
+# macOS entry from the Mac; see scripts/update-manifest.mjs).
+#
+# Push to the ci/desktop-release branch, or run by hand (workflow_dispatch),
+# to test a build without touching any release: the packages are kept as
+# workflow artifacts only, built against patchman-api master (or api_ref).
+#
+# The macOS DMG is not built here: it is signed with the maintainer's Apple
+# Developer ID and notarized on their Mac (see README → Publishing a release).
+# The Windows packages are not Authenticode-signed. Update packages are signed
+# with the updater key when the TAURI_SIGNING_PRIVATE_KEY secret is set.
+
+name: Desktop release (Windows, Linux)
+
+on:
+  push:
+    tags: ['v*']
+    # Test builds: push to this branch (or run by hand once the workflow is on
+    # the default branch). Nothing is attached to a release.
+    branches: ['ci/desktop-release']
+  workflow_dispatch:
+    inputs:
+      api_ref:
+        description: patchman-api branch or tag to bundle as the embedded backend
+        default: master
+        required: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: desktop-release-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  GO_VERSION: '1.26.11'
+  NODE_VERSION: '22'
+
+jobs:
+  build:
+    name: Build (${{ matrix.name }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: windows-x64
+            os: windows-latest
+            bundles: nsis,msi
+          - name: linux-x64
+            os: ubuntu-22.04
+            bundles: appimage,deb
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Check out patchman-ui
+        uses: actions/checkout@v4
+        with:
+          path: patchman-ui
+
+      # The desktop app bundles the Go backend as a sidecar; build it from the
+      # same tag (or the branch picked when run by hand).
+      - name: Check out patchman-api
+        uses: actions/checkout@v4
+        with:
+          repository: PttemDev/patchman-api
+          ref: ${{ github.ref_type == 'tag' && github.ref_name || inputs.api_ref || 'master' }}
+          path: patchman-api
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: patchman-ui/package-lock.json
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache-dependency-path: patchman-api/go.sum
+
+      # rustup reads the pinned channel from src-tauri/rust-toolchain.toml.
+      - name: Install Rust toolchain
+        working-directory: patchman-ui/src-tauri
+        run: rustup toolchain install
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: patchman-ui/src-tauri
+
+      - name: Install Linux build dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential file libwebkit2gtk-4.1-dev libxdo-dev libssl-dev libayatana-appindicator3-dev librsvg2-dev patchelf
+
+      - name: Install npm packages
+        working-directory: patchman-ui
+        run: npm ci
+
+      # Update packages are signed with the updater private key (Actions
+      # secret TAURI_SIGNING_PRIVATE_KEY). Without the secret (e.g. in a fork)
+      # the build skips them and the app can't update itself.
+      - name: Write build overlay
+        working-directory: patchman-ui
+        env:
+          HAS_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY != '' }}
+        run: |
+          echo "{ \"bundle\": { \"createUpdaterArtifacts\": $HAS_KEY } }" > src-tauri/tauri.tenant.json
+          cat src-tauri/tauri.tenant.json
+
+      - name: Build
+        working-directory: patchman-ui
+        env:
+          PATCHMAN_API_DIR: ${{ github.workspace }}/patchman-api
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        run: |
+          npm run sidecar:build
+          npx tauri build --config src-tauri/tauri.tenant.json --bundles ${{ matrix.bundles }}
+
+      # Renames to PatchMan-<version>-<arch>.<ext>; an update signature stays
+      # next to its package as <name>.sig (read into latest.json, not uploaded).
+      - name: Collect packages
+        working-directory: patchman-ui
+        run: |
+          set -euo pipefail
+          version=$(node -p "require('./package.json').version")
+          bundle=src-tauri/target/release/bundle
+          mkdir -p ../out
+          shopt -s nullglob
+          take() { cp "$1" "../out/$2"; if [ -f "$1.sig" ]; then cp "$1.sig" "../out/$2.sig"; fi; }
+          for f in $bundle/nsis/*-setup.exe;    do take "$f" "PatchMan-$version-x64-setup.exe"; done
+          for f in $bundle/msi/*.msi;           do take "$f" "PatchMan-$version-x64.msi"; done
+          for f in $bundle/appimage/*.AppImage; do take "$f" "PatchMan-$version-amd64.AppImage"; done
+          for f in $bundle/deb/*.deb;           do take "$f" "PatchMan-$version-amd64.deb"; done
+          ls -l ../out
+          test -n "$(ls ../out)"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: desktop-${{ matrix.name }}
+          path: out/*
+          if-no-files-found: error
+
+  release:
+    name: Attach to release
+    if: github.ref_type == 'tag'
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      TAG: ${{ github.ref_name }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: scripts
+
+      - uses: actions/download-artifact@v4
+        with:
+          path: out
+          merge-multiple: true
+
+      - name: Upload packages, merge SHA256SUMS and latest.json
+        run: |
+          set -euo pipefail
+          version="${TAG#v}"
+          if ! gh release view "$TAG" >/dev/null 2>&1; then
+            gh release create "$TAG" --draft --verify-tag --title "PatchMan $version" \
+              --notes "Release notes are added when the macOS build is attached."
+          fi
+          cd out
+          shopt -s nullglob
+          pkgs=(); for f in *; do case "$f" in *.sig) ;; *) pkgs+=("$f") ;; esac; done
+
+          sha256sum "${pkgs[@]}" > new.sums
+          # Keep lines for files this run didn't build (the macOS DMG).
+          if gh release download "$TAG" -p SHA256SUMS -O old.sums 2>/dev/null; then
+            awk 'NR==FNR { built[$2]=1; next } !($2 in built)' new.sums old.sums > SHA256SUMS
+          else
+            : > SHA256SUMS
+          fi
+          cat new.sums >> SHA256SUMS
+          rm -f new.sums old.sums
+          sort -k2 -o SHA256SUMS SHA256SUMS
+          cat SHA256SUMS
+          upload=("${pkgs[@]}" SHA256SUMS)
+
+          # Updater manifest: only packages that have an update signature.
+          entries=()
+          for f in "${pkgs[@]}"; do
+            [ -f "$f.sig" ] || continue
+            case "$f" in
+              *-x64-setup.exe)   entries+=("windows-x86_64-nsis=$f") ;;
+              *-x64.msi)         entries+=("windows-x86_64-msi=$f") ;;
+              *-amd64.AppImage)  entries+=("linux-x86_64-appimage=$f") ;;
+              *-amd64.deb)       entries+=("linux-x86_64-deb=$f") ;;
+            esac
+          done
+          if [ ${#entries[@]} -gt 0 ]; then
+            gh release download "$TAG" -p latest.json -O latest.json 2>/dev/null || true
+            node ../scripts/update-manifest.mjs latest.json "$version" "${entries[@]}"
+            upload+=(latest.json)
+          else
+            echo "No update signatures (TAURI_SIGNING_PRIVATE_KEY not set): latest.json not updated."
+          fi
+          gh release upload "$TAG" "${upload[@]}" --clobber
