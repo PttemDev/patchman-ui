@@ -327,7 +327,7 @@ The bundle identifier `com.pttem.patchman` in `tauri.conf.json` is the upstream 
 Desktop builds are published as [GitHub Releases](https://github.com/PttemDev/patchman-ui/releases), never committed to the repository. Signing and notarization need the maintainer's Apple Developer ID certificate in the local Keychain and the notarization credentials, so the release build runs on the maintainer's Mac:
 
 1. Bump the version in `package.json`, `src-tauri/Cargo.toml` and `src-tauri/tauri.conf.json`, and add a `src/data/changelog.ts` entry.
-2. Build, sign and notarize: `bash scripts/release-build.sh` (needs `APPLE_ID`, `APPLE_PASSWORD`, `APPLE_TEAM_ID` and `TAURI_SIGNING_PRIVATE_KEY`). The DMG lands in `public/downloads/PatchMan-<version>-aarch64.dmg`.
+2. Build, sign and notarize: `GOTOOLCHAIN=go1.26.11 npm run tauri:build` with `APPLE_ID`, `APPLE_PASSWORD` and `APPLE_TEAM_ID` set and a local `src-tauri/tauri.tenant.json` that sets your Developer ID `signingIdentity` and turns updater artifacts off (`"createUpdaterArtifacts": false`, empty `endpoints`). The DMG is notarized, stapled and copied to `public/downloads/PatchMan-<version>-aarch64.dmg`. (`scripts/release-build.sh` is for builds that also publish auto-update artifacts and needs `TAURI_SIGNING_PRIVATE_KEY`.)
 3. Write the checksum file: `cd public/downloads && shasum -a 256 PatchMan-<version>-aarch64.dmg > SHA256SUMS`
 4. Tag the same version in both repositories (`git tag v<version>` here and in `patchman-api`) and push the tags.
 5. Create the release and attach the files:
