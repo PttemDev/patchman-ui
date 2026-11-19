@@ -10,7 +10,10 @@
     "changelog": "更新日志",
     "updateAvailable": "有可用更新",
     "remote": "远程",
-    "appearance": "外观"
+    "appearance": "外观",
+    "security": "安全",
+    "editor": "编辑器",
+    "gcp": "Google Cloud"
   },
   "proxy": {
     "heading": "自定义 Proxy",
@@ -153,7 +156,8 @@
         "grafana": "Grafana",
         "rabbitmq": "RabbitMQ",
         "graylog": "Graylog",
-        "observability": "可观测性（服务地图）"
+        "observability": "可观测性（服务地图）",
+        "gcp": "Google Cloud"
       }
     }
   },
@@ -239,7 +243,47 @@
     "pasteHistory": "粘贴历史",
     "globalSearch": "全局搜索",
     "groupApp": "应用",
-    "quit": "退出"
+    "quit": "退出",
+    "groupGit": "Git（本地克隆，Git 标签页）",
+    "gitCommit": "提交…",
+    "gitPush": "推送…",
+    "gitUpdate": "更新项目…",
+    "gitVcsOperations": "VCS 操作（分支弹窗）",
+    "gitBranches": "分支",
+    "gitFindInFiles": "在文件中查找",
+    "gitGotoFile": "转到文件",
+    "gitGotoSymbol": "转到符号",
+    "gitBack": "后退",
+    "gitForward": "前进",
+    "gitSearchEverywhere": "随处搜索 (⇧⇧)",
+    "gitDeclaration": "转到声明",
+    "gitUsages": "查找用法",
+    "gitSave": "保存文件（Git 编辑器）",
+    "descriptionEditable": "点击快捷键以录制新的（Esc 取消）。+ 添加另一个绑定；悬停在绑定上可删除。",
+    "search": "搜索操作或按键",
+    "preset": "预设",
+    "resetAll": "全部重置",
+    "resetAllTitle": "重置所有快捷键？",
+    "resetAllBody": "将删除你的自定义绑定；应用所选预设。",
+    "scope": {
+      "global": "全局",
+      "git": "Git 标签页",
+      "editor": "Git 编辑器"
+    },
+    "custom": "自定义",
+    "pressKeys": "请按键…",
+    "clickToChange": "点击更改",
+    "remove": "移除绑定",
+    "add": "添加绑定",
+    "none": "无",
+    "reset": "重置",
+    "resetOne": "重置为 {{chord}}",
+    "osReserved": "{{chord}} 被操作系统保留。",
+    "conflict": "{{chord}} 也绑定到：{{names}}。以先匹配者为准。",
+    "browserReserved": "在浏览器中此组合键可能被浏览器占用；在桌面应用中可正常使用。",
+    "footer": "保存在此设备上。Git 标签页和编辑器的快捷键在该视图激活时优先于全局快捷键。",
+    "gitCtrlClick": "转到声明（鼠标）",
+    "clearOthers": "从其他操作中移除"
   },
   "remote": {
     "heading": "远程后端",
@@ -288,5 +332,79 @@
       "ocean": "海洋",
       "grape": "葡萄紫"
     }
+  },
+  "security": {
+    "title": "安全",
+    "desktopOnly": "应用锁和敏感操作确认仅在桌面应用中可用。",
+    "lockNow": "立即锁定",
+    "noAuth": "这台 Mac 无法确认你的身份（没有 Touch ID 或密码策略），因此锁定和敏感操作确认已关闭。",
+    "lockHeading": "应用锁",
+    "lockEnabled": "锁定应用",
+    "lockEnabledHint": "启动时以及发生以下情况后要求 Touch ID 或 Mac 密码。",
+    "idle": "闲置后锁定",
+    "idleHint": "Mac 在此时长内没有键盘或鼠标输入时锁定。",
+    "onSleep": "Mac 睡眠时锁定",
+    "onSleepHint": "也包括合上屏幕。",
+    "onScreenLock": "随屏幕锁定",
+    "onScreenLockHint": "macOS 锁定屏幕时锁定。",
+    "blockMcp": "锁定时阻止 AI 代理",
+    "blockMcpHint": "在你解锁之前，MCP 工具（Claude、Cursor…）无法获取数据。",
+    "sudoHeading": "敏感操作",
+    "sudoEnabled": "确认敏感操作",
+    "sudoEnabledHint": "显示密码和令牌、Shell、端口转发和集群变更前需要 Touch ID。",
+    "sudoWindow": "确认有效期",
+    "sudoWindowHint": "在此时间内不会再次询问。",
+    "minutes_one": "{{count}} 分钟",
+    "minutes_other": "{{count}} 分钟",
+    "custom": "自定义",
+    "apply": "设置",
+    "saveFailed": "无法保存安全设置",
+    "alwaysOn": "始终开启：只有本应用可以访问其本地后端（每次启动的令牌、来源与主机锁定），切换后端的链接在连接前会先询问。关闭或放宽某项保护前需要 Touch ID。",
+    "devices": "已登录的设备",
+    "devicesHint": "登录到团队后端的设备。可以登出丢失或不再使用的设备。",
+    "devicesUnsupported": "此后端尚不跟踪设备。",
+    "devicesFailed": "无法加载或更改你的设备。",
+    "revoke": "登出",
+    "revokeConfirm": "登出此设备？",
+    "revokeOthers": "登出所有其他设备",
+    "revokeOthersConfirm": "登出所有其他设备？",
+    "thisDevice": "本设备",
+    "lastSeen": "最近活动 {{when}}"
+  },
+  "editor": {
+    "heading": "编辑器",
+    "description": "Git 标签页中代码编辑器的行为。保存在此设备上。",
+    "autoSave": "自动保存",
+    "guardNote": "自动保存绝不会覆盖在你打开后已在磁盘上更改的文件；⌘S 会在覆盖前询问。",
+    "mode": {
+      "onFocusChange": {
+        "title": "失去焦点时",
+        "hint": "切换文件标签、离开编辑器或离开窗口时保存。"
+      },
+      "afterDelay": {
+        "title": "停顿之后",
+        "hint": "停止输入 1 秒后保存。"
+      },
+      "off": {
+        "title": "关闭",
+        "hint": "仅通过 ⌘S 或“保存”按钮保存。"
+      }
+    }
+  },
+  "gcp": {
+    "heading": "Google Cloud",
+    "description": "Google Cloud 工具的限制。它们适用于你在应用中的操作，也适用于为你工作的 AI 代理。",
+    "bigquery": "BigQuery 扫描限制",
+    "maxScan": "每次查询的最大扫描量",
+    "askAbove": "扫描超过此值前询问",
+    "note": "每个查询都会先免费检查。超过第一个值的查询不会运行；超过第二个值时会询问你。连接可以设置自己的限制。",
+    "ceilingNote": "你的服务器最多允许 {{gb}} GB。",
+    "save": "保存",
+    "saved": "BigQuery 限制已保存",
+    "saveFailed": "无法保存限制",
+    "loadFailed": "无法加载限制",
+    "errPositive": "两个值都必须大于 0。",
+    "errAskAboveMax": "“询问”值不能大于最大值。",
+    "errCeiling": "最大值不能超过服务器的 {{gb}} GB。"
   }
 }

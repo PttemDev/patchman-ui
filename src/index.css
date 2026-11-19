@@ -260,3 +260,17 @@
 .monaco-hover {
   display: none !important;
 }
+
+/* Git editor change markers (GitWorkspaceEditor): added / modified / deleted
+   since HEAD, in the line-decorations gutter. Click rolls the hunk back. */
+.monaco-editor .pm-git-gutter { margin-left: 3px; width: 4px !important; cursor: pointer; }
+.monaco-editor .pm-git-added { background: #22c55e; }
+.monaco-editor .pm-git-modified { background: #3b82f6; }
+.monaco-editor .pm-git-deleted { background: transparent; }
+.monaco-editor .pm-git-deleted::after {
+  content: ''; position: absolute; left: 0; top: -4px;
+  border-left: 6px solid #ef4444; border-top: 4px solid transparent; border-bottom: 4px solid transparent;
+}
+
+/* ⌘-hover identifier in the Git editor (Go to Declaration). */
+.monaco-editor .pm-git-link { text-decoration: underline; color: #3b82f6 !important; cursor: pointer; }

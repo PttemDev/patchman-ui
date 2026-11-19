@@ -10,7 +10,10 @@
     "changelog": "Registro de cambios",
     "updateAvailable": "Actualización disponible",
     "remote": "Remoto",
-    "appearance": "Apariencia"
+    "appearance": "Apariencia",
+    "security": "Seguridad",
+    "editor": "Editor",
+    "gcp": "Google Cloud"
   },
   "proxy": {
     "heading": "Proxy personalizado",
@@ -153,7 +156,8 @@
         "grafana": "Grafana",
         "rabbitmq": "RabbitMQ",
         "graylog": "Graylog",
-        "observability": "Observabilidad (mapa de servicios)"
+        "observability": "Observabilidad (mapa de servicios)",
+        "gcp": "Google Cloud"
       }
     }
   },
@@ -239,7 +243,47 @@
     "pasteHistory": "Historial de pegado",
     "globalSearch": "Búsqueda global",
     "groupApp": "Aplicación",
-    "quit": "Salir"
+    "quit": "Salir",
+    "groupGit": "Git (clon local, pestaña Git)",
+    "gitCommit": "Commit…",
+    "gitPush": "Push…",
+    "gitUpdate": "Actualizar proyecto…",
+    "gitVcsOperations": "Operaciones VCS (menú de ramas)",
+    "gitBranches": "Ramas",
+    "gitFindInFiles": "Buscar en archivos",
+    "gitGotoFile": "Ir a archivo",
+    "gitGotoSymbol": "Ir a símbolo",
+    "gitBack": "Atrás",
+    "gitForward": "Adelante",
+    "gitSearchEverywhere": "Buscar en todo (⇧⇧)",
+    "gitDeclaration": "Ir a la declaración",
+    "gitUsages": "Buscar usos",
+    "gitSave": "Guardar archivo (editor Git)",
+    "descriptionEditable": "Haz clic en un atajo para grabar uno nuevo (Esc cancela). + añade otra combinación; pasa el ratón por una para quitarla.",
+    "search": "Buscar acciones o teclas",
+    "preset": "Plantilla",
+    "resetAll": "Restablecer todo",
+    "resetAllTitle": "¿Restablecer todos los atajos?",
+    "resetAllBody": "Se eliminan tus combinaciones; se aplica la plantilla elegida.",
+    "scope": {
+      "global": "En todas partes",
+      "git": "Pestaña Git",
+      "editor": "Editor Git"
+    },
+    "custom": "personalizado",
+    "pressKeys": "Pulsa las teclas…",
+    "clickToChange": "Clic para cambiar",
+    "remove": "Quitar combinación",
+    "add": "Añadir combinación",
+    "none": "ninguna",
+    "reset": "Restablecer",
+    "resetOne": "Restablecer a {{chord}}",
+    "osReserved": "{{chord}} está reservado por el sistema operativo.",
+    "conflict": "{{chord}} también está asignado a: {{names}}. Gana la primera coincidencia.",
+    "browserReserved": "En el navegador esta combinación puede quedársela el navegador; en la app de escritorio funciona bien.",
+    "footer": "Se guarda en este dispositivo. Los atajos de la pestaña Git y del editor tienen prioridad mientras esa vista está activa.",
+    "gitCtrlClick": "Ir a la declaración (ratón)",
+    "clearOthers": "Quitar de los demás"
   },
   "remote": {
     "heading": "Servidor remoto",
@@ -288,5 +332,79 @@
       "ocean": "Océano",
       "grape": "Uva"
     }
+  },
+  "security": {
+    "title": "Seguridad",
+    "desktopOnly": "El bloqueo de la app y la confirmación de acciones sensibles están disponibles en la app de escritorio.",
+    "lockNow": "Bloquear ahora",
+    "noAuth": "Este Mac no puede confirmar tu identidad (sin Touch ID ni política de contraseña), así que el bloqueo y la confirmación están desactivados.",
+    "lockHeading": "Bloqueo de la app",
+    "lockEnabled": "Bloquear la app",
+    "lockEnabledHint": "Pide Touch ID o la contraseña del Mac al abrir y tras los eventos de abajo.",
+    "idle": "Bloquear tras inactividad",
+    "idleHint": "Se bloquea si tu Mac no recibe teclado ni ratón durante este tiempo.",
+    "onSleep": "Bloquear cuando el Mac duerme",
+    "onSleepHint": "Incluye cerrar la tapa.",
+    "onScreenLock": "Bloquear con la pantalla",
+    "onScreenLockHint": "Se bloquea cuando macOS bloquea la pantalla.",
+    "blockMcp": "Bloquear agentes de IA mientras está bloqueada",
+    "blockMcpHint": "Las herramientas MCP (Claude, Cursor…) no reciben datos hasta desbloquear.",
+    "sudoHeading": "Acciones sensibles",
+    "sudoEnabled": "Confirmar acciones sensibles",
+    "sudoEnabledHint": "Mostrar contraseñas y tokens, shells, port-forwards y cambios en el clúster piden Touch ID antes.",
+    "sudoWindow": "Recordar la confirmación durante",
+    "sudoWindowHint": "Sin nueva petición dentro de este tiempo.",
+    "minutes_one": "{{count}} minuto",
+    "minutes_other": "{{count}} minutos",
+    "custom": "Personalizado",
+    "apply": "Aplicar",
+    "saveFailed": "No se pudieron guardar los ajustes de seguridad",
+    "alwaysOn": "Siempre activo: solo esta app puede hablar con su backend local (token por arranque, bloqueo de origen y host) y los enlaces que cambian de backend preguntan antes de conectar. Desactivar o relajar una protección pide Touch ID antes.",
+    "devices": "Dispositivos con sesión",
+    "devicesHint": "Dispositivos con sesión en el backend de tu equipo. Cierra la sesión de uno que perdiste o ya no usas.",
+    "devicesUnsupported": "Este backend aún no registra dispositivos.",
+    "devicesFailed": "No se pudieron cargar o cambiar tus dispositivos.",
+    "revoke": "Cerrar sesión",
+    "revokeConfirm": "¿Cerrar la sesión de este dispositivo?",
+    "revokeOthers": "Cerrar todas las demás",
+    "revokeOthersConfirm": "¿Cerrar la sesión en todos los demás dispositivos?",
+    "thisDevice": "este dispositivo",
+    "lastSeen": "última actividad {{when}}"
+  },
+  "editor": {
+    "heading": "Editor",
+    "description": "Cómo se comporta el editor de código de la pestaña Git. Se guarda en este dispositivo.",
+    "autoSave": "Guardado automático",
+    "guardNote": "El guardado automático nunca sobrescribe un archivo que cambió en el disco desde que lo abriste; ⌘S pregunta antes de sobrescribirlo.",
+    "mode": {
+      "onFocusChange": {
+        "title": "Al perder el foco",
+        "hint": "Guarda al cambiar de pestaña de archivo, salir del editor o salir de la ventana."
+      },
+      "afterDelay": {
+        "title": "Tras una pausa",
+        "hint": "Guarda 1 segundo después de dejar de escribir."
+      },
+      "off": {
+        "title": "Desactivado",
+        "hint": "Guarda solo con ⌘S o el botón Guardar."
+      }
+    }
+  },
+  "gcp": {
+    "heading": "Google Cloud",
+    "description": "Límites para las herramientas de Google Cloud. Se aplican a ti en la app y a los agentes de IA que trabajan para ti.",
+    "bigquery": "Límites de escaneo de BigQuery",
+    "maxScan": "Escaneo máximo por consulta",
+    "askAbove": "Preguntar antes de escanear más de",
+    "note": "Cada consulta se revisa gratis primero. Por encima del primer valor no se ejecuta; por encima del segundo se te pregunta. Una conexión puede tener sus propios límites.",
+    "ceilingNote": "Tu servidor permite como máximo {{gb}} GB.",
+    "save": "Guardar",
+    "saved": "Límites de BigQuery guardados",
+    "saveFailed": "No se pudieron guardar los límites",
+    "loadFailed": "No se pudieron cargar los límites",
+    "errPositive": "Ambos valores deben ser mayores que 0.",
+    "errAskAboveMax": "El valor de \"preguntar\" no puede superar el máximo.",
+    "errCeiling": "El máximo no puede superar los {{gb}} GB del servidor."
   }
 }

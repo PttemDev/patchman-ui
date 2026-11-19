@@ -52,7 +52,8 @@
       "grafana": "Grafana 仪表盘",
       "rabbit": "RabbitMQ",
       "graylog": "Graylog",
-      "servicemap": "服务地图"
+      "servicemap": "服务地图",
+      "plugin": "插件"
     },
     "moreParams": "更多参数"
   },

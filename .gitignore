@@ -35,3 +35,7 @@ npm-debug.log*
 
 # Temp
 *.tsbuildinfo
+
+# Release binaries are published as GitHub Release assets, never committed.
+/downloads/
+*.dmg

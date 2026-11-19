@@ -78,13 +78,15 @@
     "request": "请求",
     "assertion": "断言",
     "extract": "提取",
-    "wait": "等待"
+    "wait": "等待",
+    "manual": "手动"
   },
   "stepKind": {
     "request": "API 请求",
     "assertion": "检查响应",
     "extract": "保存变量",
-    "wait": "等待"
+    "wait": "等待",
+    "manual": "手动步骤"
   },
   "addStepBtn": {
     "request": "请求",
@@ -506,7 +508,8 @@
     "run": "运行",
     "saving": "保存中…",
     "update": "更新",
-    "create": "创建"
+    "create": "创建",
+    "manualHint": "手动步骤：运行器会跳过，需要手动执行。"
   },
   "defectStatus": {
     "open": "打开",

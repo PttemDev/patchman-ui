@@ -96,7 +96,12 @@
     "incompatibleTitle": "Servidor no compatible",
     "incompatibleDescription": "El servidor actual no es compatible con esta versión de la app. Conecta un servidor compatible o continúa sin conexión.",
     "switchedNotice": "Se cambió de {{from}} a {{to}}: el servidor anterior no es compatible con esta versión de la app.",
-    "dismiss": "Descartar"
+    "dismiss": "Descartar",
+    "deepLinkTitle": "¿Cambiar PatchMan a {{host}}?",
+    "deepLinkBody": "Un enlace pidió a PatchMan usar el backend «{{name}}» en {{url}}. Se cerrará tu sesión y el próximo inicio de sesión irá a ese servidor: continúa solo si abriste este enlace tú mismo y confías en el servidor.",
+    "deepLinkInsecure": "Este servidor no usa HTTPS: tu contraseña y tus datos viajarían sin cifrar.",
+    "deepLinkUnknown": "Nunca te has conectado a este servidor.",
+    "deepLinkConfirm": "Cambiar backend"
   },
   "tray": {
     "show": "Mostrar PatchMan",
@@ -109,5 +114,12 @@
     "title": "¿Salir de PatchMan?",
     "description": "Las solicitudes en curso se detendrán.",
     "confirm": "Salir"
+  },
+  "lock": {
+    "title": "PatchMan está bloqueado",
+    "body": "Tus conexiones y secretos permanecen cerrados hasta que confirmes que eres tú.",
+    "unlock": "Desbloquear",
+    "cancelled": "Se canceló el desbloqueo.",
+    "failed": "No se pudo verificar tu identidad. Inténtalo de nuevo."
   }
 }

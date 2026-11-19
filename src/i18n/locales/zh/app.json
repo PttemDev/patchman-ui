@@ -96,7 +96,12 @@
     "incompatibleTitle": "后端不兼容",
     "incompatibleDescription": "当前后端与此版本的应用不兼容。请连接兼容的后端，或继续离线使用。",
     "switchedNotice": "已从 {{from}} 切换到 {{to}}——之前的后端与此应用版本不兼容。",
-    "dismiss": "关闭"
+    "dismiss": "关闭",
+    "deepLinkTitle": "将 PatchMan 切换到 {{host}}？",
+    "deepLinkBody": "一个链接要求 PatchMan 使用位于 {{url}} 的后端“{{name}}”。你将被登出，下次登录会发往该服务器——仅当你亲自打开此链接并信任该服务器时才继续。",
+    "deepLinkInsecure": "该服务器未使用 HTTPS：你的密码和数据将以明文传输。",
+    "deepLinkUnknown": "你从未连接过此服务器。",
+    "deepLinkConfirm": "切换后端"
   },
   "tray": {
     "show": "显示 PatchMan",
@@ -109,5 +114,12 @@
     "title": "退出 PatchMan？",
     "description": "所有进行中的请求将停止。",
     "confirm": "退出"
+  },
+  "lock": {
+    "title": "PatchMan 已锁定",
+    "body": "在你确认身份之前，你的连接和密钥保持关闭。",
+    "unlock": "解锁",
+    "cancelled": "已取消解锁。",
+    "failed": "无法验证你的身份，请重试。"
   }
 }

@@ -19,7 +19,8 @@
     "cookies": "Cookies",
     "audit": "Auditoría y actividad",
     "notes": "Notas y Brain",
-    "dashboards": "Paneles"
+    "dashboards": "Paneles",
+    "plugins": "Complementos"
   },
   "beta": "beta",
   "settingsProxyOn": "Ajustes (proxy personalizado activado)",

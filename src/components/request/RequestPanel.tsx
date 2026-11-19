@@ -1,4 +1,4 @@
-import { Plus, X, Code, Copy as CopyIcon, Pencil, Files, XCircle, ArrowRightFromLine, Database, Radio, HardDrive, GitBranch, Wrench, ExternalLink, Shapes, NotebookText, LayoutDashboard, Rabbit, Waypoints, ScrollText } from 'lucide-react';
+import { CloudCog, Plus, X, Code, Copy as CopyIcon, Pencil, Files, XCircle, ArrowRightFromLine, Database, Radio, HardDrive, GitBranch, Wrench, ExternalLink, Shapes, NotebookText, LayoutDashboard, Rabbit, Waypoints, ScrollText, Puzzle } from 'lucide-react';
 import { toolDef } from '@/components/devtools/registry';
 import { useTranslation } from 'react-i18next';
 import { useState, useCallback, useEffect, useRef, Fragment } from 'react';
@@ -72,8 +72,12 @@ function tabGlyph(tab: Pick<Tab, 'type' | 'toolKind' | 'method'>) {
       return <Rabbit className="h-3 w-3 text-orange-500 shrink-0" />;
     case 'graylog':
       return <ScrollText className="h-3 w-3 text-rose-500 shrink-0" />;
+    case 'gcp':
+      return <CloudCog className="h-3 w-3 text-sky-500 shrink-0" />;
     case 'servicemap':
       return <Waypoints className="h-3 w-3 text-violet-500 shrink-0" />;
+    case 'plugin':
+      return <Puzzle className="h-3 w-3 text-fuchsia-500 shrink-0" />;
     case 'tool': {
       const ToolIcon = toolDef(tab.toolKind)?.icon ?? Wrench;
       return <ToolIcon className="h-3 w-3 text-violet-400 shrink-0" />;
@@ -340,8 +344,12 @@ export function RequestPanel() {
                           ? t('tab.detail.rabbit')
                           : tab.type === 'graylog'
                           ? t('tab.detail.graylog')
+                          : tab.type === 'gcp'
+                          ? 'Google Cloud'
                           : tab.type === 'servicemap'
                           ? t('tab.detail.servicemap')
+                          : tab.type === 'plugin'
+                          ? t('tab.detail.plugin')
                           : `${tab.method} ${tab.url || t('tab.detail.noUrl')}`;
               return (
                 <ContextMenu key={tab.id}>

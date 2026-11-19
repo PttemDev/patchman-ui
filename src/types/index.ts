@@ -504,7 +504,12 @@ export interface Tab {
    *  key browser, 'es' for the Elasticsearch console, 'k8s' for the
    *  Kubernetes cluster explorer, 'git' for the Git client.
    *  Omitted on legacy tabs — treat as 'api'. */
-  type?: 'api' | 'db' | 'kafka' | 's3' | 'redis' | 'es' | 'k8s' | 'git' | 'tool' | 'excalidraw' | 'note' | 'grafana' | 'rabbit' | 'servicemap' | 'graylog';
+  type?: 'api' | 'db' | 'kafka' | 's3' | 'redis' | 'es' | 'k8s' | 'git' | 'tool' | 'excalidraw' | 'note' | 'grafana' | 'rabbit' | 'servicemap' | 'graylog' | 'plugin' | 'gcp';
+  /** For a `type: 'plugin'` tab: the plugin, its connection and the op
+   *  the panel shows (RFC §16). */
+  pluginId?: string;
+  pluginConnectionId?: string;
+  pluginOp?: string;
   /** Which Dev Tools utility a `type: 'tool'` tab renders. */
   toolKind?: ToolKind;
   /** The whiteboard a `type: 'excalidraw'` tab renders (reuse keys on this). */
@@ -577,6 +582,18 @@ export interface Tab {
    *  the hosted BE (or vice versa). The picked BE must actually have
    *  the connection — otherwise it returns 404. */
   dbExecScope?: 'local' | 'remote';
+  /** Mongo: which view the DB tab shows (editor or the Indexes view). */
+  dbMongoView?: 'query' | 'bar' | 'aggregate' | 'indexes';
+  /** Mongo: the aggregation builder's stages. */
+  dbMongoPipeline?: { op: string; body: string; enabled: boolean; collapsed?: boolean }[];
+  /** Mongo: the query bar's fields. */
+  dbMongoBar?: {
+    filter: string; project: string; sort: string; collation: string; hint: string; skip: string; limit: string;
+    filterMode?: 'builder' | 'json';
+    conds?: { field: string; op: 'eq' | 'ne' | 'gt' | 'gte' | 'lt' | 'lte' | 'in' | 'nin' | 'contains' | 'startsWith' | 'exists' | 'notExists' | 'isNull'; value: string }[];
+  };
+  /** Mongo: the collection the Indexes view is about. */
+  dbMongoTarget?: { db?: string; coll: string };
   // ── Kafka-tab-only fields ──────────────────────────────────────────
   kafkaConnectionId?: string;
   kafkaTopic?: string;
@@ -644,6 +661,10 @@ export interface Tab {
   graylogRange?: GraylogRange;
   /** Stream ids the search is limited to (empty = all readable streams). */
   graylogStreams?: string[];
+  // ── Google-Cloud-tab-only fields ───────────────────────────────────
+  gcpCredentialId?: string;
+  gcpService?: 'storage' | 'pubsub' | 'logging' | 'gke';
+  gcpProject?: string;
   // ── Service-map-tab-only fields ────────────────────────────────────
   /** Kubernetes source (config layer). */
   smK8sConnectionId?: string;
@@ -677,6 +698,16 @@ export interface Tab {
   /** Last index/alias the console targeted — seeds the index browser + the
    *  mapping completion cache. */
   esIndex?: string;
+  /** Set → this ES tab is a Discover view over a Kibana data view instead of
+   *  the console. */
+  esDataViewId?: string;
+  esDataViewName?: string;
+  /** Kibana space of the data view (undefined = the connection's space). */
+  esDataViewSpace?: string;
+  /** Discover: Lucene query, time range and selected columns. */
+  esDiscoverQuery?: string;
+  esDiscoverRange?: GraylogRange;
+  esDiscoverColumns?: string[];
   // ── Kubernetes-tab-only fields ─────────────────────────────────────
   k8sConnectionId?: string;
   /** Selected kubeconfig context for the explorer. Seeds from the
@@ -710,7 +741,10 @@ export interface Tab {
   gitRepoId?: string;
   /** Active center view: the commit graph, the file tree, or the working-tree
    *  changes view (desktop-local only). Unset defaults to 'history'. */
-  gitView?: 'history' | 'browse' | 'changes' | 'ci';
+  gitView?: 'history' | 'browse' | 'changes' | 'mrs' | 'ci';
+  /** Local editor: open file tabs and the active one. */
+  gitOpenFiles?: string[];
+  gitActiveFile?: string;
   /** Selected branch / ref for history + browse. Empty until seeded (or when
    *  no main/master/default branch exists — the user then picks explicitly). */
   gitRef?: string;
@@ -917,6 +951,7 @@ export type DBKind =
   | 'mariadb'
   | 'tidb'
   | 'sqlserver'
+  | 'bigquery'
   | 'mongo';
 
 export const DB_KIND_FAMILY: Record<DBKind, 'postgres' | 'mysql' | 'mongo'> = {
@@ -931,6 +966,8 @@ export const DB_KIND_FAMILY: Record<DBKind, 'postgres' | 'mysql' | 'mongo'> = {
   // at the UI layer: one database per connection (introspection is per-DB),
   // double-quoted identifiers, no "browse all databases" mode.
   sqlserver: 'postgres',
+  // BigQuery: one project per connection, SQL editor like the Postgres family.
+  bigquery: 'postgres',
   mongo: 'mongo',
 };
 
@@ -943,6 +980,7 @@ export const DB_KIND_DEFAULT_PORT: Record<DBKind, number> = {
   mariadb: 3306,
   tidb: 4000,
   sqlserver: 1433,
+  bigquery: 443,
   mongo: 27017,
 };
 
@@ -955,8 +993,31 @@ export const DB_KIND_LABEL: Record<DBKind, string> = {
   mariadb: 'MariaDB',
   tidb: 'TiDB',
   sqlserver: 'SQL Server',
+  bigquery: 'BigQuery',
   mongo: 'MongoDB',
 };
+
+export interface MongoIndexKey {
+  field: string;
+  value: number | string;
+}
+
+export interface MongoIndex {
+  name: string;
+  keys: MongoIndexKey[];
+  type: 'regular' | 'compound' | 'text' | 'geospatial' | 'hashed' | 'wildcard';
+  unique?: boolean;
+  sparse?: boolean;
+  hidden?: boolean;
+  expireAfterSeconds?: number;
+  partialFilterExpression?: unknown;
+  collation?: unknown;
+  /** -1 = unknown (no $collStats right). */
+  size: number;
+  /** -1 = unknown (no $indexStats right). */
+  ops: number;
+  since?: string;
+}
 
 export interface DBConnection {
   id: string;
@@ -1043,6 +1104,8 @@ export interface DBQueryResult {
   rowsTruncated: boolean;
   offset?: number;
   statementText?: string;
+  /** Mongo: absent[i] = the columns row i's document does not have. */
+  absent?: number[][];
 }
 
 export interface DBQueryHistoryRow {
@@ -2133,6 +2196,74 @@ export interface IndexRow {
 
 // AliasRow is one row of _cat/aliases — an alias → target index plus its
 // routing / filter / write-index facts (rendered as badges in the sidebar).
+/** Kibana data view (8.x) / index pattern (7.x, OpenSearch Dashboards) —
+ *  mirror be/internal/esquery/kibana.go DataView. */
+export interface ESDataView {
+  id: string;
+  name: string;
+  /** Index pattern (Kibana "title"), e.g. logs-* or a,b,-c*. */
+  pattern: string;
+  /** Empty = the data view has no time field. */
+  timeField?: string;
+  runtimeFields?: Record<string, { type?: string; script?: { source?: string } }>;
+  space?: string;
+  /** True when timeField / runtimeFields are authoritative (detail call). */
+  detailed: boolean;
+}
+
+export interface ESKibanaSpace {
+  id: string;
+  name: string;
+  description?: string;
+  color?: string;
+  initials?: string;
+}
+
+export interface ESKibanaSpaces {
+  spaces: ESKibanaSpace[];
+  /** False on OpenSearch Dashboards / spaces-disabled Kibana. */
+  supported: boolean;
+  /** The connection's configured space ("" = default). */
+  default: string;
+}
+
+export interface ESDataViewSearchRequest {
+  space?: string;
+  /** ISO-8601 or ES date math (now-15m). */
+  from?: string;
+  to?: string;
+  /** Lucene query_string; empty = all. */
+  query?: string;
+  size?: number;
+  sort?: 'desc' | 'asc';
+  searchAfter?: unknown[];
+  pitId?: string;
+  histogram?: boolean;
+  dryRun?: boolean;
+}
+
+export interface ESDataViewHit {
+  _id: string;
+  _index: string;
+  _source?: Record<string, unknown>;
+  fields?: Record<string, unknown[]>;
+  sort?: unknown[];
+}
+
+export interface ESDataViewSearchResult {
+  dataView: ESDataView;
+  query: { method: string; path: string; body: unknown };
+  status?: number;
+  tookMs?: number;
+  total: number;
+  totalRelation?: 'eq' | 'gte';
+  hits: ESDataViewHit[];
+  buckets?: Array<{ key: number; keyAsString?: string; count: number }>;
+  interval?: string;
+  pitId?: string;
+  hasMore: boolean;
+}
+
 export interface AliasRow {
   alias: string;
   index: string;
@@ -2438,6 +2569,8 @@ export interface K8sPodMetricsHistoryResult {
   cpu: K8sPromSeriesPoint[];
   mem: K8sPromSeriesPoint[];
   containers: K8sPromContainerSeries[];
+  // Pod spec requests / limits (CPU millicores, memory bytes); absent = not set.
+  resources?: { cpuRequest?: number; cpuLimit?: number; memRequest?: number; memLimit?: number };
 }
 
 // ── Git Tools (v1) ──────────────────────────────────────────────────
@@ -2547,10 +2680,96 @@ export interface GitMergeRequest {
   author: string;
   webUrl: string;
   createdAt: string;
+  updatedAt?: string;
+  draft?: boolean;
+  hasConflicts?: boolean;
+  notes?: number;
 }
+
+export interface GitMRDetail {
+  iid: number;
+  title: string;
+  description: string;
+  state: string;
+  sourceBranch: string;
+  targetBranch: string;
+  author: string;
+  webUrl: string;
+  createdAt: string;
+  updatedAt: string;
+  draft: boolean;
+  mergeStatus: string;
+  hasConflicts: boolean;
+  sha: string;
+  diffRefs: { baseSha: string; headSha: string; startSha: string };
+}
+
+export interface GitMRNote { id: number; body: string; author: string; username: string; avatarUrl?: string; createdAt: string }
+
+export interface GitMRDiscussion {
+  id: string;
+  notes: GitMRNote[];
+  resolvable: boolean;
+  resolved: boolean;
+  position?: { newPath: string; oldPath: string; newLine: number | null; oldLine: number | null };
+}
+
+export interface GitMRApprovals { approved: boolean; required: number; left: number; userHasApproved: boolean; userCanApprove: boolean; approvedBy: string[]; changesRequestedBy?: string[] }
+export interface GitMRPipeline { id: number; status: string; ref: string; sha: string; webUrl: string; createdAt: string }
+export interface GitMember { id: number; name: string; username: string; avatarUrl?: string }
 
 // One changed path from `git status --porcelain=v2`. `x`/`y` are the raw
 // staged/worktree status codes; `status` is the normalized bucket.
+/** In-progress history operation of a local clone (GET /git/repos/:id/state). */
+export interface GitOpState {
+  operation: '' | 'merge' | 'rebase' | 'cherry-pick' | 'revert';
+  branch: string;
+  detached: boolean;
+  head: string;
+  conflicted: string[];
+}
+
+export interface GitRefBranch {
+  name: string;
+  commitSha: string;
+  current?: boolean;
+  isDefault?: boolean;
+  upstream?: string;
+  gone?: boolean;
+  ahead?: number;
+  behind?: number;
+  remote?: string;
+  subject?: string;
+  date?: string;
+}
+
+export interface GitRefs {
+  current: string;
+  local: GitRefBranch[];
+  remote: GitRefBranch[];
+  tags: GitRefBranch[];
+  recent: string[];
+  state: GitOpState;
+}
+
+export interface GitRemote {
+  name: string;
+  fetchUrl: string;
+  pushUrl: string;
+  /** Origin's host: the only one the connection token is answered for. */
+  authenticated: boolean;
+}
+
+/** Result body of merge / rebase / pull / operation. */
+export interface GitHistoryOpResult {
+  ok?: boolean;
+  pulled?: boolean;
+  conflicts?: boolean;
+  stashConflict?: boolean;
+  message?: string;
+  state?: GitOpState;
+}
+
 export interface GitStatusEntry {
   path: string;
   x: string;
@@ -2569,4 +2788,19 @@ export interface GitStatus {
   untracked: string[];
   conflicted: string[];
   clean: boolean;
+}
+
+/** A shared Google Cloud login (Settings → Google Cloud). */
+export interface GCPCredential {
+  id: string;
+  name: string;
+  kind: 'service_account' | 'adc' | 'oauth';
+  projectId?: string;
+  account?: string;
+  readWrite: boolean;
+  /** Can run BigQuery jobs (false: a linked Google account connected without BigQuery). */
+  bigQuery?: boolean;
+  createdAt?: string;
+  /** Backend that holds it (FE-side). */
+  scope?: 'local' | 'remote';
 }

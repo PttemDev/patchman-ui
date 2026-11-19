@@ -15,6 +15,8 @@ import { useEffect } from 'react';
 import { isDesktop } from '@/lib/platform';
 import { useRemoteStore, normalizeRemoteUrl, checkRemote, cacheServerConfig } from '@/stores/remoteStore';
 import { useAuthStore } from '@/stores/authStore';
+import { confirmDialog } from '@/components/ui/confirm';
+import i18n from '@/i18n';
 
 // Marks that this app SESSION already applied its launch deep link, so a webview
 // reload doesn't replay it. Cleared when the app closes (sessionStorage).
@@ -63,6 +65,28 @@ export function useRemoteConnectDeepLink() {
             return;
           }
 
+          // A link can come from anywhere (a phishing mail, a web page): never
+          // switch backend without the user seeing exactly where it points
+          // (DESKTOP_SECURITY_RFC L3). Already-active backends need no ask.
+          const known = useRemoteStore.getState().remotes.find((r) => r.url === normalized);
+          if (!known || known.id !== useRemoteStore.getState().activeId) {
+            let host = normalized;
+            try { host = new URL(normalized).host; } catch { /* keep the raw url */ }
+            const insecure = !normalized.toLowerCase().startsWith('https://');
+            const ok = await confirmDialog({
+              title: i18n.t('app:connect.deepLinkTitle', { host }),
+              description: [
+                i18n.t('app:connect.deepLinkBody', { url: normalized, name: queryName || outcome.cfg.name || host }),
+                insecure ? i18n.t('app:connect.deepLinkInsecure') : '',
+                known ? '' : i18n.t('app:connect.deepLinkUnknown'),
+              ].filter(Boolean).join('\n\n'),
+              confirmLabel: i18n.t('app:connect.deepLinkConfirm'),
+              cancelLabel: i18n.t('common:cancel', { defaultValue: 'Cancel' }),
+              destructive: !known || insecure,
+            });
+            if (!ok) return;
+          }
+
           // ok — cache the tenant config so the login after the reload shows the
           // right values, and record the compatible verdict.
           cacheServerConfig(normalized, outcome.cfg);
@@ -77,15 +101,15 @@ export function useRemoteConnectDeepLink() {
           if (!id) continue;
 
           const alreadyActive = id === useRemoteStore.getState().activeId;
-          useRemoteStore.getState().setActive(id);
-
           const { isAuthenticated, mode } = useAuthStore.getState();
           if (isAuthenticated && mode === 'synced') {
-            // The old JWT won't work on the new backend — sign out.
+            // The old JWT won't work on the new backend — sign out first, so
+            // the server-side logout reaches the backend that issued it.
             useAuthStore.getState().logout();
             localStorage.removeItem('patchman_act_as_user');
             localStorage.removeItem('patchman_act_as_user_name');
           }
+          useRemoteStore.getState().setActive(id);
           // Reload unless this was a no-op (already the active backend) — a
           // reload re-inits every connection against the new backend. The
           // alreadyActive guard also stops a cold-start reload loop.

@@ -12,6 +12,7 @@ import type {
   CookieItem,
   Defect,
   Environment,
+  ESDataViewSearchRequest,
   HistoryItem,
   MockServer,
   MockRoute,
@@ -275,7 +276,21 @@ export const authAPI = {
       { _executionPin: 'remote' },
     ),
   me: () => api.get<User>('/auth/me', { _executionPin: 'remote' }),
+  // Signed-in devices (DESKTOP_SECURITY_RFC L8).
+  sessions: () => api.get<UserSession[]>('/auth/sessions', { _executionPin: 'remote' }),
+  revokeSession: (id: string) => api.delete(`/auth/sessions/${id}`, { _executionPin: 'remote' }),
+  revokeOtherSessions: () => api.post('/auth/sessions/revoke-others', {}, { _executionPin: 'remote' }),
 };
+
+export interface UserSession {
+  id: string;
+  userAgent: string;
+  ipAddress: string;
+  clientVersion: string;
+  createdAt: string;
+  lastSeenAt: string;
+  current: boolean;
+}
 
 // MCP personal access tokens. These authenticate external MCP clients
 // (Claude, MCP Inspector) against the /api/mcp endpoint. Like auth, they
@@ -510,13 +525,27 @@ function serializeTestCase(data: Partial<TestCase>): Record<string, unknown> {
   return payload;
 }
 
+// Tags are a comma list; rows written by older API callers hold a JSON array
+// string (["web","checkout"]).
+function parseTags(s: string): string[] {
+  const v = s.trim();
+  if (v.startsWith('[')) {
+    try {
+      const arr = JSON.parse(v);
+      if (Array.isArray(arr)) return arr.filter((x): x is string => typeof x === 'string' && x.trim() !== '').map((x) => x.trim());
+    } catch { /* not JSON: fall through to the comma list */ }
+  }
+  return v ? v.split(',').map((t) => t.trim()).filter(Boolean) : [];
+}
+
 function parseTestCase(raw: Record<string, unknown>): TestCase {
   const tc = raw as Record<string, unknown>;
   return {
     ...raw,
-    tags: typeof tc.tags === 'string'
-      ? (tc.tags ? tc.tags.split(',').map((t: string) => t.trim()).filter(Boolean) : [])
-      : (tc.tags || []),
+    tags: typeof tc.tags === 'string' ? parseTags(tc.tags) : (tc.tags || []),
+    // manual/automated is the pre-category default (and what old API callers
+    // sent); the UI's categories start at functional.
+    type: ['', 'manual', 'automated'].includes(String(tc.type ?? '').toLowerCase()) ? 'functional' : tc.type,
     steps: typeof tc.steps === 'string'
       ? (tc.steps ? JSON.parse(tc.steps) : [])
       : (tc.steps || []),
@@ -715,7 +744,7 @@ export const dbConnectionAPI = {
   create: (data: {
     id?: string; // FE-supplied UUID — same id sent to both BEs for dual-write dedup
     name: string;
-    kind: 'postgres' | 'cockroachdb' | 'yugabytedb' | 'redshift' | 'mysql' | 'mariadb' | 'tidb' | 'sqlserver' | 'mongo';
+    kind: 'postgres' | 'cockroachdb' | 'yugabytedb' | 'redshift' | 'mysql' | 'mariadb' | 'tidb' | 'sqlserver' | 'bigquery' | 'mongo';
     host: string;
     port: number;
     database: string;
@@ -754,6 +783,12 @@ export const dbConnectionAPI = {
     api.delete(`/db-connections/${id}/grants/${grantId}`, dbCfg(scope)),
 };
 
+export const bigQuerySettingsAPI = {
+  get: (scope?: DBScope) => api.get('/settings/bigquery', scope ? { _executionPin: scope } : {}),
+  put: (body: { maxBytes: number; askBytes: number }, scope?: DBScope) =>
+    api.put('/settings/bigquery', body, scope ? { _executionPin: scope } : {}),
+};
+
 export const dbQueryAPI = {
   execute: (data: {
     connectionId: string;
@@ -761,12 +796,25 @@ export const dbQueryAPI = {
     limit?: number;
     offset?: number;
     queryId?: string;
+    /** BigQuery: the user agreed to the scan size a previous run reported. */
+    confirmCost?: boolean;
   }, signal?: AbortSignal, scope?: DBScope) =>
     api.post('/db-query/execute', data, { signal, ...(scope ? { _executionPin: scope } : {}) }),
   cancel: (queryId: string, scope?: DBScope) =>
     api.post('/db-query/cancel', { queryId }, dbCfg(scope)),
   history: (params?: { connectionId?: string }, scope?: DBScope) =>
     api.get('/db-query/history', { params, ...(scope ? { _executionPin: scope } : {}) }),
+  // Mongo indexes (Compass-style Indexes view).
+  mongoIndexes: (connId: string, params: { db?: string; coll: string }, scope?: DBScope) =>
+    api.get(`/db-connections/${connId}/mongo/indexes`, { params, ...(scope ? { _executionPin: scope } : {}) }),
+  mongoCreateIndex: (connId: string, body: Record<string, unknown>, scope?: DBScope) =>
+    api.post(`/db-connections/${connId}/mongo/indexes`, body, scope ? { _executionPin: scope } : {}),
+  mongoDropIndex: (connId: string, body: { db?: string; coll: string; name: string }, scope?: DBScope) =>
+    api.post(`/db-connections/${connId}/mongo/indexes/drop`, body, scope ? { _executionPin: scope } : {}),
+  mongoAggregatePreview: (connId: string, body: { db?: string; coll: string; stages: string[]; upTo: number; limit?: number }, scope?: DBScope) =>
+    api.post(`/db-connections/${connId}/mongo/aggregate-preview`, body, scope ? { _executionPin: scope } : {}),
+  mongoHideIndex: (connId: string, body: { db?: string; coll: string; name: string; hidden: boolean }, scope?: DBScope) =>
+    api.post(`/db-connections/${connId}/mongo/indexes/hide`, body, scope ? { _executionPin: scope } : {}),
 };
 
 // ── LLM providers + streaming chat ───────────────────────────────────
@@ -1260,6 +1308,47 @@ export interface GraylogSearchParams {
   noHistogram?: boolean;
 }
 
+// Google Cloud (GOOGLE_CLOUD_RFC.md): shared credentials + Storage, Pub/Sub,
+// Cloud Logging and GKE. scope = the backend that holds the credential.
+export const gcpAPI = {
+  list: (scope?: DBScope) => api.get('/gcp/credentials', dbCfg(scope)),
+  create: (body: { id: string; name?: string; kind: 'service_account' | 'adc'; key?: string; projectId?: string; readWrite?: boolean }, scope?: DBScope) =>
+    api.post('/gcp/credentials', body, dbCfg(scope)),
+  update: (id: string, body: { name?: string; projectId?: string; readWrite?: boolean; key?: string }, scope?: DBScope) =>
+    api.patch(`/gcp/credentials/${id}`, body, dbCfg(scope)),
+  remove: (id: string, confirm: boolean, scope?: DBScope) =>
+    api.delete(`/gcp/credentials/${id}`, dbCfg(scope, confirm ? { params: { confirm: '1' } } : undefined)),
+  test: (id: string, scope?: DBScope) => api.post(`/gcp/credentials/${id}/test`, null, dbCfg(scope, { timeout: 20000 })),
+  projects: (id: string, scope?: DBScope) => api.get(`/gcp/credentials/${id}/projects`, dbCfg(scope)),
+  adc: (scope?: DBScope) => api.get('/gcp/adc', dbCfg(scope)),
+  oauthStart: (body: { origin: string; services: string[]; write: boolean; email?: string }, scope?: DBScope) =>
+    api.post('/gcp/oauth/start', body, dbCfg(scope)),
+  oauthComplete: (body: { code: string; state: string }, scope?: DBScope) => api.post('/gcp/oauth/complete', body, dbCfg(scope)),
+  buckets: (id: string, project: string, scope?: DBScope) => api.get(`/gcp/credentials/${id}/gcs/buckets`, dbCfg(scope, { params: { project } })),
+  objects: (id: string, params: { bucket: string; prefix?: string; pageToken?: string }, scope?: DBScope) =>
+    api.get(`/gcp/credentials/${id}/gcs/objects`, dbCfg(scope, { params })),
+  object: (id: string, bucket: string, name: string, scope?: DBScope) =>
+    api.get(`/gcp/credentials/${id}/gcs/object`, dbCfg(scope, { params: { bucket, name } })),
+  download: (id: string, bucket: string, name: string, scope?: DBScope) =>
+    api.get(`/gcp/credentials/${id}/gcs/object`, dbCfg(scope, { params: { bucket, name, download: '1' }, responseType: 'blob', timeout: 300000 })),
+  upload: (id: string, form: FormData, scope?: DBScope) =>
+    api.post(`/gcp/credentials/${id}/gcs/upload`, form, dbCfg(scope, { timeout: 300000 })),
+  deleteObject: (id: string, bucket: string, name: string, scope?: DBScope) =>
+    api.delete(`/gcp/credentials/${id}/gcs/object`, dbCfg(scope, { params: { bucket, name, allowWrite: 'true' } })),
+  topics: (id: string, project: string, scope?: DBScope) => api.get(`/gcp/credentials/${id}/pubsub/topics`, dbCfg(scope, { params: { project } })),
+  subscriptions: (id: string, project: string, topic?: string, scope?: DBScope) =>
+    api.get(`/gcp/credentials/${id}/pubsub/subscriptions`, dbCfg(scope, { params: { project, topic } })),
+  peek: (id: string, project: string, subscription: string, max: number, scope?: DBScope) =>
+    api.post(`/gcp/credentials/${id}/pubsub/peek`, { subscription, max }, dbCfg(scope, { params: { project } })),
+  publish: (id: string, project: string, body: { topic: string; data: string; attributes?: Record<string, string>; orderingKey?: string }, scope?: DBScope) =>
+    api.post(`/gcp/credentials/${id}/pubsub/publish`, { ...body, allowWrite: true }, dbCfg(scope, { params: { project } })),
+  logs: (id: string, body: { project: string; filter?: string; from?: string; to?: string; pageSize?: number; pageToken?: string }, scope?: DBScope) =>
+    api.post(`/gcp/credentials/${id}/logging/entries`, body, dbCfg(scope, { timeout: 60000 })),
+  clusters: (id: string, project: string, scope?: DBScope) => api.get(`/gcp/credentials/${id}/gke/clusters`, dbCfg(scope, { params: { project } })),
+  addCluster: (id: string, body: { project: string; location: string; cluster: string; name?: string }, scope?: DBScope) =>
+    api.post(`/gcp/credentials/${id}/gke/clusters`, body, dbCfg(scope)),
+};
+
 export const graylogAPI = {
   streams: (id: string, scope?: DBScope) => api.get(`/graylog/${id}/streams`, dbCfg(scope)),
   search: (id: string, params: GraylogSearchParams, scope?: DBScope) =>
@@ -1563,6 +1652,22 @@ export const esAPI = {
     data: { method: string; path: string; body?: unknown; allowWrite?: boolean },
     scope?: DBScope,
   ) => api.post(`/es/${id}/request`, data, dbCfg(scope)),
+  // Kibana data views. `space` undefined = the connection's configured space;
+  // "default" = the default space explicitly.
+  kibanaSpaces: (id: string, scope?: DBScope, refresh?: boolean) =>
+    api.get(`/es/${id}/kibana/spaces`, { params: refresh ? { refresh: 1 } : {}, ...(scope ? { _executionPin: scope } : {}) }),
+  dataViews: (id: string, space?: string, scope?: DBScope, refresh?: boolean) =>
+    api.get(`/es/${id}/data-views`, {
+      params: { ...(space !== undefined ? { space } : {}), ...(refresh ? { refresh: 1 } : {}) },
+      ...(scope ? { _executionPin: scope } : {}),
+    }),
+  dataView: (id: string, dvId: string, space?: string, scope?: DBScope) =>
+    api.get(`/es/${id}/data-views/${encodeURIComponent(dvId)}`, {
+      params: space !== undefined ? { space } : {},
+      ...(scope ? { _executionPin: scope } : {}),
+    }),
+  dataViewSearch: (id: string, dvId: string, data: ESDataViewSearchRequest, scope?: DBScope) =>
+    api.post(`/es/${id}/data-views/${encodeURIComponent(dvId)}/search`, data, dbCfg(scope)),
 };
 
 // Kubernetes tool — see k8s-v1-impl-spec. Connection CRUD dual-writes with
@@ -2041,8 +2146,15 @@ export const importAPI = {
 };
 
 // SSO sign-in (third-party identity → PatchMan account, find-or-create).
+export type SSOProvider = 'gitlab' | 'github' | 'google';
+export type SSOMethodId = 'password' | SSOProvider;
+
 export const ssoAPI = {
-  start: (provider: 'gitlab', surface: 'web' | 'desktop', origin?: string) =>
+  /** Sign-in methods the server accepts (password + the configured SSO
+   *  providers). Older servers 404 — callers fall back to password + GitLab. */
+  methods: () =>
+    api.get<Array<{ id: SSOMethodId; domains?: string[] }>>('/auth/methods', { _executionPin: 'remote' }),
+  start: (provider: SSOProvider, surface: 'web' | 'desktop', origin?: string) =>
     api.post<{ authUrl: string; state: string }>(
       '/auth/sso/start',
       { provider, surface, origin },
@@ -2132,6 +2244,8 @@ export const adminAPI = {
     api.put(`/admin/users/${id}/role`, { role }, { _executionPin: 'remote' }),
   resetPassword: (id: string, password: string) =>
     api.put(`/admin/users/${id}/password`, { password }, { _executionPin: 'remote' }),
+  revokeUserSessions: (id: string) =>
+    api.post<{ revoked: number }>(`/admin/users/${id}/sessions/revoke`, {}, { _executionPin: 'remote' }),
   stats: () => api.get<AdminStats>('/admin/stats', { _executionPin: 'remote' }),
   // Transfer a collection (and every nested folder/request) to another
   // user. Either `newOwnerId` or `newOwnerEmail` must be set — the BE
@@ -2374,8 +2488,40 @@ export const gitAPI = {
     api.get(`/git/connections/${id}/compare`, gitReadCfg(id, params)),
   contributors: (id: string, params: { project: string }) =>
     api.get(`/git/connections/${id}/contributors`, gitReadCfg(id, params)),
-  mergeRequests: (id: string, params: { project: string; state?: string }) =>
+  mergeRequests: (id: string, params: { project: string; state?: string; search?: string; mine?: 'assigned' | 'created' | 'review' }) =>
     api.get(`/git/connections/${id}/merge_requests`, gitReadCfg(id, params)),
+  mergeRequest: (id: string, params: { project: string; iid: number }) =>
+    api.get(`/git/connections/${id}/merge_request`, gitReadCfg(id, params)),
+  mergeRequestChanges: (id: string, params: { project: string; iid: number }) =>
+    api.get(`/git/connections/${id}/merge_request_changes`, gitReadCfg(id, params)),
+  mrDiscussions: (id: string, params: { project: string; iid: number }) =>
+    api.get(`/git/connections/${id}/merge_request_discussions`, gitReadCfg(id, params)),
+  mrApprovals: (id: string, params: { project: string; iid: number }) =>
+    api.get(`/git/connections/${id}/merge_request_approvals`, gitReadCfg(id, params)),
+  mrPipelines: (id: string, params: { project: string; iid: number }) =>
+    api.get(`/git/connections/${id}/merge_request_pipelines`, gitReadCfg(id, params)),
+  projectMembers: (id: string, params: { project: string; query?: string }) =>
+    api.get(`/git/connections/${id}/project_members`, gitReadCfg(id, params)),
+  createMR: (id: string, project: string, body: Record<string, unknown>) =>
+    api.post(`/git/connections/${id}/merge_request_create`, body, gitReadCfg(id, { project })),
+  updateMR: (id: string, project: string, iid: number, body: Record<string, unknown>) =>
+    api.post(`/git/connections/${id}/merge_request_update`, body, gitReadCfg(id, { project, iid })),
+  mergeMR: (id: string, project: string, iid: number, body: Record<string, unknown>) =>
+    api.post(`/git/connections/${id}/merge_request_merge`, body, gitReadCfg(id, { project, iid })),
+  rebaseMR: (id: string, project: string, iid: number) =>
+    api.post(`/git/connections/${id}/merge_request_rebase`, null, gitReadCfg(id, { project, iid })),
+  approveMR: (id: string, project: string, iid: number) =>
+    api.post(`/git/connections/${id}/merge_request_approve`, null, gitReadCfg(id, { project, iid })),
+  unapproveMR: (id: string, project: string, iid: number) =>
+    api.post(`/git/connections/${id}/merge_request_unapprove`, null, gitReadCfg(id, { project, iid })),
+  createMRNote: (id: string, project: string, iid: number, body: string) =>
+    api.post(`/git/connections/${id}/merge_request_notes`, { body }, gitReadCfg(id, { project, iid })),
+  createMRDiscussion: (id: string, project: string, iid: number, body: Record<string, unknown>) =>
+    api.post(`/git/connections/${id}/merge_request_discussion`, body, gitReadCfg(id, { project, iid })),
+  replyMRDiscussion: (id: string, project: string, iid: number, discussion: string, body: string) =>
+    api.post(`/git/connections/${id}/merge_request_discussion_reply`, { body }, gitReadCfg(id, { project, iid, discussion })),
+  resolveMRDiscussion: (id: string, project: string, iid: number, discussion: string, resolved: boolean) =>
+    api.post(`/git/connections/${id}/merge_request_discussion_resolve`, { resolved }, gitReadCfg(id, { project, iid, discussion })),
 
   // ── CI/CD (reads need read_api; variables a write grant; writes the api scope) ──
   pipelines: (id: string, params: { project: string; ref?: string; status?: string; source?: string; page?: number }) =>
@@ -2391,8 +2537,12 @@ export const gitAPI = {
   // One value on request (audited); masked ones too, hidden ones never.
   ciVariable: (id: string, params: { project: string; key: string; scope?: string; group?: string }) =>
     api.get(`/git/connections/${id}/ci_variable`, gitReadCfg(id, params)),
-  runPipeline: (id: string, project: string, ref: string, variables: { key: string; value: string }[]) =>
-    api.post(`/git/connections/${id}/pipeline_run`, { ref, variables }, gitReadCfg(id, { project })),
+  /** GitHub: `workflow` = the workflow id to dispatch (key=value lines become its inputs). */
+  runPipeline: (id: string, project: string, ref: string, variables: { key: string; value: string }[], workflow?: string) =>
+    api.post(`/git/connections/${id}/pipeline_run`, { ref, variables, workflow }, gitReadCfg(id, { project })),
+  /** GitHub Actions workflows (crons, dispatchable, input names); [] on GitLab. */
+  workflows: (id: string, params: { project: string }) =>
+    api.get(`/git/connections/${id}/workflows`, gitReadCfg(id, params)),
   retryPipeline: (id: string, project: string, pipeline: number) =>
     api.post(`/git/connections/${id}/pipeline_retry`, null, gitReadCfg(id, { project, pipeline })),
   cancelPipeline: (id: string, project: string, pipeline: number) =>
@@ -2412,6 +2562,8 @@ export const gitAPI = {
   clone: (id: string, body: Record<string, unknown>) =>
     api.post(`/git/connections/${id}/clone`, body, { _executionPin: 'local' }),
   listRepos: () => api.get('/git/repos', { _executionPin: 'local' }),
+  openFolder: (body: { repoId: string; path: string }) =>
+    api.post('/git/repos/open', body, { _executionPin: 'local' }),
   status: (repoId: string) => api.get(`/git/repos/${repoId}/status`, { _executionPin: 'local' }),
   log: (repoId: string, params?: { ref?: string; limit?: number }) =>
     api.get(`/git/repos/${repoId}/log`, { params, _executionPin: 'local' }),
@@ -2434,8 +2586,63 @@ export const gitAPI = {
   localFile: (repoId: string, params: { path: string; ref?: string }) =>
     api.get(`/git/repos/${repoId}/file`, { params, _executionPin: 'local' }),
   // Write an edited working-tree file (in-app editor / conflict resolver).
-  writeFile: (repoId: string, body: { path: string; content: string }) =>
+  writeFile: (repoId: string, body: { path: string; content: string; expectedSha256?: string }) =>
     api.post(`/git/repos/${repoId}/file`, body, { _executionPin: 'local' }),
+  // Branch / remote / update surface (GIT_IDE_PLAN P1).
+  repoState: (repoId: string) => api.get(`/git/repos/${repoId}/state`, { _executionPin: 'local' }),
+  refs: (repoId: string) => api.get(`/git/repos/${repoId}/refs`, { _executionPin: 'local' }),
+  fetch: (repoId: string, body: { accessToken?: string; remote?: string }) =>
+    api.post(`/git/repos/${repoId}/fetch`, body, { _executionPin: 'local' }),
+  checkout: (repoId: string, body: { accessToken?: string; ref: string; newBranch?: string; smart?: boolean }) =>
+    api.post(`/git/repos/${repoId}/checkout`, body, { _executionPin: 'local' }),
+  createBranch: (repoId: string, body: { name: string; startPoint?: string }) =>
+    api.post(`/git/repos/${repoId}/branches`, body, { _executionPin: 'local' }),
+  renameBranch: (repoId: string, body: { name: string; newName: string }) =>
+    api.post(`/git/repos/${repoId}/branches/rename`, body, { _executionPin: 'local' }),
+  deleteBranch: (repoId: string, body: { name: string }, force = false) =>
+    api.post(`/git/repos/${repoId}/branches/${force ? 'force-delete' : 'delete'}`, body, { _executionPin: 'local' }),
+  updateBranch: (repoId: string, body: { name: string; accessToken?: string }) =>
+    api.post(`/git/repos/${repoId}/branches/update`, body, { _executionPin: 'local' }),
+  setUpstream: (repoId: string, body: { name: string; upstream: string }) =>
+    api.post(`/git/repos/${repoId}/branches/upstream`, body, { _executionPin: 'local' }),
+  compareRefs: (repoId: string, params: { base: string; ref: string }) =>
+    api.get(`/git/repos/${repoId}/compare`, { params, _executionPin: 'local' }),
+  diffWorkTree: (repoId: string, ref: string) =>
+    api.get(`/git/repos/${repoId}/diff-worktree`, { params: { ref }, _executionPin: 'local' }),
+  deleteRemoteBranch: (repoId: string, body: { remote: string; branch: string; accessToken?: string }) =>
+    api.post(`/git/repos/${repoId}/remote-branches/delete`, body, { _executionPin: 'local' }),
+  deleteTag: (repoId: string, name: string) =>
+    api.post(`/git/repos/${repoId}/tags/delete`, { name }, { _executionPin: 'local' }),
+  addWorktree: (repoId: string, body: { path: string; ref: string; newBranch?: string }) =>
+    api.post(`/git/repos/${repoId}/worktrees`, body, { _executionPin: 'local' }),
+  merge: (repoId: string, body: { accessToken?: string; ref: string; mode?: '' | 'no-ff' | 'ff-only' | 'squash' }) =>
+    api.post(`/git/repos/${repoId}/merge`, body, { _executionPin: 'local' }),
+  rebase: (repoId: string, body: { accessToken?: string; onto: string; branch?: string }) =>
+    api.post(`/git/repos/${repoId}/rebase`, body, { _executionPin: 'local' }),
+  operation: (repoId: string, body: { accessToken?: string; action: 'abort' | 'continue' | 'skip' }) =>
+    api.post(`/git/repos/${repoId}/operation`, body, { _executionPin: 'local' }),
+  remotes: (repoId: string) => api.get(`/git/repos/${repoId}/remotes`, { _executionPin: 'local' }),
+  grep: (repoId: string, params: { q: string; regex?: boolean; case?: boolean; word?: boolean; glob?: string }, signal?: AbortSignal) =>
+    api.get(`/git/repos/${repoId}/grep`, { params, signal, _executionPin: 'local' }),
+  files: (repoId: string, q: string, signal?: AbortSignal) => api.get(`/git/repos/${repoId}/files`, { params: { q }, signal, _executionPin: 'local' }),
+  symbols: (repoId: string, q: string, exact = false, signal?: AbortSignal) =>
+    api.get(`/git/repos/${repoId}/symbols`, { params: { q, exact: exact ? 1 : undefined }, signal, _executionPin: 'local' }),
+  ls: (repoId: string, path = '') => api.get(`/git/repos/${repoId}/ls`, { params: { path }, _executionPin: 'local' }),
+  blame: (repoId: string, path: string) => api.get(`/git/repos/${repoId}/blame`, { params: { path }, _executionPin: 'local' }),
+  fsOp: (repoId: string, body: { op: 'create' | 'mkdir' | 'rename' | 'delete'; path: string; newPath?: string; content?: string }) =>
+    api.post(`/git/repos/${repoId}/fs`, body, { _executionPin: 'local' }),
+  outgoing: (repoId: string, params: { remote: string; branch: string }) =>
+    api.get(`/git/repos/${repoId}/outgoing`, { params, _executionPin: 'local' }),
+  commitFiles: (repoId: string, sha: string) =>
+    api.get(`/git/repos/${repoId}/commit-files`, { params: { sha }, _executionPin: 'local' }),
+  pushTo: (repoId: string, body: Record<string, unknown>, force = false) =>
+    api.post(`/git/repos/${repoId}/push-to${force ? '/force' : ''}`, body, { _executionPin: 'local' }),
+  addRemote: (repoId: string, body: { name: string; url: string }) =>
+    api.post(`/git/repos/${repoId}/remotes`, body, { _executionPin: 'local' }),
+  updateRemote: (repoId: string, body: { name: string; url?: string; newName?: string }) =>
+    api.post(`/git/repos/${repoId}/remotes/update`, body, { _executionPin: 'local' }),
+  deleteRemote: (repoId: string, body: { name: string }) =>
+    api.post(`/git/repos/${repoId}/remotes/delete`, body, { _executionPin: 'local' }),
   // Absolute clone path for "Show in Finder"/reveal-in-file-manager.
   localPath: (repoId: string) =>
     api.get(`/git/repos/${repoId}/local-path`, { _executionPin: 'local' }),

@@ -14,23 +14,12 @@ import {
   ArrowUp,
   ArrowDown,
   CheckCircle2,
-  ExternalLink,
   UploadCloud,
   GitMerge,
 } from 'lucide-react';
 import { gitAPI } from '@/services/api';
-import { gitOpsToken } from '@/stores/gitConnectionStore';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
 import { confirmDialog } from '@/components/ui/confirm';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
@@ -50,6 +39,10 @@ interface GitChangesPanelProps {
    *  can guard mode / repo / connection switches, mirroring the editor guard. */
   onDirtyChange?: (dirty: boolean) => void;
 }
+
+// The JetBrains Push dialog lives in GitPanel (shared with ⌘⇧K and the
+// toolbar); the Changes panel asks for it with an event.
+const openPushDialog = () => window.dispatchEvent(new CustomEvent('patchman:git-open-push'));
 
 // ── Unified-diff hunk parsing ────────────────────────────────────────────────
 // A `git diff` patch = a file header (diff --git / index / --- / +++), then one
@@ -102,7 +95,7 @@ type Selected = { path: string; staged: boolean } | null;
 // grouped into staged / unstaged / untracked, per-file AND per-hunk Stage /
 // Unstage, a commit box (message + amend) and Commit / Commit & Push. The push
 // dialog defaults to branch + MR.
-export function GitChangesPanel({ repoId, connectionId, onChanged, onDirtyChange }: GitChangesPanelProps) {
+export function GitChangesPanel({ repoId, onChanged, onDirtyChange }: GitChangesPanelProps) {
   const { t } = useTranslation('git');
   const { toast } = useToast();
 
@@ -138,17 +131,27 @@ export function GitChangesPanel({ repoId, connectionId, onChanged, onDirtyChange
   const [amend, setAmend] = useState(false);
   const [committing, setCommitting] = useState(false);
   const [commitError, setCommitError] = useState('');
-  const [pushOpen, setPushOpen] = useState(false);
+  const messageRef = useRef<HTMLTextAreaElement>(null);
+  // ⌘K / ⌘⇧K from the Git tab's keymap (GitPanel dispatches these).
+  useEffect(() => {
+    const focus = () => messageRef.current?.focus();
+    window.addEventListener('patchman:git-commit-focus', focus);
+    return () => {
+      window.removeEventListener('patchman:git-commit-focus', focus);
+    };
+  }, []);
 
-  const loadStatus = useCallback(async () => {
+  const loadStatus = useCallback(async (): Promise<GitStatus | null> => {
     setStatusLoading(true);
     setStatusError('');
     try {
       const res = await gitAPI.status(repoId);
       setStatus(res.data as GitStatus);
+      return res.data as GitStatus;
     } catch (err) {
       setStatusError(extractErr(err, t('errors.readStatus')));
       setStatus(null);
+      return null;
     } finally {
       setStatusLoading(false);
     }
@@ -199,17 +202,27 @@ export function GitChangesPanel({ repoId, connectionId, onChanged, onDirtyChange
     if (resolving && !(await confirmResolverDiscard())) return;
     setSelected(null);
     setPatch('');
+    setContinueMerge(false);
     setResolving(path);
   }, [resolving, confirmResolverDiscard]);
 
   // After a conflict is resolved (written + staged, or staged as-is) refresh
   // status; the cleanup effect then drops the resolver as the file leaves the
   // conflicted list.
+  // Resolving one file moves straight on to the next conflicted one, with the
+  // Merge window already open (JetBrains walks the list the same way).
+  const [continueMerge, setContinueMerge] = useState(false);
   const onConflictResolved = useCallback(async () => {
+    const done = resolving;
     setResolving(null);
-    await loadStatus();
+    const st = await loadStatus();
     onChanged?.();
-  }, [loadStatus, onChanged]);
+    const next = st?.conflicted.find((p) => p !== done);
+    if (next) {
+      setContinueMerge(true);
+      setResolving(next);
+    }
+  }, [resolving, loadStatus, onChanged]);
 
   // After any stage/unstage the index shifts, so refetch BOTH status and the
   // open file's diff before the next hunk action (a stale hunk can fail to
@@ -271,7 +284,7 @@ export function GitChangesPanel({ repoId, connectionId, onChanged, onDirtyChange
 
   const commitAndPush = useCallback(async () => {
     const ok = await doCommit();
-    if (ok) setPushOpen(true);
+    if (ok) openPushDialog();
   }, [doCommit]);
 
   const { fileHeader, hunks } = useMemo(() => parsePatch(patch), [patch]);
@@ -357,6 +370,7 @@ export function GitChangesPanel({ repoId, connectionId, onChanged, onDirtyChange
         {/* Commit box */}
         <div className="shrink-0 border-t p-2 space-y-2">
           <Textarea
+            ref={messageRef}
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             placeholder={t('commit.messagePlaceholder')}
@@ -369,7 +383,7 @@ export function GitChangesPanel({ repoId, connectionId, onChanged, onDirtyChange
               {t('commit.amend')}
             </Label>
             {status && status.ahead > 0 && (
-              <Button size="sm" variant="ghost" className="h-6 text-[11px] gap-1" onClick={() => setPushOpen(true)}>
+              <Button size="sm" variant="ghost" className="h-6 text-[11px] gap-1" onClick={openPushDialog}>
                 <UploadCloud className="h-3 w-3" /> {t('push.pushEllipsis')}
               </Button>
             )}
@@ -407,6 +421,8 @@ export function GitChangesPanel({ repoId, connectionId, onChanged, onDirtyChange
             path={resolving}
             onResolved={onConflictResolved}
             onDirtyChange={handleResolverDirty}
+            autoOpen={continueMerge}
+            remaining={status?.conflicted.length ?? 0}
           />
         ) : !selected ? (
           <div className="flex flex-col items-center justify-center h-full text-muted-foreground gap-2">
@@ -479,15 +495,6 @@ export function GitChangesPanel({ repoId, connectionId, onChanged, onDirtyChange
         )}
       </div>
 
-      {pushOpen && (
-        <PushDialog
-          repoId={repoId}
-          connectionId={connectionId}
-          currentBranch={status?.branch ?? ''}
-          onClose={() => setPushOpen(false)}
-          onPushed={() => { loadStatus(); onChanged?.(); }}
-        />
-      )}
     </div>
   );
 }
@@ -618,147 +625,5 @@ function HunkBody({ hunk }: { hunk: string }) {
         );
       })}
     </div>
-  );
-}
-
-// ── Push dialog: branch + MR by default, advanced direct-to-branch toggle ─────
-function PushDialog({
-  repoId, connectionId, currentBranch, onClose, onPushed,
-}: {
-  repoId: string;
-  connectionId?: string;
-  currentBranch: string;
-  onClose: () => void;
-  onPushed: () => void;
-}) {
-  const { t } = useTranslation('git');
-  const { toast } = useToast();
-  const [direct, setDirect] = useState(false);
-  const [mrTitle, setMrTitle] = useState('');
-  const [mrDescription, setMrDescription] = useState('');
-  const [targetBranch, setTargetBranch] = useState(currentBranch);
-  const [pushing, setPushing] = useState(false);
-  const [error, setError] = useState('');
-  const [result, setResult] = useState<{ branch?: string; mrUrl?: string } | null>(null);
-
-  const doPush = async () => {
-    setError('');
-    setPushing(true);
-    try {
-      // A short-lived token for the local push (none for a PAT connection,
-      // whose own token the BE applies); it lives only in the request body /
-      // server env, never at rest.
-      const accessToken = await gitOpsToken(connectionId);
-      const body = direct
-        ? { accessToken, mode: 'direct', targetBranch: targetBranch.trim() || currentBranch }
-        : { accessToken, mode: 'branch-mr', mrTitle: mrTitle.trim(), mrDescription: mrDescription.trim() };
-      const res = await gitAPI.push(repoId, body);
-      const d = (res.data ?? {}) as { branch?: string; mrUrl?: string };
-      setResult(d);
-      toast({ title: t('push.pushedTitle'), description: d.mrUrl ? t('push.pushedWithMr', { branch: d.branch }) : t('push.pushedToBranch', { branch: d.branch ?? targetBranch }) });
-      onPushed();
-    } catch (err) {
-      setError(extractErr(err, t('errors.push')));
-    }
-    setPushing(false);
-  };
-
-  return (
-    <Dialog open onOpenChange={(o) => { if (!o) onClose(); }}>
-      <DialogContent className="sm:max-w-[520px]">
-        <DialogHeader>
-          <DialogTitle>{t('push.title')}</DialogTitle>
-          <DialogDescription>
-            {t('push.description')}
-          </DialogDescription>
-        </DialogHeader>
-
-        {result ? (
-          <div className="space-y-3">
-            <div className="flex items-start gap-2 p-2 rounded bg-green-500/10 text-green-700 dark:text-green-300 text-xs">
-              <CheckCircle2 className="h-3.5 w-3.5 shrink-0 mt-0.5" />
-              <span>
-                <Trans
-                  t={t}
-                  i18nKey="push.pushedToResult"
-                  values={{ branch: result.branch }}
-                  components={{ mono: <span className="font-mono" /> }}
-                />
-              </span>
-            </div>
-            {result.mrUrl && (
-              <a
-                href={result.mrUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center gap-1.5 text-xs text-sky-600 dark:text-sky-400 hover:underline"
-              >
-                <ExternalLink className="h-3.5 w-3.5" /> {t('push.openMr')}
-              </a>
-            )}
-            <DialogFooter>
-              <Button onClick={onClose}>{t('done')}</Button>
-            </DialogFooter>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {!direct ? (
-              <>
-                <div>
-                  <Label className="text-xs">{t('push.mrTitle')}</Label>
-                  <Input
-                    value={mrTitle}
-                    onChange={(e) => setMrTitle(e.target.value)}
-                    placeholder={t('push.mrTitlePlaceholder')}
-                    className="text-xs"
-                    autoComplete="off"
-                  />
-                </div>
-                <div>
-                  <Label className="text-xs">{t('push.mrDescriptionLabel')}</Label>
-                  <Textarea
-                    value={mrDescription}
-                    onChange={(e) => setMrDescription(e.target.value)}
-                    placeholder={t('push.mrDescriptionPlaceholder')}
-                    className="min-h-[80px] text-xs resize-none"
-                    spellCheck={false}
-                  />
-                </div>
-              </>
-            ) : (
-              <div>
-                <Label className="text-xs">{t('push.targetBranch')}</Label>
-                <Input
-                  value={targetBranch}
-                  onChange={(e) => setTargetBranch(e.target.value)}
-                  placeholder={currentBranch}
-                  className="font-mono text-xs"
-                  autoComplete="off"
-                />
-                <div className="flex items-start gap-2 mt-2 rounded-md bg-amber-500/10 p-2 text-[10px] leading-tight text-amber-700 dark:text-amber-300">
-                  <AlertTriangle className="h-3.5 w-3.5 shrink-0 mt-px" />
-                  <span>{t('push.directWarning')}</span>
-                </div>
-              </div>
-            )}
-
-            <Label className="flex items-center gap-2 text-[11px] text-muted-foreground cursor-pointer pt-1">
-              <Switch checked={direct} onCheckedChange={setDirect} className="scale-90" />
-              {t('push.advanced')}
-            </Label>
-
-            {error && <p className="text-xs text-destructive break-words">{error}</p>}
-
-            <DialogFooter>
-              <Button variant="ghost" onClick={onClose} disabled={pushing}>{t('common:cancel')}</Button>
-              <Button onClick={doPush} disabled={pushing}>
-                {pushing && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
-                {direct ? t('push.pushToBranch') : t('push.pushAndOpenMr')}
-              </Button>
-            </DialogFooter>
-          </div>
-        )}
-      </DialogContent>
-    </Dialog>
   );
 }

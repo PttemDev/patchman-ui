@@ -78,13 +78,15 @@
     "request": "Solicitud",
     "assertion": "Aserción",
     "extract": "Extraer",
-    "wait": "Esperar"
+    "wait": "Esperar",
+    "manual": "Manual"
   },
   "stepKind": {
     "request": "Solicitud API",
     "assertion": "Comprobar respuesta",
     "extract": "Guardar variable",
-    "wait": "Esperar"
+    "wait": "Esperar",
+    "manual": "Paso manual"
   },
   "addStepBtn": {
     "request": "Solicitud",
@@ -506,7 +508,8 @@
     "run": "Ejecutar",
     "saving": "Guardando...",
     "update": "Actualizar",
-    "create": "Crear"
+    "create": "Crear",
+    "manualHint": "Paso manual: el ejecutor lo omite; se sigue a mano."
   },
   "defectStatus": {
     "open": "Abierto",

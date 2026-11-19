@@ -27,7 +27,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
-import { wsAPI } from '@/services/api';
+import { wsAPI, getActiveBaseUrl } from '@/services/api';
 
 interface HeaderRow {
   key: string;
@@ -131,8 +131,11 @@ export function WebSocketClient() {
       setConnectionId(connId);
 
       // Open real WebSocket for bidirectional relay
-      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-      const wsUrl = `${protocol}//${window.location.host}/api/ws/stream/${connId}`;
+      // Same backend the connect call went to (the desktop page origin is
+      // tauri://localhost, so window.location.host is not the backend).
+      const streamUrl = new URL(`${getActiveBaseUrl().replace(/\/+$/, '')}/ws/stream/${encodeURIComponent(connId)}`, window.location.href);
+      streamUrl.protocol = streamUrl.protocol === 'https:' ? 'wss:' : 'ws:';
+      const wsUrl = streamUrl.toString();
       const ws = new WebSocket(wsUrl);
 
       ws.onopen = () => {

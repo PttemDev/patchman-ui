@@ -2,7 +2,9 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 import { Loader2, CheckCircle2, AlertTriangle, Eye, EyeOff, Copy, MonitorSmartphone, Cloud } from 'lucide-react';
 import { dbConnectionAPI, type DBScope } from '@/services/api';
+import { BigQueryConnectionFields, bigQueryOptions, bigQueryStateFrom, type BigQueryFieldsState } from './BigQueryConnectionFields';
 import { useDBConnectionStore, availableDBScopes, dualWrite } from '@/stores/dbConnectionStore';
+import { useGCPStore } from '@/stores/gcpStore';
 import {
   Dialog,
   DialogContent,
@@ -30,6 +32,7 @@ import { toast } from '@/components/ui/use-toast';
 import {
   type DBConnection,
   type DBKind,
+  type GCPCredential,
   DB_KIND_DEFAULT_PORT,
   DB_KIND_FAMILY,
   DB_KIND_LABEL,
@@ -51,15 +54,18 @@ const KIND_GROUPS: Array<{ driver: string; family: boolean; kinds: DBKind[] }> =
   { driver: 'PostgreSQL', family: true,  kinds: ['postgres', 'cockroachdb', 'yugabytedb', 'redshift'] },
   { driver: 'MySQL',      family: true,  kinds: ['mysql', 'mariadb', 'tidb'] },
   { driver: 'SQL Server', family: false, kinds: ['sqlserver'] },
+  { driver: 'Google Cloud', family: false, kinds: ['bigquery'] },
   { driver: 'MongoDB',    family: false, kinds: ['mongo'] },
 ];
 
 export function DBConnectionDialog({ open, onOpenChange, editing, template = null, onSaved }: DBConnectionDialogProps) {
   const { t } = useTranslation('dbquery');
   const upsertLocal = useDBConnectionStore((s) => s.upsertLocal);
+  const gcpCredentials = useGCPStore((s) => s.credentials);
 
   const [name, setName] = useState('');
   const [kind, setKind] = useState<DBKind>('postgres');
+  const [bq, setBq] = useState<BigQueryFieldsState>(() => bigQueryStateFrom(undefined));
   const [host, setHost] = useState('');
   const [port, setPort] = useState<number>(5432);
   const [database, setDatabase] = useState('');
@@ -103,6 +109,7 @@ export function DBConnectionDialog({ open, onOpenChange, editing, template = nul
       setUsername(editing.username);
       setPassword('');
       setOptionsText(JSON.stringify(editing.options ?? {}, null, 2));
+      setBq(bigQueryStateFrom(editing.options as Record<string, unknown> | undefined));
       setNoAuth(editing.kind === 'mongo' && !editing.username && !editing.options?.authMechanism);
       setDsnMode(!!editing.hasConnectionString);
       setDsn('');
@@ -149,6 +156,7 @@ export function DBConnectionDialog({ open, onOpenChange, editing, template = nul
       setDsn('');
     }
     setAdvanced(false);
+    setBq(bigQueryStateFrom(((editing ?? template)?.options) as Record<string, unknown> | undefined));
   }, [open, editing, template, t]);
 
   const handleKindChange = (k: DBKind) => {
@@ -277,7 +285,7 @@ export function DBConnectionDialog({ open, onOpenChange, editing, template = nul
         database,
         username,
         password,
-        options: opts,
+        options: kind === 'bigquery' ? bigQueryOptions(opts, bq) : opts,
       };
       if (dsnMode && dsn.trim()) payload.connectionString = dsn.trim();
       if (template) Object.assign(payload, copyFields(template.id));
@@ -285,7 +293,11 @@ export function DBConnectionDialog({ open, onOpenChange, editing, template = nul
       // dialog — the saved `editing.scope` may be stale (legacy rows
       // defaulted to local) and prod hostnames only resolve via the
       // PatchMan server.
-      const res = editing && !password && !dsn
+      // A BigQuery sign-in switched in the dialog (e.g. to a Google
+      // credential) must be tested as typed, not as the saved row.
+      const savedBq = editing ? bigQueryStateFrom(editing.options as Record<string, unknown> | undefined) : undefined;
+      const bqChanged = kind === 'bigquery' && !!savedBq && (savedBq.auth !== bq.auth || savedBq.credentialId !== bq.credentialId);
+      const res = editing && !password && !dsn && !bqChanged
         ? await dbConnectionAPI.test(editing.id, undefined, scope)
         : await dbConnectionAPI.test(null, payload as Parameters<typeof dbConnectionAPI.test>[1], scope);
       // Record which backend actually ran the test so the result is
@@ -316,7 +328,7 @@ export function DBConnectionDialog({ open, onOpenChange, editing, template = nul
     // Host is only mandatory when no DSN is supplied — `mongodb+srv://`,
     // multi-host, and unix-socket strings don't fit the structured form
     // but they're valid to dial. Match the BE's relaxed validation.
-    if (!dsnMode && !host.trim()) {
+    if (!dsnMode && !host.trim() && kind !== 'bigquery') {
       setError(t('connection.errHostRequired'));
       return;
     }
@@ -343,7 +355,7 @@ export function DBConnectionDialog({ open, onOpenChange, editing, template = nul
           ? (editing.availableScopes as DBScope[])
           : [editing.scope ?? scope];
         const patch: Record<string, unknown> = {
-          name, host, port, database, username, options: opts,
+          name, host, port, database, username, options: kind === 'bigquery' ? bigQueryOptions(opts, bq) : opts,
           primaryScope: scope,
         };
         if (password) patch.password = password;
@@ -376,7 +388,16 @@ export function DBConnectionDialog({ open, onOpenChange, editing, template = nul
         // the connection store collapses them into one logical row.
         // A duplicate goes only where its source lives: each BE copies the
         // secret from its own row.
-        const reachable = availableDBScopes();
+        // gcloud credentials exist only on this computer: such a BigQuery
+        // connection lives on the local backend alone. A shared Google Cloud
+        // credential lives where it was added (a service account is
+        // dual-written, a linked account / gcloud is not), so the connection
+        // goes only to the backend(s) that hold it — like GKE clusters.
+        const reachable = kind === 'bigquery' && bq.auth === 'adc'
+          ? availableDBScopes().filter((sc) => sc === 'local')
+          : kind === 'bigquery' && bq.auth === 'credential'
+            ? bigQueryCredentialScopes(gcpCredentials.find((c) => c.id === bq.credentialId))
+            : availableDBScopes();
         const writeScopes = template?.availableScopes?.length
           ? template.availableScopes.filter((s) => reachable.includes(s))
           : reachable;
@@ -385,7 +406,7 @@ export function DBConnectionDialog({ open, onOpenChange, editing, template = nul
           id, name,
           kind: kind as Parameters<typeof dbConnectionAPI.create>[0]['kind'],
           host, port, database, username, password,
-          options: opts,
+          options: kind === 'bigquery' ? bigQueryOptions(opts, bq) : opts,
           primaryScope: scope,
           ...(dsnPayload ? { connectionString: dsnPayload } : {}),
           ...(template ? copyFields(template.id) : {}),
@@ -508,6 +529,20 @@ export function DBConnectionDialog({ open, onOpenChange, editing, template = nul
             </div>
           )}
 
+          {kind === 'bigquery' && (
+            <BigQueryConnectionFields state={bq} onChange={(v) => {
+              setBq(v);
+              if (v.auth === 'adc') setScope('local');
+              if (v.auth === 'credential') {
+                const only = bigQueryCredentialScopes(gcpCredentials.find((c) => c.id === v.credentialId));
+                if (only.length === 1) setScope(only[0]);
+              }
+            }}
+              project={database} onProject={setDatabase} keyJSON={password} onKey={setPassword}
+              keyStored={!!editing || !!template}
+              ownerAccount={editing?.shared ? editing.username : undefined} />
+          )}
+          {kind !== 'bigquery' && (<>
           {/* Form / connection-string mode toggle */}
           <div className="flex items-center gap-1 text-xs">
             <ModeBtn active={!dsnMode} onClick={() => setDsnMode(false)} label={t('connection.modeForm')} />
@@ -722,6 +757,7 @@ export function DBConnectionDialog({ open, onOpenChange, editing, template = nul
               {previewDSN}
             </div>
           )}
+          </>)}
 
           <button
             type="button"
@@ -811,6 +847,15 @@ export function DBConnectionDialog({ open, onOpenChange, editing, template = nul
       </DialogContent>
     </Dialog>
   );
+}
+
+/** Backends a BigQuery connection signing in with this shared credential can
+ *  live on: every reachable one for a (dual-written) service account, else
+ *  only the backend that holds the credential. */
+function bigQueryCredentialScopes(c: GCPCredential | undefined): DBScope[] {
+  const all = availableDBScopes();
+  if (!c || c.kind === 'service_account' || !c.scope) return all;
+  return all.filter((s) => s === c.scope);
 }
 
 function ScopeCard({

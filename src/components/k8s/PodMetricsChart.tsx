@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
-  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine,
 } from 'recharts';
 import { Loader2, Cpu, MemoryStick, AlertTriangle, History, Activity } from 'lucide-react';
 import { k8sAPI, type DBScope } from '@/services/api';
@@ -309,11 +309,15 @@ export function PodMetricsChart({
               title={t('podMetrics.cpu')} gradKey="hcpu" color={CPU_COLOR} data={cpuData}
               tickFormatter={formatCpu} fmtTick={fmtTick}
               tooltipStyle={tooltipContentStyle} axisTick={axisTick}
+              request={hist?.resources?.cpuRequest} limit={hist?.resources?.cpuLimit}
+              requestLabel={t('podMetrics.request')} limitLabel={t('podMetrics.limit')}
             />
             <MetricChart
               title={t('podMetrics.memory')} gradKey="hmem" color={MEM_COLOR} data={memData}
               tickFormatter={formatMem} fmtTick={fmtTick}
               tooltipStyle={tooltipContentStyle} axisTick={axisTick}
+              request={hist?.resources?.memRequest} limit={hist?.resources?.memLimit}
+              requestLabel={t('podMetrics.request')} limitLabel={t('podMetrics.limit')}
             />
 
             <HistContainerTable containers={hist?.containers ?? []} t={t} />
@@ -500,9 +504,19 @@ function ContainerRow({
   );
 }
 
+// Reference-line colours: request = what the scheduler reserved, limit = the
+// throttle / OOM ceiling.
+const REQUEST_COLOR = '#f59e0b';
+const LIMIT_COLOR = '#ef4444';
+
 function MetricChart({
   title, gradKey, color, data, tickFormatter, fmtTick, showDots, tooltipStyle, axisTick,
+  request, limit, requestLabel, limitLabel,
 }: {
+  request?: number;
+  limit?: number;
+  requestLabel?: string;
+  limitLabel?: string;
   title: string;
   gradKey: string; // ASCII-only, unique per chart (localized titles can't be in an SVG url(#…))
   color: string;
@@ -514,10 +528,26 @@ function MetricChart({
   axisTick: { fontSize: number; fill: string };
 }) {
   const gradId = `pmc-grad-${gradKey}`;
+  // Keep the reference lines on screen: the y-axis grows to include them.
+  const peak = Math.max(0, ...data.map((d) => d.v ?? 0), request ?? 0, limit ?? 0);
+  const refs = [
+    request ? { y: request, color: REQUEST_COLOR, label: requestLabel ?? 'request' } : null,
+    limit ? { y: limit, color: LIMIT_COLOR, label: limitLabel ?? 'limit' } : null,
+  ].filter(Boolean) as Array<{ y: number; color: string; label: string }>;
   return (
     <div>
       <div className="flex items-center justify-between mb-1">
         <span className="text-[10px] uppercase tracking-wider text-muted-foreground">{title}</span>
+        {refs.length > 0 && (
+          <span className="flex items-center gap-3 text-[10px] text-muted-foreground">
+            {refs.map((r) => (
+              <span key={r.label} className="inline-flex items-center gap-1">
+                <span className="inline-block w-3 border-t border-dashed" style={{ borderColor: r.color }} />
+                {r.label} <span className="font-mono">{tickFormatter(r.y)}</span>
+              </span>
+            ))}
+          </span>
+        )}
       </div>
       <div className="h-32 w-full">
         <ResponsiveContainer width="100%" height="100%">
@@ -546,7 +576,7 @@ function MetricChart({
               tick={axisTick}
               stroke="var(--color-border)"
               tickLine={false}
-              domain={[0, 'auto']}
+              domain={[0, refs.length ? Math.ceil(peak * 1.08) : 'auto']}
               allowDecimals={false}
             />
             <Tooltip
@@ -565,6 +595,9 @@ function MetricChart({
               dot={showDots ? { r: 2, fill: color, stroke: color } : false}
               activeDot={{ r: 3 }}
             />
+            {refs.map((r) => (
+              <ReferenceLine key={r.label} y={r.y} stroke={r.color} strokeDasharray="5 4" strokeWidth={1.25} ifOverflow="extendDomain" />
+            ))}
           </AreaChart>
         </ResponsiveContainer>
       </div>

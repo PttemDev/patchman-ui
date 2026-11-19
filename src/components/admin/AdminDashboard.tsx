@@ -25,6 +25,7 @@ import {
   AlertCircle,
   RefreshCw,
   KeyRound,
+  LogOut,
   ChevronLeft,
   ChevronRight,
   ChevronDown,
@@ -41,6 +42,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { toast } from '@/components/ui/use-toast';
+import { confirmDialog } from '@/components/ui/confirm';
 import { CrashReportingCard } from '@/components/admin/CrashReportingCard';
 import { UserUsagePanel, type UsageState } from '@/components/admin/UserUsagePanel';
 import { formatDate, formatDateTime, formatRelative, latestIso } from '@/lib/dateFormat';
@@ -63,6 +65,16 @@ const USER_COLS = 8;
 
 export function AdminDashboard() {
   const { t, i18n } = useTranslation('admin');
+  // Signs a user out on every device (lost / stolen laptop) — RFC L8.
+  const signOutEverywhere = async (u: { id: string; name?: string; email: string }) => {
+    if (!(await confirmDialog({ title: t('userActions.signOutConfirm', { name: u.name || u.email }), description: t('userActions.signOutBody'), destructive: true }))) return;
+    try {
+      const res = await adminAPI.revokeUserSessions(u.id);
+      toast({ title: t('userActions.signedOut', { count: res.data?.revoked ?? 0 }) });
+    } catch (e) {
+      toast({ title: t('userActions.signOutFailed'), description: String((e as Error)?.message ?? e), variant: 'destructive' });
+    }
+  };
   const navigate = useNavigate();
   const me = useAuthStore((s) => s.user);
   const isAdmin = me?.role === 'admin';
@@ -408,6 +420,10 @@ export function AdminDashboard() {
                               <span className="hidden xl:inline">{t('userActions.makeAdmin')}</span>
                             </Button>
                           )}
+                          <Button size="sm" variant="ghost" className="px-2 xl:px-3" onClick={() => void signOutEverywhere(u)} title={t('userActions.signOutTitle')} aria-label={t('userActions.signOutTitle')}>
+                            <LogOut className="h-3.5 w-3.5 xl:mr-1" />
+                            <span className="hidden xl:inline">{t('userActions.signOut')}</span>
+                          </Button>
                           <Button size="sm" variant="ghost" className="px-2 xl:px-3" onClick={() => setResetTarget(u)} title={t('userActions.resetPasswordTitle')} aria-label={t('userActions.resetPasswordTitle')}>
                             <KeyRound className="h-3.5 w-3.5 xl:mr-1" />
                             <span className="hidden xl:inline">{t('userActions.password')}</span>

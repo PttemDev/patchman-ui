@@ -78,13 +78,15 @@
     "request": "Request",
     "assertion": "Assertion",
     "extract": "Extract",
-    "wait": "Wait"
+    "wait": "Wait",
+    "manual": "Manual"
   },
   "stepKind": {
     "request": "API Request",
     "assertion": "Check Response",
     "extract": "Save Variable",
-    "wait": "Wait"
+    "wait": "Wait",
+    "manual": "Manual step"
   },
   "addStepBtn": {
     "request": "Request",
@@ -506,7 +508,8 @@
     "run": "Run",
     "saving": "Saving...",
     "update": "Update",
-    "create": "Create"
+    "create": "Create",
+    "manualHint": "A manual step: the runner skips it; follow it by hand."
   },
   "defectStatus": {
     "open": "Open",

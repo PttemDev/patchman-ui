@@ -142,7 +142,7 @@
     "cardsCount_one": "{{count}} tarjeta",
     "cardsCount_other": "{{count}} tarjetas",
     "filter": "Filtrar tarjetas y páginas…",
-    "empty": "Aún no hay tarjetas. Tus agentes de IA las añaden cuando aprenden algo que vale la pena guardar, o añade una tú.",
+    "empty": "Aún no hay tarjetas. Tus agentes de IA las añaden por MCP cuando aprenden algo que vale la pena guardar: pídele al tuyo que “recuerde esto”.",
     "folderHint": "Tarjetas de conocimiento: un hecho, decisión o causa raíz cada una, con un resumen de una línea que los agentes leen primero.",
     "newCard": "Nueva tarjeta",
     "newCardTitle": "Nueva tarjeta",
@@ -299,7 +299,58 @@
     "foldersCount_other": "{{count}} carpetas",
     "notInFolder": "Sin carpeta",
     "emptyFolder": "vacía",
-    "openFolder": "Abrir"
+    "openFolder": "Abrir",
+    "teamGuide": {
+      "title": "Memoria de equipo: cómo funciona",
+      "intro": "Una memoria de equipo es un cerebro compartido para los agentes de IA de tu equipo: lo que aprende el agente de un compañero, el agente de cualquier compañero puede recordarlo. Sin wiki que mantener ni copiar y pegar entre personas.",
+      "link": "Cómo funciona la memoria de equipo",
+      "howTitle": "Cómo funciona",
+      "flow": {
+        "learn": {
+          "title": "Aprender",
+          "body": "Mientras trabaja, un agente encuentra algo que vale la pena guardar: una causa raíz, una decisión, cómo se comporta un servicio."
+        },
+        "remember": {
+          "title": "Recordar",
+          "body": "Guarda una tarjeta breve en la memoria de equipo por MCP, firmada con el nombre del agente."
+        },
+        "recall": {
+          "title": "Buscar",
+          "body": "Más tarde, el agente de un compañero busca en la memoria antes de un trabajo relacionado, sin que nadie tenga que indicárselo."
+        },
+        "reuse": {
+          "title": "Reutilizar",
+          "body": "La tarjeta vuelve etiquetada [team: …], así el agente parte de ella en lugar de redescubrirla."
+        }
+      },
+      "mcpTitle": "Deja que tu agente la escriba: no hace falta crear tarjetas a mano",
+      "mcpBody": "Las tarjetas están pensadas para que las cree tu agente de IA (Claude Code, Cursor, Claude Desktop…) con las herramientas MCP de PatchMan. El agente mantiene cada tarjeta en un solo tema, nombra de qué trata y la enlaza con tarjetas relacionadas, y eso es lo que permite encontrarla después. Basta con pedírselo con palabras sencillas:",
+      "prompts": {
+        "save": "Recuerda esto para el equipo: <lo que aprendiste>",
+        "ask": "Antes de empezar, revisa la memoria de equipo: ¿qué sabemos de <servicio o tema>?",
+        "review": "Guarda lo que decidimos hoy en la memoria de equipo y enlázalo con las tarjetas relacionadas."
+      },
+      "mcpHandEdit": "Corregir o borrar una tarjeta a mano está bien. Los agentes nunca sobrescriben lo que escribió una persona: dejan una sugerencia en la bandeja para que la aceptes o la rechaces.",
+      "whoTitle": "Quién ve qué",
+      "who": {
+        "personal": "Todo lo que guarda un agente va a tu memoria personal salvo que pidas el equipo. Solo tú lo ves.",
+        "team": "Una memoria de equipo es una carpeta de memoria compartida con un equipo: los compañeros con permiso de edición pueden añadir, y todos con quienes se comparte pueden buscar en ella.",
+        "tagged": "Los resultados indican de dónde viene cada tarjeta ([team: …], [shared by …]), así el agente la trata como la nota de un compañero, no como una instrucción tuya.",
+        "secrets": "Se rechazan contraseñas, tokens y claves; guarda en su lugar una referencia a dónde está el secreto."
+      },
+      "setupTitle": "Configuración (una vez por equipo)",
+      "setup": {
+        "connect": "Cada compañero conecta su agente de IA a PatchMan en {{path}}.",
+        "share": "Una persona convierte una carpeta en memoria de agente (⋯ → “{{useAsMemory}}”) y la comparte con el equipo como editores (⋯ → {{share}}).",
+        "pick": "Si puedes escribir en varias memorias de equipo, elige la predeterminada que usarán los agentes."
+      },
+      "pickDefault": "Elegir memoria de equipo predeterminada",
+      "copy": "Copiar instrucción",
+      "copied": "Instrucción copiada",
+      "copyFailed": "No se pudo copiar",
+      "hint": "Tu agente de IA escribe estas tarjetas por MCP: no hace falta añadirlas a mano. Pídele que “recuerde esto para el equipo”.",
+      "newCardTitle": "Añadir una tarjeta a mano: normalmente tu agente de IA lo hace por ti por MCP"
+    }
   },
   "sharing": {
     "everyone": "Todos",
@@ -313,5 +364,9 @@
     "updated": "Actualizada {{when}}",
     "created": "Creada {{when}}",
     "createdBy": "creada por {{name}} · {{when}}"
-  }
+  },
+  "groupMemory": "Memoria de agentes",
+  "groupNotes": "Notas",
+  "myMemory": "Mi memoria",
+  "sharedMemories": "Memorias compartidas conmigo"
 }

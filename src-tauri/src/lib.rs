@@ -20,14 +20,14 @@ use std::io::Write;
 use std::net::{SocketAddr, TcpListener, TcpStream};
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicBool, Ordering};
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc, Mutex, OnceLock};
 use std::time::{Duration, Instant};
 
 // Set just before a CONFIRMED quit (the FE quit-confirm flow, or the tray Quit
 // item) so the ExitRequested guard lets that exit through instead of bouncing
 // it back to the FE for another confirm. Cmd+Q with this still false triggers
 // the confirm dialog.
-static ALLOW_EXIT: AtomicBool = AtomicBool::new(false);
+pub(crate) static ALLOW_EXIT: AtomicBool = AtomicBool::new(false);
 
 use tauri::{
     menu::{Menu, MenuItem, PredefinedMenuItem},
@@ -36,6 +36,10 @@ use tauri::{
 };
 #[cfg(any(target_os = "linux", all(debug_assertions, windows)))]
 use tauri_plugin_deep_link::DeepLinkExt;
+
+mod plugindev;
+mod security;
+use security::Security;
 use tauri_plugin_dialog::{DialogExt, MessageDialogKind};
 use tauri_plugin_shell::{
     process::{CommandChild, CommandEvent},
@@ -173,10 +177,60 @@ fn wait_for_ready(port: u16, timeout: Duration, exited: &AtomicBool) -> Result<(
     ))
 }
 
+/// Per-run secret the embedded BE requires on every request
+/// (DESKTOP_SECURITY_RFC L1). Generated once, handed to the sidecar via env
+/// (not argv — argv is visible in `ps`) and to this app's own windows only.
+static LAUNCH_TOKEN: OnceLock<String> = OnceLock::new();
+
+fn random_hex() -> String {
+    let mut buf = [0u8; 32];
+    getrandom::getrandom(&mut buf).expect("OS random source unavailable");
+    buf.iter().map(|b| format!("{b:02x}")).collect()
+}
+
+fn launch_token() -> &'static str {
+    LAUNCH_TOKEN.get_or_init(random_hex)
+}
+
+/// Lets a PatchMan window (main / detached-*) fetch the launch token. The
+/// capability file scopes IPC to those windows; the label check is a second
+/// fence so a future webview (e.g. the Grafana SSO window) never gets it.
+#[tauri::command]
+fn local_api_token(window: tauri::WebviewWindow) -> Result<String, String> {
+    let label = window.label();
+    if label == "main" || label.starts_with("detached-") {
+        Ok(launch_token().to_string())
+    } else {
+        Err("not allowed".into())
+    }
+}
+
+/// The navigation allow-list of the main window (see `on_navigation`).
+fn navigation_allowed(url: &tauri::Url, sidecar_port: u16) -> bool {
+    match url.scheme() {
+        "tauri" => url.host_str() == Some("localhost"),
+        "http" | "https" => match url.host_str() {
+            Some("tauri.localhost") => true,
+            Some("127.0.0.1") => url.port() == Some(sidecar_port) && url.path().starts_with("/plugin-ui/"),
+            // `tauri dev` serves the FE from a local dev server.
+            Some("localhost") => cfg!(debug_assertions),
+            _ => false,
+        },
+        "about" => matches!(url.path(), "blank" | "srcdoc"),
+        // The HTTP response viewer previews PDFs in a data: frame. PDF only:
+        // a data: HTML page would be a fresh document with no CSP.
+        "data" => url.path().starts_with("application/pdf"),
+        // Downloads and previews from the app's own object URLs.
+        "blob" => url.path().starts_with("tauri://localhost/") || url.path().starts_with("http://tauri.localhost/"),
+        _ => false,
+    }
+}
+
 fn build_init_script(url: &str) -> String {
     let encoded = serde_json::to_string(url).unwrap_or_else(|_| "\"\"".to_string());
+    let token = serde_json::to_string(launch_token()).unwrap_or_else(|_| "\"\"".to_string());
     format!(
-        "try {{ window.__PATCHMAN_LOCAL_API__ = {encoded}; }} catch (e) {{ console.error('Failed to pin local API URL', e); }}"
+        "try {{ window.__PATCHMAN_LOCAL_API__ = {encoded}; window.__PATCHMAN_LOCAL_TOKEN__ = {token}; }} catch (e) {{ console.error('Failed to pin local API URL', e); }}"
     )
 }
 
@@ -187,6 +241,26 @@ fn boot(app: &tauri::App, sidecar: &SidecarHandle) -> Result<(), BootError> {
     let app_data = app.path().app_data_dir()?;
     std::fs::create_dir_all(&app_data).ok();
     let db_path = app_data.join("patchman.db");
+
+    // Security state (lock / step-up) — the BE starts locked when the lock is
+    // on, so nothing is served before the user unlocks. The control token
+    // lets only this process change that state.
+    let control_token = random_hex();
+    let sec = Security::new(app_data.clone(), launch_token().to_string(), control_token.clone());
+    let start_locked = sec.starts_locked();
+    app.manage(sec);
+    // Plugin developer mode is one session at a time (plugindev.rs).
+    let plugin_dev = plugindev::resolve(&app_data);
+    app.manage(plugindev::PluginDev(AtomicBool::new(plugin_dev)));
+    // Debug builds can skip the login Keychain (PATCHMAN_DEV_SKIP_KEYCHAIN=1):
+    // an unsigned dev binary reading the installed app's item triggers a
+    // blocking macOS prompt, and a dev data dir must not share its key.
+    let skip_keychain = cfg!(debug_assertions) && std::env::var("PATCHMAN_DEV_SKIP_KEYCHAIN").as_deref() == Ok("1");
+    let cipher_key = if skip_keychain {
+        String::new()
+    } else {
+        security::cipher_key_from_keychain(&db_path).unwrap_or_default()
+    };
     let db_path_str = db_path
         .to_str()
         .ok_or("app-data path is not valid UTF-8")?;
@@ -200,7 +274,17 @@ fn boot(app: &tauri::App, sidecar: &SidecarHandle) -> Result<(), BootError> {
         db_path_str,
         "--bind",
         &format!("127.0.0.1:{port}"),
-    ]);
+    ])
+    .env("PATCHMAN_LAUNCH_TOKEN", launch_token())
+    .env("PATCHMAN_CONTROL_TOKEN", &control_token)
+    .env("PATCHMAN_START_LOCKED", if start_locked { "1" } else { "0" })
+    .env("PATCHMAN_CIPHER_KEY", &cipher_key)
+    .env("PATCHMAN_PLUGIN_DEV", if plugin_dev { "1" } else { "0" })
+    // Dev builds load the SPA from the Vite dev server, a different origin.
+    .env(
+        "PATCHMAN_ALLOWED_ORIGINS",
+        if cfg!(debug_assertions) { "http://localhost:3000" } else { "" },
+    );
     let log = SidecarLog::open(&app.path().app_log_dir()?);
     let log_path = log.path.clone();
     let exited = Arc::new(AtomicBool::new(false));
@@ -210,6 +294,11 @@ fn boot(app: &tauri::App, sidecar: &SidecarHandle) -> Result<(), BootError> {
 
     wait_for_ready(port, READY_TIMEOUT, &exited)
         .map_err(|e| format!("{e}\n\nLog: {}", log_path.display()))?;
+
+    let sec = app.state::<Security>();
+    sec.set_port(port);
+    sec.push();
+    Security::start_monitor(app.handle().clone());
 
     let init_script = build_init_script(&url);
     #[allow(unused_mut)]
@@ -229,7 +318,13 @@ fn boot(app: &tauri::App, sidecar: &SidecarHandle) -> Result<(), BootError> {
         // file dropzones silently do nothing in the desktop app (they work in
         // the browser, which has no such handler). We don't use Tauri's native
         // file-drop events anywhere, so turning it off is a pure win.
-        .disable_drag_drop_handler();
+        .disable_drag_drop_handler()
+        // Every navigation the webview starts — main frame AND subframes
+        // (WKWebView reports both) — must stay inside the app, the plugin UI
+        // route of our own sidecar, or about:blank/srcdoc. A sandboxed plugin
+        // iframe changing its own location is the exfiltration path CSP
+        // cannot close (PLUGIN_MARKETPLACE_RFC ADR-2, §14.5, §16.3).
+        .on_navigation(move |url| navigation_allowed(url, port));
 
     // Push the traffic-light cluster DOWN so it vertically centers in the app's
     // 48px (h-12) top bar. Builder form of the `trafficLightPosition` window
@@ -438,7 +533,20 @@ pub fn run() {
     let sidecar_for_exit = sidecar.clone();
 
     let app = tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![set_tray_labels, confirm_quit, grafana_sso_login])
+        .invoke_handler(tauri::generate_handler![
+            set_tray_labels,
+            confirm_quit,
+            grafana_sso_login,
+            local_api_token,
+            security::security_state,
+            security::security_unlock,
+            security::security_lock,
+            security::security_activity,
+            security::security_sudo,
+            security::security_update,
+            plugindev::plugin_dev_state,
+            plugindev::plugin_dev_restart
+        ])
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_deep_link::init())
@@ -503,4 +611,42 @@ pub fn run() {
         RunEvent::Reopen { .. } => show_main(app_handle),
         _ => {}
     });
+}
+
+#[cfg(test)]
+mod navigation_tests {
+    use super::navigation_allowed;
+
+    fn ok(u: &str) -> bool {
+        navigation_allowed(&tauri::Url::parse(u).unwrap(), 4321)
+    }
+
+    #[test]
+    fn allows_app_and_plugin_ui() {
+        assert!(ok("tauri://localhost/index.html"));
+        assert!(ok("http://tauri.localhost/"));
+        assert!(ok("http://127.0.0.1:4321/plugin-ui/dev.x.y/abc/index.html"));
+        assert!(ok("about:blank"));
+        assert!(ok("about:srcdoc"));
+        assert!(ok("data:application/pdf;base64,AAAA"));
+        assert!(ok("blob:tauri://localhost/1234"));
+    }
+
+    #[test]
+    fn denies_everything_else() {
+        for u in [
+            "https://evil.example/?d=secret",
+            "http://127.0.0.1:4321/api/plugins",
+            "http://127.0.0.1:9999/plugin-ui/x",
+            "http://127.0.0.1:4321/plugin-uix/",
+            "data:text/html,<script>fetch('https://evil')</script>",
+            "blob:null/1234",
+            "javascript:alert(1)",
+            "file:///etc/passwd",
+            "tauri://evil/",
+            "mailto:a@b.c",
+        ] {
+            assert!(!ok(u), "{u} allowed");
+        }
+    }
 }

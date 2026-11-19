@@ -63,3 +63,52 @@ export function groupAliases(rows: AliasRow[]): AliasGroup[] {
   }
   return Array.from(map.values()).sort((x, y) => x.alias.localeCompare(y.alias));
 }
+
+// ── Data view / Discover helpers ────────────────────────────────────────
+
+/** Flatten a document to dotted keys (arrays of objects stay as values). */
+export function flattenDoc(obj: unknown, prefix = '', out: Record<string, unknown> = {}): Record<string, unknown> {
+  if (obj === null || typeof obj !== 'object' || Array.isArray(obj)) {
+    if (prefix) out[prefix] = obj;
+    return out;
+  }
+  const entries = Object.entries(obj as Record<string, unknown>);
+  if (entries.length === 0 && prefix) out[prefix] = obj;
+  for (const [k, v] of entries) {
+    const key = prefix ? `${prefix}.${k}` : k;
+    if (v !== null && typeof v === 'object' && !Array.isArray(v)) flattenDoc(v, key, out);
+    else out[key] = v;
+  }
+  return out;
+}
+
+/** A hit's fields as one flat map: _source (dotted) + `fields` (runtime /
+ *  docvalue; single-value arrays unwrapped). `fields` wins on conflicts. */
+export function hitFields(hit: { _source?: Record<string, unknown>; fields?: Record<string, unknown[]> }): Record<string, unknown> {
+  const flat = flattenDoc(hit._source ?? {});
+  for (const [k, v] of Object.entries(hit.fields ?? {})) {
+    flat[k] = Array.isArray(v) && v.length === 1 ? v[0] : v;
+  }
+  return flat;
+}
+
+/** Render any field value as a short single-line string. */
+export function fieldText(v: unknown): string {
+  if (v === undefined) return '';
+  if (v === null) return 'null';
+  if (typeof v === 'string') return v;
+  return JSON.stringify(v);
+}
+
+/** Quote a value for a Lucene query_string term: field:"value". */
+export function luceneTerm(field: string, value: unknown): string {
+  const f = field.replace(/([+\-=&|><!(){}[\]^"~*?:\\/ ])/g, '\\$1');
+  const v = fieldText(value).replace(/(["\\])/g, '\\$1');
+  return `${f}:"${v}"`;
+}
+
+/** Console buffer text for a built request: "POST path\n{json}". */
+export function consoleText(q: { method: string; path: string; body: unknown }): string {
+  const path = q.path.replace(/^\//, '');
+  return `${q.method} ${path}\n${JSON.stringify(q.body, null, 2)}`;
+}

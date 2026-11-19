@@ -142,7 +142,7 @@
     "cardsCount_one": "{{count}} card",
     "cardsCount_other": "{{count}} cards",
     "filter": "Filter cards and pages…",
-    "empty": "No cards yet. Your AI agents add them when they learn something worth keeping — or add one yourself.",
+    "empty": "No cards yet. Your AI agents add them over MCP when they learn something worth keeping — ask yours to “remember this”.",
     "folderHint": "Knowledge cards: one fact, decision or root cause each, with a one-line summary agents read first.",
     "newCard": "New card",
     "newCardTitle": "New card",
@@ -299,7 +299,58 @@
     "foldersCount_other": "{{count}} folders",
     "notInFolder": "Not in a folder",
     "emptyFolder": "empty",
-    "openFolder": "Open"
+    "openFolder": "Open",
+    "teamGuide": {
+      "title": "Team memory — how it works",
+      "intro": "A team memory is a shared brain for your team's AI agents: what one teammate's agent learns, every teammate's agent can recall. No wiki to keep up, no copy-pasting between people.",
+      "link": "How team memory works",
+      "howTitle": "How it works",
+      "flow": {
+        "learn": {
+          "title": "Learn",
+          "body": "While working, an agent finds something worth keeping: a root cause, a decision, how a service behaves."
+        },
+        "remember": {
+          "title": "Remember",
+          "body": "It saves a short card to the team memory over MCP, signed with the agent's name."
+        },
+        "recall": {
+          "title": "Recall",
+          "body": "Later, a teammate's agent searches memory before related work — no one has to point it there."
+        },
+        "reuse": {
+          "title": "Reuse",
+          "body": "The card comes back tagged [team: …], so the agent builds on it instead of rediscovering it."
+        }
+      },
+      "mcpTitle": "Let your agent write it — you don't open cards by hand",
+      "mcpBody": "Cards are meant to be created by your AI agent (Claude Code, Cursor, Claude Desktop…) through PatchMan's MCP tools. The agent keeps each card to one topic, names what it is about and links related cards, which is what makes it findable later. Just ask it in plain words:",
+      "prompts": {
+        "save": "Remember this for the team: <what you learned>",
+        "ask": "Check the team memory before you start — what do we know about <service or topic>?",
+        "review": "Save what we decided today to the team memory and link it to the related cards."
+      },
+      "mcpHandEdit": "Fixing or deleting a card by hand is fine. Agents never overwrite what a person wrote; they leave a suggestion in the inbox for you to accept or reject.",
+      "whoTitle": "Who sees what",
+      "who": {
+        "personal": "Everything an agent saves goes to your personal memory unless you ask for the team. Only you see it.",
+        "team": "A team memory is a memory folder shared with a team: teammates with edit access can add to it, everyone it is shared with can recall from it.",
+        "tagged": "Search results say where each card comes from — [team: …], [shared by …] — so an agent treats it as a teammate's note, not as your instruction.",
+        "secrets": "Passwords, tokens and keys are refused; save a pointer to where the secret lives instead."
+      },
+      "setupTitle": "Set up (once per team)",
+      "setup": {
+        "connect": "Each teammate connects their AI agent to PatchMan in {{path}}.",
+        "share": "One person makes a folder an agent memory (⋯ → “{{useAsMemory}}”) and shares it with the team as editors (⋯ → {{share}}).",
+        "pick": "If you can write to several team memories, pick the default one agents should use."
+      },
+      "pickDefault": "Pick default team memory",
+      "copy": "Copy prompt",
+      "copied": "Prompt copied",
+      "copyFailed": "Couldn't copy",
+      "hint": "Your AI agent writes these cards over MCP — no need to add them by hand. Ask it to “remember this for the team”.",
+      "newCardTitle": "Add a card by hand — usually your AI agent does this for you over MCP"
+    }
   },
   "sharing": {
     "everyone": "Everyone",
@@ -313,5 +364,9 @@
     "updated": "Updated {{when}}",
     "created": "Created {{when}}",
     "createdBy": "created by {{name}} · {{when}}"
-  }
+  },
+  "groupMemory": "Agent memory",
+  "groupNotes": "Notes",
+  "myMemory": "My memory",
+  "sharedMemories": "Memories shared with me"
 }

@@ -10,12 +10,15 @@ import { LoginPage } from '@/components/auth/LoginPage';
 import { RegisterPage } from '@/components/auth/RegisterPage';
 import { GitLabOAuthCallback } from '@/components/auth/GitLabOAuthCallback';
 import { SSOCallbackPage } from '@/components/auth/SSOCallbackPage';
+import { GcpCallbackPage } from '@/components/gcp/GcpCallbackPage';
 import { JoinByTokenPage } from '@/components/collections/JoinByTokenPage';
 import { JoinEnvironmentByTokenPage } from '@/components/environment/JoinEnvironmentByTokenPage';
 import { AdminDashboard } from '@/components/admin/AdminDashboard';
 // No-account whiteboard viewer — lazy so Excalidraw stays out of the main chunk.
 const PublicWhiteboardPage = lazyWithReload(() => import('@/components/excalidraw/PublicWhiteboardPage'));
 import { TooltipProvider } from '@/components/ui/tooltip';
+import { GlobalConfirm } from '@/components/ui/confirm';
+import { LockScreen } from '@/components/security/LockScreen';
 import { Button } from '@/components/ui/button';
 import { CommandPalette } from '@/components/common/CommandPalette';
 import { PasteHistoryOverlay } from '@/components/paste/PasteHistoryOverlay';
@@ -294,6 +297,10 @@ function App() {
       <GlobalErrorListeners />
       <ErrorReportDialog />
       <TooltipProvider>
+        {/* One confirm host for the whole app — login and connect screens too
+            (a patchman://connect deep link asks before switching backend). */}
+        <GlobalConfirm />
+        <LockScreen />
         {/* Desktop-only invisible drag strip for screens without the app's
             own titlebar (login / register / OAuth callbacks / connect gate) —
             the OS window has no chrome there, so give the user an empty band
@@ -315,6 +322,11 @@ function App() {
               because the user is mid-redirect; it only stashes code+state for
               the originating tab and closes. */}
           <Route path="/auth/gitlab/callback" element={<GitLabOAuthCallback />} />
+          {/* GitHub / Google sign-in land on their own callback (sign-in only,
+              no integration flow shares them). */}
+          <Route path="/auth/github/callback" element={<SSOCallbackPage />} />
+          <Route path="/auth/google/callback" element={<SSOCallbackPage />} />
+          <Route path="/auth/google-cloud/callback" element={<GcpCallbackPage />} />
           {/* Shareable collection join URL. The page itself bounces to
               /login when not authenticated and resumes via ?next=. */}
           <Route path="/join/:token" element={<JoinByTokenPage />} />

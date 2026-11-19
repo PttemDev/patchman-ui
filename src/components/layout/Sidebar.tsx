@@ -24,6 +24,7 @@ import {
   NotebookText,
   LayoutDashboard,
   ChevronsRight,
+  Puzzle,
 } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -36,6 +37,7 @@ import { RedisIcon } from '@/components/icons/RedisIcon';
 import { ESSidebar, ESHeaderActions } from '@/components/es/ESSidebar';
 import { ESIcon } from '@/components/icons/ESIcon';
 import { K8sSidebar, K8sHeaderActions } from '@/components/k8s/K8sSidebar';
+import { GcpSidebarGroup } from '@/components/gcp/GcpSidebarGroup';
 import { K8sIcon } from '@/components/icons/K8sIcon';
 import { GitSidebar, GitHeaderActions } from '@/components/git/GitSidebar';
 import { DevToolsSidebar } from '@/components/devtools/DevToolsSidebar';
@@ -61,9 +63,11 @@ import { useSidebarStore } from '@/stores/sidebarStore';
 import { useAuthStore } from '@/stores/authStore';
 import { Separator } from '@/components/ui/separator';
 import { isDesktop } from '@/lib/platform';
+import { PluginsSidebar } from '@/components/plugins/PluginsSidebar';
+import { usePluginStore } from '@/stores/pluginStore';
 import { useUpdateStore } from '@/stores/updateStore';
 
-export type SidebarTab = 'collections' | 'history' | 'qa' | 'qa-planning' | 'mock' | 'websocket' | 'cookies' | 'audit' | 'database' | 'kafka' | 'storage' | 'redis' | 'elasticsearch' | 'kubernetes' | 'git' | 'ai' | 'devtools' | 'excalidraw' | 'notes' | 'dashboards';
+export type SidebarTab = 'collections' | 'history' | 'qa' | 'qa-planning' | 'mock' | 'websocket' | 'cookies' | 'audit' | 'database' | 'kafka' | 'storage' | 'redis' | 'elasticsearch' | 'kubernetes' | 'git' | 'ai' | 'devtools' | 'excalidraw' | 'notes' | 'dashboards' | 'plugins';
 
 // Always hidden in local mode — these features need a multi-user backend
 // that the embedded desktop BE deliberately doesn't provide (audit log is
@@ -97,12 +101,15 @@ export const sidebarTabs: { id: SidebarTab; icon: React.ElementType; group?: str
   { id: 'websocket', icon: Plug, group: 'tools' },
   { id: 'cookies', icon: Cookie, group: 'tools' },
   { id: 'audit', icon: Shield, group: 'tools' },
+  { id: 'plugins', icon: Puzzle, group: 'tools' },
 ];
 
 // Tabs the current platform/mode hides outright, independent of user prefs —
 // so the Appearance toggle list only offers items actually reachable here.
 export function platformHiddenTabs(isLocal: boolean, desktop: boolean): Set<SidebarTab> {
   const hidden = new Set<SidebarTab>();
+  // Plugins install on the desktop's embedded BE only (RFC §16).
+  if (!desktop) hidden.add('plugins');
   if (isLocal) {
     MULTI_USER_TABS.forEach((tab) => hidden.add(tab));
     if (!desktop) {
@@ -124,6 +131,14 @@ export function Sidebar() {
   const updateAvailable = useUpdateStore((s) => s.available);
 
   const hidden = platformHiddenTabs(isLocal, desktop);
+  // The Plugins rail appears once there is something in it: an installed
+  // plugin, or developer mode (dev install) on this backend.
+  const pluginsUseful = usePluginStore((s) => s.devInstall || s.plugins.length > 0);
+  const fetchPlugins = usePluginStore((s) => s.fetchPlugins);
+  useEffect(() => {
+    if (desktop) void fetchPlugins();
+  }, [desktop, fetchPlugins]);
+  if (!pluginsUseful) hidden.add('plugins');
   const userHidden = new Set(hiddenTabs);
   const visibleTabs = sidebarTabs.filter((tab) => !hidden.has(tab.id) && !userHidden.has(tab.id));
   const mainTabs = visibleTabs.filter(tab => tab.group === 'main');
@@ -266,16 +281,17 @@ export function Sidebar() {
             <ScrollArea className="flex-1">
               {effectiveActive === 'collections' && <CollectionsAccordion />}
               {effectiveActive === 'database' && <DBSidebar />}
-              {effectiveActive === 'kafka' && <MessagingSidebar />}
-              {effectiveActive === 'storage' && <S3Sidebar />}
+              {effectiveActive === 'kafka' && <><MessagingSidebar /><GcpSidebarGroup service="pubsub" /></>}
+              {effectiveActive === 'storage' && <><S3Sidebar /><GcpSidebarGroup service="storage" /></>}
               {effectiveActive === 'redis' && <RedisSidebar />}
               {effectiveActive === 'elasticsearch' && <ESSidebar />}
-              {effectiveActive === 'kubernetes' && <K8sSidebar />}
+              {effectiveActive === 'kubernetes' && <><K8sSidebar /><GcpSidebarGroup service="gke" /></>}
               {effectiveActive === 'git' && <GitSidebar />}
               {effectiveActive === 'devtools' && <DevToolsSidebar />}
               {effectiveActive === 'excalidraw' && <ExcalidrawSidebar />}
               {effectiveActive === 'notes' && <NotesSidebar />}
-              {effectiveActive === 'dashboards' && <DashboardsSidebar />}
+              {effectiveActive === 'dashboards' && <><DashboardsSidebar /><GcpSidebarGroup service="logging" /></>}
+              {effectiveActive === 'plugins' && <PluginsSidebar />}
               {effectiveActive === 'history' && <HistoryList />}
               {effectiveActive === 'qa' && <QADashboard />}
               {effectiveActive === 'websocket' && <WebSocketClient />}

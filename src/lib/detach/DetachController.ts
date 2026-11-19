@@ -41,6 +41,22 @@ export function standaloneTabId(): string | null {
   return new URLSearchParams(window.location.search).get('detached');
 }
 
+async function bringMainToFront(): Promise<void> {
+  if (!isDesktop()) {
+    try { window.focus(); } catch { /* ignore */ }
+    return;
+  }
+  try {
+    const { getCurrentWindow } = await import('@tauri-apps/api/window');
+    const w = getCurrentWindow();
+    await w.show(); // may be hidden (close-to-tray)
+    await w.unminimize();
+    await w.setFocus();
+  } catch (err) {
+    console.warn('[detach] focus main failed', err);
+  }
+}
+
 export function isStandalone(): boolean {
   return !!standaloneTabId();
 }
@@ -244,6 +260,12 @@ class DetachHost {
       }
       case 'detach:here':
         this.aliveDuringRollcall.add(msg.tabId);
+        break;
+      case 'detach:open-tab':
+        // A detached window asked to open a new tab: it can only show its own
+        // one, so the tab opens here and this window comes forward.
+        store.addTab(msg.open ?? {}, msg.forceNew);
+        void bringMainToFront();
         break;
       // 'detach:handoff' / 'detach:rollcall' are outbound-from-main only.
       default:

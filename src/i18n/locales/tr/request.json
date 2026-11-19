@@ -52,7 +52,8 @@
       "grafana": "Grafana dashboard",
       "rabbit": "RabbitMQ",
       "graylog": "Graylog",
-      "servicemap": "Servis haritası"
+      "servicemap": "Servis haritası",
+      "plugin": "Eklenti"
     },
     "moreParams": "parametre daha"
   },

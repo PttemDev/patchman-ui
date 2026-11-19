@@ -1,4 +1,4 @@
-import { Globe, Info, ScrollText, Download, GitBranch, Database, Bot, Keyboard, Languages, Cloud, Palette } from 'lucide-react';
+import { Globe, Info, ScrollText, Download, GitBranch, Database, Bot, Keyboard, Languages, Cloud, Palette, Shield, Puzzle, FileCode2, CloudCog } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import { isDesktop } from '@/lib/platform';
@@ -18,9 +18,13 @@ import { AboutSection } from './AboutSection';
 import { ChangelogSection } from './ChangelogSection';
 import { UpdatesSection } from './UpdatesSection';
 import { KeymapSection } from './KeymapSection';
+import { EditorSection } from './EditorSection';
+import { GoogleCloudSection } from './GoogleCloudSection';
 import { LanguageSection } from './LanguageSection';
 import { RemoteSection } from './RemoteSection';
 import { AppearanceSection } from './AppearanceSection';
+import { SecuritySection } from './SecuritySection';
+import { PluginsSection } from './PluginsSection';
 
 interface SectionDef {
   id: SettingsSection;
@@ -31,12 +35,16 @@ interface SectionDef {
 
 const ALL_SECTIONS: SectionDef[] = [
   { id: 'keymap', labelKey: 'settings:nav.shortcuts', icon: Keyboard, render: () => <KeymapSection /> },
+  { id: 'editor', labelKey: 'settings:nav.editor', icon: FileCode2, render: () => <EditorSection /> },
   { id: 'appearance', labelKey: 'settings:nav.appearance', icon: Palette, render: () => <AppearanceSection /> },
   { id: 'language', labelKey: 'common:language', icon: Languages, render: () => <LanguageSection /> },
   { id: 'remote', labelKey: 'settings:nav.remote', icon: Cloud, render: () => <RemoteSection /> },
+  { id: 'security', labelKey: 'settings:nav.security', icon: Shield, render: () => <SecuritySection /> },
   { id: 'proxy', labelKey: 'settings:nav.proxy', icon: Globe, render: () => <ProxySection /> },
   { id: 'integrations', labelKey: 'settings:nav.integrations', icon: GitBranch, render: () => <IntegrationsSection /> },
+  { id: 'gcp', labelKey: 'settings:nav.gcp', icon: CloudCog, render: () => <GoogleCloudSection /> },
   { id: 'mcp', labelKey: 'settings:nav.mcp', icon: Bot, render: () => <MCPSection /> },
+  { id: 'plugins', labelKey: 'plugins:settings.nav', icon: Puzzle, render: () => <PluginsSection /> },
   { id: 'data', labelKey: 'settings:nav.data', icon: Database, render: () => <DataSection /> },
   { id: 'updates', labelKey: 'settings:nav.updates', icon: Download, render: () => <UpdatesSection /> },
   { id: 'about', labelKey: 'settings:nav.about', icon: Info, render: () => <AboutSection /> },
@@ -46,7 +54,7 @@ const ALL_SECTIONS: SectionDef[] = [
 // Updates is desktop-only; Data is shown everywhere but its content adapts
 // (web build explains there's nothing to switch since there's no embedded BE).
 const SECTIONS: SectionDef[] = ALL_SECTIONS.filter(
-  (s) => s.id !== 'updates' || isDesktop(),
+  (s) => (s.id !== 'updates' && s.id !== 'plugins') || isDesktop(),
 );
 
 export function SettingsDialog() {

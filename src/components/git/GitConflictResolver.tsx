@@ -13,13 +13,17 @@ import {
   ArrowLeftToLine,
   ArrowRightToLine,
   ChevronsDownUp,
+  Columns3,
+  Rows3,
 } from 'lucide-react';
 import { gitAPI } from '@/services/api';
 import { useThemeStore } from '@/stores/themeStore';
+import { useCodeTheme } from '@/lib/monacoShiki';
 import { useToast } from '@/components/ui/use-toast';
 import { confirmDialog } from '@/components/ui/confirm';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
 import {
   extractErr,
@@ -29,6 +33,9 @@ import {
   type ConflictBlock,
 } from './util';
 import { useWorkingTreeFile } from './GitBrowseTree';
+import { GitMergeThreePane } from './GitMergeThreePane';
+
+const LAYOUT_KEY = 'patchman.git.resolverLayout';
 
 // A per-block resolution choice. `edit` carries hand-typed text; the others
 // derive their lines from the parsed block. `null` = still unresolved.
@@ -74,8 +81,12 @@ function markerLines(block: ConflictBlock): string[] {
 // refresh status (the file then leaves the conflicted list). A full-file "Edit
 // raw" escape hatch reuses the same working-tree editor for manual resolution.
 export function GitConflictResolver({
-  repoId, path, onResolved, onDirtyChange,
+  repoId, path, onResolved, onDirtyChange, autoOpen = false, remaining = 0,
 }: {
+  /** Open the Merge window right away (moving on from the previous file). */
+  autoOpen?: boolean;
+  /** Conflicted files left in the repo, this one included. */
+  remaining?: number;
   repoId: string;
   path: string;
   /** Called after the file is written+staged (or staged as-is) so the parent
@@ -94,6 +105,7 @@ export function GitConflictResolver({
   } = useWorkingTreeFile(repoId, path);
 
   const lang = languageForPath(path);
+  const codeTheme = useCodeTheme(theme === 'dark', lang);
   const parsed = useMemo(() => parseConflictFile(baseline), [baseline]);
   const conflictSegs = useMemo(
     () => parsed.segments.filter((s) => s.kind === 'conflict'),
@@ -120,6 +132,23 @@ export function GitConflictResolver({
   const setChoice = useCallback((idx: number, choice: Choice, edited?: string) => {
     setChoices((m) => ({ ...m, [idx]: { choice, edited: edited ?? m[idx]?.edited ?? '' } }));
   }, []);
+  const choose3 = useCallback((idx: number, choice: Choice | null, edited?: string) => {
+    if (choice === null) setChoices((m) => { const n = { ...m }; delete n[idx]; return n; });
+    else setChoice(idx, choice, edited);
+  }, [setChoice]);
+
+  // 3-pane (JetBrains Merge Revisions) or the block cards; remembered.
+  const [layout, setLayoutState] = useState<'three' | 'blocks'>(() => {
+    try { return localStorage.getItem(LAYOUT_KEY) === 'blocks' ? 'blocks' : 'three'; } catch { return 'three'; }
+  });
+  const setLayout = (l: 'three' | 'blocks') => {
+    setLayoutState(l);
+    try { localStorage.setItem(LAYOUT_KEY, l); } catch { /* storage blocked */ }
+  };
+  const firstBlock = conflictSegs[0]?.kind === 'conflict' ? conflictSegs[0].block : null;
+  // The Merge window opens on request, or by itself when moving on from the
+  // previous file.
+  const [mergeOpen, setMergeOpen] = useState(autoOpen);
 
   const acceptAll = useCallback((choice: Exclude<Choice, 'edit'>) => {
     setChoices(() => {
@@ -169,6 +198,7 @@ export function GitConflictResolver({
       await gitAPI.writeFile(repoId, { path, content: assembled });
       await gitAPI.stage(repoId, { path });
       toast({ title: t('toast.conflictResolved'), description: t('toast.writtenStaged', { path }) });
+      setMergeOpen(false);
       onResolved();
     } catch (err) {
       setActionError(extractErr(err, t('errors.markResolved')));
@@ -317,7 +347,7 @@ export function GitConflictResolver({
           <CodeEditor
             height="100%"
             language={lang}
-            theme={theme === 'dark' ? 'vs-dark' : 'light'}
+            theme={codeTheme}
             value={content}
             onChange={(v) => setContent(v ?? '')}
             options={{
@@ -360,19 +390,31 @@ export function GitConflictResolver({
     );
   }
 
-  return (
-    <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
+  const resolverBody = (
+    <>
       <ResolverHeader
         path={path}
         total={total}
         resolvedCount={resolvedCount}
         onAcceptAllCurrent={() => acceptAll('current')}
         onAcceptAllIncoming={() => acceptAll('incoming')}
-        onEditRaw={enterRaw}
+        onEditRaw={() => { setMergeOpen(false); enterRaw(); }}
+        layout={layout}
+        onLayout={setLayout}
+        inDialog={layout === 'three'}
       />
 
       {actionError && <InlineError text={actionError} />}
 
+      {layout === 'three' ? (
+        <GitMergeThreePane
+          segments={parsed.segments}
+          choices={choices}
+          onChoose={choose3}
+          oursLabel={firstBlock?.oursLabel ?? ''}
+          theirsLabel={firstBlock?.theirsLabel ?? ''}
+        />
+      ) : (
       <div className="flex-1 min-h-0 overflow-auto p-2 space-y-2">
         {conflictSegs.map((seg, idx) => {
           if (seg.kind !== 'conflict') return null;
@@ -389,6 +431,7 @@ export function GitConflictResolver({
           );
         })}
       </div>
+      )}
 
       {blockedByMarker && (
         <div className="shrink-0 flex items-start gap-2 mx-2 mb-1 p-1.5 rounded bg-amber-500/10 text-amber-700 dark:text-amber-300 text-[10px] leading-tight">
@@ -401,6 +444,7 @@ export function GitConflictResolver({
       <div className="shrink-0 border-t p-2 flex items-center gap-2 bg-muted/10">
         <span className="text-[11px] text-muted-foreground">
           {t('resolver.countResolved', { resolved: resolvedCount, total })}
+          {remaining > 1 && <> · {t('resolver3.filesLeft', { count: remaining })}</>}
         </span>
         <div className="flex-1" />
         <Button size="sm" variant="outline" className="h-7 text-xs gap-1" disabled={busy || resolvedCount === 0} onClick={saveOnly}>
@@ -416,13 +460,42 @@ export function GitConflictResolver({
           {marking ? <Loader2 className="h-3 w-3 animate-spin" /> : <Check className="h-3 w-3" />} {t('resolver.markResolved')}
         </Button>
       </div>
+    </>
+  );
+
+  // Blocks fit the side pane; the 3-pane layout needs width, so it opens in
+  // a large Merge window (JetBrains "Merge Revisions"), with a summary left
+  // behind in the pane to reopen it.
+  if (layout === 'blocks') {
+    return <div className="flex-1 min-h-0 flex flex-col overflow-hidden">{resolverBody}</div>;
+  }
+  return (
+    <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
+      <ResolverHeader path={path} total={total} resolvedCount={resolvedCount} layout={layout} onLayout={setLayout} />
+      <div className="flex flex-1 flex-col items-center justify-center gap-3 p-6 text-center">
+        <p className="text-xs text-muted-foreground">{t('resolver3.windowHint', { resolved: resolvedCount, total })}</p>
+        {remaining > 1 && <p className="text-[11px] text-muted-foreground">{t('resolver3.filesLeft', { count: remaining })}</p>}
+        <Button size="sm" className="gap-1.5" onClick={() => setMergeOpen(true)}>
+          <Columns3 className="h-3.5 w-3.5" /> {t('resolver3.openWindow')}
+        </Button>
+      </div>
+      <Dialog open={mergeOpen} onOpenChange={setMergeOpen}>
+        <DialogContent className="flex h-[90vh] w-[96vw] max-w-[1600px] flex-col gap-0 overflow-hidden p-0">
+          <DialogTitle className="sr-only">{t('resolver3.title', { path })}</DialogTitle>
+          {resolverBody}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
 
 function ResolverHeader({
-  path, total, resolvedCount, onAcceptAllCurrent, onAcceptAllIncoming, onEditRaw,
+  path, total, resolvedCount, onAcceptAllCurrent, onAcceptAllIncoming, onEditRaw, layout, onLayout, inDialog,
 }: {
+  /** Leaves room for the dialog's close button. */
+  inDialog?: boolean;
+  layout?: 'three' | 'blocks';
+  onLayout?: (l: 'three' | 'blocks') => void;
   path: string;
   total: number;
   resolvedCount: number;
@@ -432,7 +505,7 @@ function ResolverHeader({
 }) {
   const { t } = useTranslation('git');
   return (
-    <div className="shrink-0 flex items-center gap-2 px-3 py-1.5 border-b bg-muted/20">
+    <div className={cn('shrink-0 flex items-center gap-2 px-3 py-1.5 border-b bg-muted/20', inDialog && 'pr-12')}>
       <AlertTriangle className="h-3.5 w-3.5 text-red-500 shrink-0" />
       <span className="text-xs font-mono truncate min-w-0" title={path}>{path}</span>
       {total > 0 && (
@@ -462,6 +535,17 @@ function ResolverHeader({
         >
           <ArrowRightToLine className="h-3 w-3" /> {t('resolver.allIncoming')}
         </Button>
+      )}
+      {onLayout && (
+        <div className="flex h-6 items-center rounded border p-px">
+          {(['three', 'blocks'] as const).map((l) => (
+            <button key={l} type="button" onClick={() => onLayout(l)}
+              className={cn('flex h-full items-center gap-1 rounded-sm px-1.5 text-[10px]', layout === l ? 'bg-accent text-foreground' : 'text-muted-foreground hover:text-foreground')}>
+              {l === 'three' ? <Columns3 className="h-3 w-3" /> : <Rows3 className="h-3 w-3" />}
+              {t(l === 'three' ? 'resolver3.layoutThree' : 'resolver3.layoutBlocks')}
+            </button>
+          ))}
+        </div>
       )}
       {onEditRaw && (
         <Button size="sm" variant="ghost" className="h-6 text-[10px] gap-1 px-1.5" onClick={onEditRaw} title={t('resolver.editRawTitle')}>

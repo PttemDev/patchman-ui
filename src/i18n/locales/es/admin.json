@@ -58,7 +58,14 @@
     "promoteTitle": "Promover a admin",
     "password": "Contraseña",
     "resetPasswordTitle": "Restablecer contraseña",
-    "manage": "Gestionar"
+    "manage": "Gestionar",
+    "signOut": "Cerrar sesiones",
+    "signOutTitle": "Cerrar la sesión de este usuario en todos los dispositivos",
+    "signOutConfirm": "¿Cerrar la sesión de {{name}} en todas partes?",
+    "signOutBody": "Cada dispositivo con sesión de este usuario pierde el acceso en su próxima petición. Úsalo para un portátil perdido o robado.",
+    "signedOut_one": "Sesión cerrada en {{count}} dispositivo",
+    "signedOut_other": "Sesión cerrada en {{count}} dispositivos",
+    "signOutFailed": "No se pudo cerrar la sesión del usuario"
   },
   "pagination": {
     "rowsPerPage": "Filas por página",

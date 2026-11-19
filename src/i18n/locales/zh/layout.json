@@ -19,7 +19,8 @@
     "cookies": "Cookie",
     "audit": "审计与活动",
     "notes": "笔记与 Brain",
-    "dashboards": "仪表盘"
+    "dashboards": "仪表盘",
+    "plugins": "插件"
   },
   "beta": "beta",
   "settingsProxyOn": "设置（自定义代理已开启）",

@@ -58,7 +58,14 @@
     "promoteTitle": "Yöneticiliğe yükselt",
     "password": "Parola",
     "resetPasswordTitle": "Parolayı sıfırla",
-    "manage": "Yönet"
+    "manage": "Yönet",
+    "signOut": "Oturumları kapat",
+    "signOutTitle": "Bu kullanıcının tüm cihazlardaki oturumunu kapat",
+    "signOutConfirm": "{{name}} tüm cihazlarda çıkış yapsın mı?",
+    "signOutBody": "Kullanıcının oturumu açık olan her cihaz, bir sonraki istekte erişimini kaybeder. Kaybolan ya da çalınan bilgisayar için kullan.",
+    "signedOut_one": "{{count}} cihazda oturum kapatıldı",
+    "signedOut_other": "{{count}} cihazda oturum kapatıldı",
+    "signOutFailed": "Kullanıcının oturumu kapatılamadı"
   },
   "pagination": {
     "rowsPerPage": "Sayfa başına satır",

@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { matchesAction } from '@/lib/keymap';
 import { useTranslation } from 'react-i18next';
 import {
   Search,
@@ -315,7 +316,7 @@ export function CommandPalette() {
   // Register Cmd+K / Ctrl+K global listener
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+      if (matchesAction(e, 'global.commandPalette')) {
         e.preventDefault();
         e.stopPropagation();
         setOpen((prev) => !prev);

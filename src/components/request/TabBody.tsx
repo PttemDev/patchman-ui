@@ -26,6 +26,7 @@ import { DBQueryPanel } from '@/components/dbquery/DBQueryPanel';
 import { KafkaTopicPanel } from '@/components/kafka/KafkaTopicPanel';
 import { S3BrowserPanel } from '@/components/s3/S3BrowserPanel';
 import { RedisKeyPanel } from '@/components/redis/RedisKeyPanel';
+import { PluginPanel } from '@/components/plugins/PluginPanel';
 import { ESConsolePanel } from '@/components/es/ESConsolePanel';
 import { K8sExplorerPanel } from '@/components/k8s/K8sExplorerPanel';
 import { GitPanel } from '@/components/git/GitPanel';
@@ -37,7 +38,9 @@ const NoteView = lazyWithReload(() => import('@/components/notes/NoteView').then
 const GrafanaTab = lazyWithReload(() => import('@/components/grafana/GrafanaTab'));
 const RabbitTab = lazyWithReload(() => import('@/components/rabbit/RabbitTab'));
 const GraylogTab = lazyWithReload(() => import('@/components/graylog/GraylogTab'));
+const GoogleCloudTab = lazyWithReload(() => import('@/components/gcp/GoogleCloudTab'));
 const ServiceMapTab = lazyWithReload(() => import('@/components/servicemap/ServiceMapTab'));
+const ESDiscoverPanel = lazyWithReload(() => import('@/components/es/ESDiscoverPanel'));
 const ExcalidrawCanvas = lazyWithReload(() =>
   import('@/components/excalidraw/ExcalidrawCanvas').then((m) => ({ default: m.ExcalidrawCanvas })),
 );
@@ -153,6 +156,14 @@ export function TabBody({ tab }: TabBodyProps) {
   if (tab.type === 'kafka') return <KafkaTopicPanel key={tab.id} tab={tab} />;
   if (tab.type === 's3') return <S3BrowserPanel tab={tab} />;
   if (tab.type === 'redis') return <RedisKeyPanel tab={tab} />;
+  if (tab.type === 'plugin') return <PluginPanel tab={tab} />;
+  if (tab.type === 'es' && tab.esDataViewId) {
+    return (
+      <Suspense fallback={<div className="flex-1 min-h-0 flex items-center justify-center text-sm text-muted-foreground">…</div>}>
+        <ESDiscoverPanel key={tab.id} tab={tab} />
+      </Suspense>
+    );
+  }
   if (tab.type === 'es') return <ESConsolePanel tab={tab} />;
   if (tab.type === 'k8s') return <K8sExplorerPanel tab={tab} />;
   if (tab.type === 'git') return <GitPanel tab={tab} />;
@@ -175,6 +186,13 @@ export function TabBody({ tab }: TabBodyProps) {
     return (
       <Suspense fallback={<div className="flex-1 min-h-0 flex items-center justify-center text-sm text-muted-foreground">…</div>}>
         <RabbitTab key={tab.id} tab={tab} />
+      </Suspense>
+    );
+  }
+  if (tab.type === 'gcp') {
+    return (
+      <Suspense fallback={<div className="flex-1 min-h-0 flex items-center justify-center text-sm text-muted-foreground">…</div>}>
+        <GoogleCloudTab key={tab.id} tab={tab} />
       </Suspense>
     );
   }

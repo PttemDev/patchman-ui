@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   DndContext,
@@ -66,6 +66,63 @@ import { formatExact, noteTimesTitle } from './time';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 const PREFIX = 'note:';
+/** Rows a long folder renders at once; the rest follow in the next frames so
+ *  opening the sidebar / a big folder never blocks the UI. */
+const FIRST_ROWS = 120;
+const MORE_ROWS = 250;
+
+// Per-tree UI state (open folders, the active note, the row being renamed)
+// lives in a tiny external store: each row subscribes to ITS OWN slice
+// (useSyncExternalStore), so opening a folder or switching notes re-renders
+// only the rows whose state changed — not the whole tree.
+// Folder open / closed choices are remembered across sidebar re-mounts and
+// restarts (they used to reset to "open" every time): id → open. A folder
+// the user never toggled falls back to the tree's default.
+const OPEN_KEY = 'patchman.notes.open.v1';
+function loadOpenChoices(): Record<string, boolean> {
+  try { return JSON.parse(localStorage.getItem(OPEN_KEY) || '{}') as Record<string, boolean>; } catch { return {}; }
+}
+function saveOpenChoice(id: string, open: boolean) {
+  try {
+    const all = loadOpenChoices();
+    all[id] = open;
+    // Keep it small: the most recent 2000 choices.
+    const keys = Object.keys(all);
+    if (keys.length > 2000) for (const k of keys.slice(0, keys.length - 2000)) delete all[k];
+    localStorage.setItem(OPEN_KEY, JSON.stringify(all));
+  } catch { /* storage blocked: choices last for this session */ }
+}
+
+function makeTreeUI(defaults: Set<string>) {
+  const choices = loadOpenChoices();
+  let expanded = new Set(defaults);
+  for (const [id, open] of Object.entries(choices)) {
+    if (open) expanded.add(id);
+    else expanded.delete(id);
+  }
+  let active: string | undefined;
+  let editing: { id: string | null; name: string } = { id: null, name: '' };
+  const listeners = new Set<() => void>();
+  const emit = () => listeners.forEach((l) => l());
+  return {
+    subscribe: (l: () => void) => { listeners.add(l); return () => { listeners.delete(l); }; },
+    isOpen: (id: string) => expanded.has(id),
+    toggle: (id: string) => {
+      const n = new Set(expanded);
+      const open = !n.has(id);
+      if (open) n.add(id); else n.delete(id);
+      expanded = n;
+      saveOpenChoice(id, open);
+      emit();
+    },
+    expand: (id: string) => { if (expanded.has(id)) return; expanded = new Set(expanded).add(id); saveOpenChoice(id, true); emit(); },
+    getActive: () => active,
+    setActive: (id: string | undefined) => { if (active !== id) { active = id; emit(); } },
+    getEditing: () => editing,
+    setEditing: (e: { id: string | null; name: string }) => { editing = e; emit(); },
+  };
+}
+type TreeUI = ReturnType<typeof makeTreeUI>;
 /** Cards listed under one folder in the tree before a "N more" row. */
 const CARD_CAP = 30;
 const ROOT_DROP = 'note-root';
@@ -149,23 +206,21 @@ export function NoteTree({ notes, mode, onOpen }: { notes: NoteMeta[]; mode: 'ow
 
   // Shared spaces start expanded so their pages are visible; own folders too
   // when there are only a few nodes.
-  const [expanded, setExpanded] = useState<Set<string>>(() => new Set(mode === 'shared' || notes.length <= 30 ? notes.filter((n) => !n.parentId).map((n) => n.id) : []));
+  const uiRef = useRef<TreeUI | null>(null);
+  if (!uiRef.current) uiRef.current = makeTreeUI(new Set(mode === 'shared' || notes.length <= 30 ? notes.filter((n) => !n.parentId).map((n) => n.id) : []));
+  const ui = uiRef.current;
+  useEffect(() => { ui.setActive(activeNoteId); }, [ui, activeNoteId]);
   const [dragLabel, setDragLabel] = useState<string | null>(null);
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [editingName, setEditingName] = useState('');
   const [confirmDelete, setConfirmDelete] = useState<NoteMeta | null>(null);
   const [shareNote, setShareNote] = useState<NoteMeta | null>(null);
 
-  const expand = useCallback((id: string) => setExpanded((s) => new Set(s).add(id)), []);
-  const toggle = useCallback((id: string) => setExpanded((s) => {
-    const n = new Set(s);
-    if (n.has(id)) n.delete(id);
-    else n.add(id);
-    return n;
-  }), []);
-
-  const canEdit = (n: NoteMeta) => mode === 'own' || n.role === 'editor';
-  const canDelete = (n: NoteMeta) => mode === 'own' || (n.role === 'editor' && !!n.parentId);
+  const expand = ui.expand;
+  const canEdit = useCallback((n: NoteMeta) => mode === 'own' || n.role === 'editor', [mode]);
+  const canDelete = useCallback((n: NoteMeta) => mode === 'own' || (n.role === 'editor' && !!n.parentId), [mode]);
+  // The parent may pass a new onOpen each render: keep rows stable.
+  const onOpenRef = useRef(onOpen);
+  onOpenRef.current = onOpen;
+  const openNote = useCallback((n: NoteMeta) => onOpenRef.current(n), []);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
@@ -179,23 +234,21 @@ export function NoteTree({ notes, mode, onOpen }: { notes: NoteMeta[]; mode: 'ow
   };
 
   const commitRename = useCallback(async () => {
-    const id = editingId;
-    const name = editingName.trim();
-    setEditingId(null);
-    setEditingName('');
-    if (id && name) await renameNote(id, name);
-  }, [editingId, editingName, renameNote]);
+    const { id, name } = ui.getEditing();
+    ui.setEditing({ id: null, name: '' });
+    if (id && name.trim()) await renameNote(id, name.trim());
+  }, [ui, renameNote]);
 
   const addChild = useCallback(async (parent: NoteMeta | null, type: 'page' | 'folder') => {
     try {
       const n = await createNote({ title: type === 'folder' ? t('newFolderTitle') : t('untitled'), parentId: parent?.id ?? null, type });
       if (parent) expand(parent.id);
-      if (type === 'page') onOpen(n);
-      else { setEditingId(n.id); setEditingName(n.title); }
+      if (type === 'page') openNote(n);
+      else ui.setEditing({ id: n.id, name: n.title });
     } catch {
       toast({ title: t('createFailed'), variant: 'destructive' });
     }
-  }, [createNote, expand, onOpen, t, toast]);
+  }, [createNote, expand, openNote, ui, t, toast]);
 
   const toggleMemory = useCallback(async (n: NoteMeta) => {
     try {
@@ -249,18 +302,19 @@ export function NoteTree({ notes, mode, onOpen }: { notes: NoteMeta[]; mode: 'ow
     setDragLabel(notes.find((n) => n.id === id)?.title ?? null);
   }
 
-  const rowProps: RowShared = {
-    draggable, expanded, toggle, onOpen, activeNoteId, editingId, editingName, setEditingName,
-    commitRename, cancelRename: () => { setEditingId(null); setEditingName(''); },
-    beginRename: (n) => { setEditingId(n.id); setEditingName(n.title); },
+  const rowProps = useMemo<RowShared>(() => ({
+    draggable, ui, onOpen: openNote, commitRename,
+    setEditingName: (name: string) => ui.setEditing({ ...ui.getEditing(), name }),
+    cancelRename: () => ui.setEditing({ id: null, name: '' }),
+    beginRename: (n: NoteMeta) => ui.setEditing({ id: n.id, name: n.title }),
     onDelete: setConfirmDelete, onShare: setShareNote, addChild, copyLink, canEdit, canDelete,
     cardCount, overflow, scopeOf, toggleMemory: mode === 'own' ? toggleMemory : undefined,
-  };
+  }), [draggable, ui, openNote, commitRename, addChild, copyLink, canEdit, canDelete, cardCount, overflow, scopeOf, mode, toggleMemory]);
 
   return (
     <DndContext sensors={sensors} collisionDetection={collision} onDragStart={handleDragStart} onDragEnd={handleDragEnd} onDragCancel={() => setDragLabel(null)}>
       {draggable && <RootStrip />}
-      <NodeList nodes={tree} depth={0} {...rowProps} />
+      <NodeList nodes={tree} depth={0} props={rowProps} />
       <DragOverlay>
         {dragLabel ? <div className="px-2 py-1 rounded bg-popover border shadow text-sm truncate max-w-[220px]">{dragLabel}</div> : null}
       </DragOverlay>
@@ -305,12 +359,8 @@ function RootStrip() {
 
 interface RowShared {
   draggable: boolean;
-  expanded: Set<string>;
-  toggle: (id: string) => void;
+  ui: TreeUI;
   onOpen: (n: NoteMeta) => void;
-  activeNoteId?: string;
-  editingId: string | null;
-  editingName: string;
   setEditingName: (v: string) => void;
   beginRename: (n: NoteMeta) => void;
   commitRename: () => void;
@@ -329,24 +379,52 @@ interface RowShared {
   toggleMemory?: (n: NoteMeta) => void;
 }
 
-function NodeList({ nodes, depth, ...props }: { nodes: Node[]; depth: number } & RowShared) {
-  const ids = useMemo(() => nodes.map((n) => PREFIX + n.id), [nodes]);
-  return (
-    <SortableContext items={ids} strategy={verticalListSortingStrategy}>
-      <div className="space-y-0.5">
-        {nodes.map((n) => <TreeNode key={n.id} node={n} depth={depth} {...props} />)}
-      </div>
-    </SortableContext>
-  );
+const NodeList = memo(function NodeList({ nodes, depth, props }: { nodes: Node[]; depth: number; props: RowShared }) {
+  // Long lists render in slices across frames: the first rows paint at once.
+  const [limit, setLimit] = useState(() => Math.min(nodes.length, FIRST_ROWS));
+  useEffect(() => {
+    if (limit >= nodes.length) return;
+    const h = requestAnimationFrame(() => setLimit((l) => Math.min(nodes.length, l + MORE_ROWS)));
+    return () => cancelAnimationFrame(h);
+  }, [limit, nodes.length]);
+  const shown = limit >= nodes.length ? nodes : nodes.slice(0, limit);
+  const ids = useMemo(() => shown.map((n) => PREFIX + n.id), [shown]);
+  const rows = shown.map((n) => (props.draggable
+    ? <SortableTreeNode key={n.id} node={n} depth={depth} props={props} />
+    : <TreeNode key={n.id} node={n} depth={depth} props={props} />));
+  return props.draggable
+    ? <SortableContext items={ids} strategy={verticalListSortingStrategy}><div className="space-y-0.5">{rows}</div></SortableContext>
+    : <div className="space-y-0.5">{rows}</div>;
+});
+
+interface DragBits {
+  setNodeRef?: (el: HTMLElement | null) => void;
+  style?: React.CSSProperties;
+  isDragging?: boolean;
+  isOver?: boolean;
+  handle?: Record<string, unknown>;
 }
 
-function TreeNode({ node, depth, ...props }: { node: Node; depth: number } & RowShared) {
-  const { t, i18n } = useTranslation(['notes', 'common']);
+// Own trees: a sortable row (drag to reorder / nest).
+const SortableTreeNode = memo(function SortableTreeNode({ node, depth, props }: { node: Node; depth: number; props: RowShared }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging, isOver } = useSortable({
     id: PREFIX + node.id,
     data: { type: node.type, parentId: node.parentId ?? null },
-    disabled: !props.draggable,
   });
+  return (
+    <TreeNode node={node} depth={depth} props={props}
+      drag={{ setNodeRef, style: { transform: CSS.Translate.toString(transform), transition }, isDragging, isOver, handle: { ...attributes, ...listeners } }} />
+  );
+});
+
+// One row (+ its open children). Rows re-render only when their node, their
+// own open / active / renaming state, or the shared callbacks change.
+const TreeNode = memo(function TreeNode({ node, depth, props, drag }: { node: Node; depth: number; props: RowShared; drag?: DragBits }) {
+  const { t, i18n } = useTranslation(['notes', 'common']);
+  const { ui } = props;
+  const open = useSyncExternalStore(ui.subscribe, () => ui.isOpen(node.id));
+  const isActive = useSyncExternalStore(ui.subscribe, () => ui.getActive() === node.id);
+  const editing = useSyncExternalStore(ui.subscribe, () => (ui.getEditing().id === node.id ? ui.getEditing() : null));
   const isFolder = node.type === 'folder';
   const isMemory = isFolder && !!node.memory;
   const cards = props.cardCount.get(node.id) ?? 0;
@@ -359,32 +437,31 @@ function TreeNode({ node, depth, ...props }: { node: Node; depth: number } & Row
   const isShared = node.visibility === 'public' || !!node.everyone || shareTags.length > 0 || !!owner;
   const scope = isMemory ? props.scopeOf(node.id) : undefined;
   const hasKids = node.children.length > 0;
-  const open = props.expanded.has(node.id);
   const editable = props.canEdit(node);
 
   return (
-    <div ref={setNodeRef} style={{ transform: CSS.Translate.toString(transform), transition }} className={cn(isDragging && 'opacity-50')}>
+    <div ref={drag?.setNodeRef} style={drag?.style} className={cn(drag?.isDragging && 'opacity-50')}>
       <div
         className={cn(
           'group flex items-center rounded hover:bg-accent/40 transition-colors',
-          props.activeNoteId === node.id && 'bg-accent/60',
-          isFolder && isOver && 'ring-1 ring-primary/50 bg-primary/10',
+          isActive && 'bg-accent/60',
+          isFolder && drag?.isOver && 'ring-1 ring-primary/50 bg-primary/10',
         )}
         style={{ paddingLeft: depth * 12 }}
       >
         <button
           type="button"
-          onClick={() => props.toggle(node.id)}
+          onClick={() => ui.toggle(node.id)}
           className={cn('shrink-0 w-4 h-6 flex items-center justify-center text-muted-foreground', !(isFolder || hasKids) && 'invisible')}
           aria-label={open ? t('collapse') : t('expand')}
           tabIndex={isFolder || hasKids ? 0 : -1}
         >
           <ChevronRight className={cn('h-3 w-3 transition-transform', open && 'rotate-90')} />
         </button>
-        {props.editingId === node.id ? (
+        {editing ? (
           <Input
             autoFocus
-            value={props.editingName}
+            value={editing.name}
             onChange={(e) => props.setEditingName(e.target.value)}
             onBlur={props.commitRename}
             onKeyDown={(e) => {
@@ -397,11 +474,11 @@ function TreeNode({ node, depth, ...props }: { node: Node; depth: number } & Row
           <>
             <button
               type="button"
-              {...attributes}
-              {...listeners}
-              onClick={() => (isFolder && !isMemory ? props.toggle(node.id) : props.onOpen(node))}
+              {...(drag?.handle ?? {})}
+              onClick={() => (isFolder && !isMemory ? ui.toggle(node.id) : props.onOpen(node))}
               className={cn('flex-1 min-w-0 flex items-center gap-1.5 pr-1.5 py-1 text-left', props.draggable && 'cursor-grab active:cursor-grabbing')}
-              title={[node.title, noteTimesTitle(node, i18n.language, t)].filter(Boolean).join('\n')}
+              // Built on hover: formatting dates for every row up front is wasted work.
+              onMouseEnter={(e) => { e.currentTarget.title = [node.title, noteTimesTitle(node, i18n.language, t)].filter(Boolean).join('\n'); }}
             >
               {icon ? (
                 <span className="text-sm leading-none w-3.5 text-center shrink-0">{icon}</span>
@@ -417,68 +494,15 @@ function TreeNode({ node, depth, ...props }: { node: Node; depth: number } & Row
               <span className="text-sm truncate">{node.title || t('untitled')}</span>
               {scope?.kind === 'team' && <Users2 className="h-3 w-3 shrink-0 text-violet-400" aria-label={t('memory.scope.team', { teams: (scope.teams ?? []).join(', ') })} />}
               {cards > 0 && <span className="shrink-0 text-[10px] text-muted-foreground tabular-nums">{cards}</span>}
-              {isShared && (
-                <Tooltip delayDuration={200}>
-                  <TooltipTrigger asChild>
-                    <span className="shrink-0 inline-flex" aria-label={t('sharedBadge')}>
-                      <Globe2 className="h-3 w-3 text-sky-500/80" />
-                    </span>
-                  </TooltipTrigger>
-                  <TooltipContent side="right" align="start" className="max-w-xs bg-popover text-popover-foreground border shadow-lg px-3 py-2">
-                    <ShareDetails owner={owner} tags={shareTags} node={node} />
-                  </TooltipContent>
-                </Tooltip>
-              )}
+              {isShared && <ShareBadge owner={owner} tags={shareTags} node={node} label={t('sharedBadge')} />}
             </button>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button size="icon" variant="ghost" className="h-6 w-6 opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity shrink-0">
-                  <MoreHorizontal className="h-3.5 w-3.5" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48">
-                {editable && (
-                  <>
-                    <DropdownMenuItem onClick={() => props.addChild(node, 'page')}>
-                      <FilePlus2 className="h-3.5 w-3.5 mr-2" /> {t('newPageInside')}
-                    </DropdownMenuItem>
-                    {isFolder && (
-                      <DropdownMenuItem onClick={() => props.addChild(node, 'folder')}>
-                        <FolderPlus className="h-3.5 w-3.5 mr-2" /> {t('newFolderInside')}
-                      </DropdownMenuItem>
-                    )}
-                    <DropdownMenuItem onClick={() => props.beginRename(node)}>
-                      <Edit3 className="h-3.5 w-3.5 mr-2" /> {t('rename')}
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => props.onShare(node)}>
-                      <Share2 className="h-3.5 w-3.5 mr-2" /> {t('share')}
-                    </DropdownMenuItem>
-                    {isFolder && props.toggleMemory && (
-                      <DropdownMenuItem onClick={() => props.toggleMemory!(node)}>
-                        <Brain className="h-3.5 w-3.5 mr-2" /> {isMemory ? t('memory.stopMemory') : t('memory.useAsMemory')}
-                      </DropdownMenuItem>
-                    )}
-                  </>
-                )}
-                <DropdownMenuItem onClick={() => props.copyLink(node)}>
-                  <Link2 className="h-3.5 w-3.5 mr-2" /> {t('copyLink')}
-                </DropdownMenuItem>
-                {props.canDelete(node) && (
-                  <>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={() => props.onDelete(node)} className="text-destructive focus:text-destructive">
-                      <Trash2 className="h-3.5 w-3.5 mr-2" /> {t('common:delete')}
-                    </DropdownMenuItem>
-                  </>
-                )}
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <RowMenu node={node} props={props} editable={editable} isFolder={isFolder} isMemory={isMemory} />
           </>
         )}
       </div>
       {open && hasKids && (
         <div className="mt-0.5">
-          <NodeList {...props} nodes={node.children} depth={depth + 1} />
+          <NodeList props={props} nodes={node.children} depth={depth + 1} />
           {more > 0 && (
             <button
               type="button"
@@ -492,6 +516,80 @@ function TreeNode({ node, depth, ...props }: { node: Node; depth: number } & Row
         </div>
       )}
     </div>
+  );
+});
+
+// The globe badge's tooltip mounts on first hover (one Radix tooltip per row
+// was a large share of a big tree's render cost).
+function ShareBadge({ owner, tags, node, label }: { owner: string; tags: NonNullable<Node['sharedWith']>; node: Node; label: string }) {
+  const [hover, setHover] = useState(false);
+  const icon = (
+    <span className="shrink-0 inline-flex" aria-label={label} onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)}>
+      <Globe2 className="h-3 w-3 text-sky-500/80" />
+    </span>
+  );
+  if (!hover) return icon;
+  return (
+    <Tooltip open>
+      <TooltipTrigger asChild>{icon}</TooltipTrigger>
+      <TooltipContent side="right" align="start" className="max-w-xs bg-popover text-popover-foreground border shadow-lg px-3 py-2">
+        <ShareDetails owner={owner} tags={tags} node={node} />
+      </TooltipContent>
+    </Tooltip>
+  );
+}
+
+// The row's "…" menu mounts when first opened (same reason as ShareBadge).
+function RowMenu({ node, props, editable, isFolder, isMemory }: { node: Node; props: RowShared; editable: boolean; isFolder: boolean; isMemory: boolean }) {
+  const { t } = useTranslation(['notes', 'common']);
+  const [open, setOpen] = useState(false);
+  const trigger = (
+    <Button size="icon" variant="ghost" className="h-6 w-6 opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity shrink-0"
+      onClick={open ? undefined : () => setOpen(true)} aria-label={t('common:more', { defaultValue: 'More' })}>
+      <MoreHorizontal className="h-3.5 w-3.5" />
+    </Button>
+  );
+  if (!open) return trigger;
+  return (
+    <DropdownMenu open onOpenChange={setOpen}>
+      <DropdownMenuTrigger asChild>{trigger}</DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-48">
+        {editable && (
+          <>
+            <DropdownMenuItem onClick={() => props.addChild(node, 'page')}>
+              <FilePlus2 className="h-3.5 w-3.5 mr-2" /> {t('newPageInside')}
+            </DropdownMenuItem>
+            {isFolder && (
+              <DropdownMenuItem onClick={() => props.addChild(node, 'folder')}>
+                <FolderPlus className="h-3.5 w-3.5 mr-2" /> {t('newFolderInside')}
+              </DropdownMenuItem>
+            )}
+            <DropdownMenuItem onClick={() => props.beginRename(node)}>
+              <Edit3 className="h-3.5 w-3.5 mr-2" /> {t('rename')}
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => props.onShare(node)}>
+              <Share2 className="h-3.5 w-3.5 mr-2" /> {t('share')}
+            </DropdownMenuItem>
+            {isFolder && props.toggleMemory && (
+              <DropdownMenuItem onClick={() => props.toggleMemory!(node)}>
+                <Brain className="h-3.5 w-3.5 mr-2" /> {isMemory ? t('memory.stopMemory') : t('memory.useAsMemory')}
+              </DropdownMenuItem>
+            )}
+          </>
+        )}
+        <DropdownMenuItem onClick={() => props.copyLink(node)}>
+          <Link2 className="h-3.5 w-3.5 mr-2" /> {t('copyLink')}
+        </DropdownMenuItem>
+        {props.canDelete(node) && (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => props.onDelete(node)} className="text-destructive focus:text-destructive">
+              <Trash2 className="h-3.5 w-3.5 mr-2" /> {t('common:delete')}
+            </DropdownMenuItem>
+          </>
+        )}
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }
 

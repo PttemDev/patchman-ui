@@ -200,6 +200,9 @@ setGitReadScopeResolver((id) => {
  *  account needed); otherwise a short-lived token of the caller's linked
  *  GitLab account. */
 export async function gitOpsToken(connectionId: string | undefined): Promise<string> {
+  // A folder opened from disk with no matching connection: the BE pushes it
+  // with the machine's own git credentials, so mint nothing.
+  if (!connectionId) return '';
   const conn = connectionId ? useGitConnectionStore.getState().connections.find((c) => c.id === connectionId) : undefined;
   if (conn?.authKind === 'pat') return '';
   const res = await gitAPI.mintToken();

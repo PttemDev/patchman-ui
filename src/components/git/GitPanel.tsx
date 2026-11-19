@@ -4,11 +4,9 @@ import {
   GitBranch as GitBranchIcon,
   GitCommitHorizontal,
   FolderTree,
-  FolderGit2,
   FolderOpen,
   FileDiff,
   Loader2,
-  RefreshCw,
   AlertTriangle,
   Search,
   DownloadCloud,
@@ -16,7 +14,12 @@ import {
   ChevronDown,
   User,
   Workflow,
+  GitPullRequest,
+  ArrowDownToLine,
+  ArrowUpFromLine,
+  Check,
 } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { gitAPI, type DBScope } from '@/services/api';
 import { useGitConnectionStore, gitOpsToken } from '@/stores/gitConnectionStore';
 import { useRequestStore } from '@/stores/requestStore';
@@ -29,7 +32,6 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
 } from '@/components/ui/select';
 import {
   Popover,
@@ -46,9 +48,21 @@ import { GitChangesPanel } from './GitChangesPanel';
 import { GitCIPanel } from './GitCIPanel';
 import { GitDiffViewer } from './GitDiffViewer';
 import { decodeGitContent, extractErr, timeAgo } from './util';
+import { GitBranchPopup, GitOperationBanner } from './GitBranchPopup';
+import { GitNamePrompt, GitRemotesDialog, GitUpdateDialog, type NamePromptState, type PullStrategy } from './GitVcsDialogs';
+import { useGitRepoOps } from './useGitRepoOps';
+import { GitCommitDialog, GitPushDialog } from './GitCommitPushDialogs';
+import { GitMRPanel } from './GitMRPanel';
+import { GitLocalTree } from './GitLocalTree';
+import { GitWorkspaceEditor, type RevealTarget } from './GitWorkspaceEditor';
+import { GitFindInFiles, GitSearchEverywhere } from './GitSearchDialogs';
+import { GitFolderMenu, RecentFolderList, openGitFolder, pickGitFolder } from './GitFolderMenu';
+import { useGitRecentFoldersStore } from '@/stores/gitRecentFoldersStore';
+import { GIT_KEYMAP, shortcutHint, useScopedKeymap } from '@/lib/keymap';
+import type { GitRefs } from '@/types';
 import type { Tab, GitRepoSummary, GitBranch, GitCommit, GitFileDiff } from '@/types';
 
-type Mode = 'history' | 'browse' | 'changes' | 'ci';
+type Mode = 'history' | 'browse' | 'changes' | 'mrs' | 'ci';
 
 // A managed local clone row (models.GitRepo). No FE interface ships for it, so
 // we type the fields the UI consumes off the local-ops responses here.
@@ -60,6 +74,10 @@ interface GitLocalRepo {
   remoteUrl: string;
   localPath: string;
   defaultBranch: string;
+  /** 'external' = a folder opened from disk (Open folder), not a managed clone. */
+  cloneKind?: string;
+  /** The folder no longer exists on disk (set by the list endpoint). */
+  missing?: boolean;
 }
 
 // GitPanel is the Git tab body — a three-pane git client rendered as a WIDE
@@ -99,9 +117,16 @@ export function GitPanel({ tab }: { tab: Tab }) {
   const [reposLoading, setReposLoading] = useState(false);
   const [reposError, setReposError] = useState('');
   const [repoPickerOpen, setRepoPickerOpen] = useState(false);
+  // The list holds only the 50 most recently active projects (or the last
+  // search's hits), so a repo picked via search — or restored on a reopened
+  // tab — can be missing from it. `pinnedRepo` keeps the picked summary, and
+  // the effect below looks a missing one up by name, so everything gated on
+  // selectedRepo (Open locally / clone) keeps working.
+  const [pinnedRepo, setPinnedRepo] = useState<GitRepoSummary | null>(null);
   const selectedRepo = useMemo(
-    () => repos.find((r) => String(r.id) === project) ?? null,
-    [repos, project],
+    () => repos.find((r) => String(r.id) === project || r.fullPath === project)
+      ?? (pinnedRepo && (String(pinnedRepo.id) === project || pinnedRepo.fullPath === project) ? pinnedRepo : null),
+    [repos, project, pinnedRepo],
   );
 
   // Local clones (desktop only) — decide Changes visibility + local history.
@@ -110,11 +135,21 @@ export function GitPanel({ tab }: { tab: Tab }) {
   // from one whose clone simply hasn't been fetched yet on this mount.
   const [localRepos, setLocalRepos] = useState<GitLocalRepo[]>([]);
   const [localReposReady, setLocalReposReady] = useState(false);
+  // Prefer the tab's own clone id: a project can have both a managed clone and
+  // a folder opened from disk.
   const localRepo = useMemo(
-    () => localRepos.find((r) => r.projectRef === project) ?? null,
-    [localRepos, project],
+    () => localRepos.find((r) => r.id === tab.gitRepoId && (r.projectRef === project || project === `local:${r.id}`))
+      ?? localRepos.find((r) => r.projectRef === project) ?? null,
+    [localRepos, project, tab.gitRepoId],
   );
   const useLocal = desktop && !!localRepo;
+  // A folder opened from disk with no matching git connection: only the
+  // local views (History / Browse / Changes) apply — there is no GitLab
+  // project behind it for MRs / CI.
+  const folderMode = project.startsWith('local:');
+  // GitHub connections: pull requests (phase 3) and Actions (phase 4) aren't
+  // wired yet — their views are hidden rather than failing.
+  const isGitHubConn = conn?.provider === 'github';
 
   // Branch list for the selected repo.
   const [branches, setBranches] = useState<GitBranch[]>([]);
@@ -123,10 +158,25 @@ export function GitPanel({ tab }: { tab: Tab }) {
   const [branchesError, setBranchesError] = useState('');
   const [branchesReload, setBranchesReload] = useState(0);
   const [cloning, setCloning] = useState(false);
-  const [pulling, setPulling] = useState(false);
   // Bumped after a successful pull to force HistoryView to reload the (now
   // advanced) local log.
   const [reloadKey, setReloadKey] = useState(0);
+
+  // JetBrains-style VCS surface for a local clone (GIT_IDE_PLAN P1).
+  const [refs, setRefs] = useState<GitRefs | null>(null);
+  const [refsKey, setRefsKey] = useState(0);
+  const [branchPopupOpen, setBranchPopupOpen] = useState(false);
+  const [updateOpen, setUpdateOpen] = useState(false);
+  const [remotesOpen, setRemotesOpen] = useState(false);
+  const [namePrompt, setNamePrompt] = useState<NamePromptState | null>(null);
+  // A fresh tab opens the connection picker — on the web only: the desktop
+  // empty state offers both a connection and Open folder, and a folder tab
+  // (gitRepoRef local:…) has no connection by design.
+  const [connPickerOpen, setConnPickerOpen] = useState(
+    !tab.gitConnectionId && !(tab.gitRepoRef ?? '').startsWith('local:') && !isDesktop(),
+  );
+  const [commitOpen, setCommitOpen] = useState(false);
+  const [pushOpen, setPushOpen] = useState(false);
 
   // Browse-mode selection. Lifted here (rather than kept inside the tree) so the
   // tree can render in the left mode-nav column while the picked file's content
@@ -154,6 +204,19 @@ export function GitPanel({ tab }: { tab: Tab }) {
   }, [desktop]);
 
   useEffect(() => { loadLocalRepos(); }, [loadLocalRepos]);
+  // A folder / worktree / clone registered from elsewhere (sidebar, another
+  // tab) isn't in a list this panel loaded earlier: reload once per repo
+  // before declaring it gone.
+  const reloadedFor = useRef('');
+  useEffect(() => {
+    const key = `${project}|${tab.gitRepoId ?? ''}`;
+    if (!desktop || !localReposReady || !project || reloadedFor.current === key) return;
+    if (!project.startsWith('local:') && !tab.gitRepoId) return;
+    if (localRepos.some((r) => r.id === tab.gitRepoId || r.projectRef === project)) return;
+    reloadedFor.current = key;
+    setLocalReposReady(false);
+    void loadLocalRepos();
+  }, [desktop, localReposReady, project, tab.gitRepoId, localRepos, loadLocalRepos]);
 
   // ── repos ───────────────────────────────────────────────────────────
   const searchTimer = useRef<ReturnType<typeof setTimeout>>();
@@ -183,6 +246,25 @@ export function GitPanel({ tab }: { tab: Tab }) {
     if (connId) loadRepos(connId, '');
   }, [connId, loadRepos]);
 
+  // Resolve a selected repo that isn't in the loaded list: GitLab's project
+  // search matches name/path (not the full namespace), so search by the last
+  // path segment and pick the exact id. Uses the existing repos endpoint, so
+  // it works against older BEs too.
+  const repoName = tab.gitRepoName ?? '';
+  useEffect(() => {
+    if (!connId || !project || folderMode || reposLoading || selectedRepo) return;
+    const term = repoName.split('/').pop()?.trim();
+    if (!term) return;
+    let cancelled = false;
+    gitAPI.repos(connId, { search: term })
+      .then((res) => {
+        const hit = ((res.data as GitRepoSummary[]) ?? []).find((r) => String(r.id) === project || r.fullPath === project);
+        if (!cancelled && hit) setPinnedRepo(hit);
+      })
+      .catch(() => { /* label falls back to tab.gitRepoName */ });
+    return () => { cancelled = true; };
+  }, [connId, project, folderMode, repoName, reposLoading, selectedRepo]);
+
   const handleRepoSearch = (q: string) => {
     setRepoSearch(q);
     if (searchTimer.current) clearTimeout(searchTimer.current);
@@ -198,7 +280,7 @@ export function GitPanel({ tab }: { tab: Tab }) {
   // A failure is shown beside the picker with a Retry — it used to leave an
   // empty, disabled picker with no reason.
   useEffect(() => {
-    if (!project) { setBranches([]); setBranchesError(''); return; }
+    if (!project || (folderMode && !localRepo)) { setBranches([]); setBranchesError(''); return; }
     let cancelled = false;
     const fetchBranches = useLocal && localRepo
       ? gitAPI.localBranches(localRepo.id)
@@ -239,7 +321,8 @@ export function GitPanel({ tab }: { tab: Tab }) {
   useEffect(() => {
     if (!localReposReady) return;
     if (tab.gitView === 'changes' && !useLocal) updateTab(tab.id, { gitView: 'history' });
-  }, [localReposReady, tab.gitView, useLocal, tab.id, updateTab]);
+    else if (folderMode && (tab.gitView === 'mrs' || tab.gitView === 'ci')) updateTab(tab.id, { gitView: 'history' });
+  }, [localReposReady, tab.gitView, useLocal, folderMode, tab.id, updateTab]);
 
   // sha → branch/HEAD chips for the graph.
   const refsBySha = useMemo<Record<string, GitRef[]>>(() => {
@@ -274,12 +357,138 @@ export function GitPanel({ tab }: { tab: Tab }) {
   const changesDirtyRef = useRef(false);
   const handleEditorDirty = useCallback((d: boolean) => { editorDirtyRef.current = d; }, []);
   const handleChangesDirty = useCallback((d: boolean) => { changesDirtyRef.current = d; }, []);
+  // Auto save on: the workspace editor hands us a flush, so leaving the
+  // editor saves instead of asking to discard (it still asks if a save fails).
+  const flushRef = useRef<(() => Promise<boolean>) | null>(null);
+  const registerFlush = useCallback((fn: (() => Promise<boolean>) | null) => { flushRef.current = fn; }, []);
   const confirmDiscard = useCallback(async () => {
+    if (editorDirtyRef.current && flushRef.current && (await flushRef.current())) editorDirtyRef.current = false;
     if (!editorDirtyRef.current && !changesDirtyRef.current) return true;
     const ok = await confirmDialog({ title: t('confirm.unsavedChanges'), destructive: true });
     if (ok) { editorDirtyRef.current = false; changesDirtyRef.current = false; }
     return ok;
   }, [t]);
+
+  // ── local VCS: refs + ops ──────────────────────────────────────────
+  useEffect(() => {
+    if (!useLocal || !localRepo) { setRefs(null); return; }
+    let cancelled = false;
+    gitAPI.refs(localRepo.id)
+      .then((res) => { if (!cancelled) setRefs(res.data as GitRefs); })
+      .catch(() => { if (!cancelled) setRefs(null); });
+    return () => { cancelled = true; };
+  }, [useLocal, localRepo, refsKey]);
+
+  const afterOp = useCallback(() => {
+    setRefsKey((k) => k + 1);
+    setBranchesReload((k) => k + 1);
+    setReloadKey((k) => k + 1);
+  }, []);
+  const goResolve = useCallback(() => updateTab(tab.id, { gitView: 'changes' }), [tab.id, updateTab]);
+  const ops = useGitRepoOps(localRepo, { onDone: afterOp, onConflicts: goResolve });
+
+  const currentBranch = refs?.local.find((b) => b.current);
+
+  const onCheckedOut = useCallback((branch: string) => {
+    if (branch) updateTab(tab.id, { gitRef: branch });
+  }, [tab.id, updateTab]);
+
+  const runUpdate = useCallback(async (strategy: PullStrategy, autostash: boolean) => {
+    if (!localRepo) return;
+    await ops.run('pull', (accessToken) => gitAPI.pull(localRepo.id, { accessToken, strategy, autostash }), { success: t('pull.successTitle') });
+  }, [localRepo, ops, t]);
+
+  // JetBrains Commit / Push dialogs: modal, from any view.
+  const openCommit = useCallback(() => { if (useLocal) setCommitOpen(true); }, [useLocal]);
+  const openPush = useCallback(() => { if (useLocal) setPushOpen(true); }, [useLocal]);
+  useEffect(() => {
+    const h = () => openPush();
+    window.addEventListener('patchman:git-open-push', h);
+    return () => window.removeEventListener('patchman:git-open-push', h);
+  }, [openPush]);
+
+  const isActiveTab = useRequestStore((s) => s.activeTabId === tab.id);
+  useScopedKeymap(GIT_KEYMAP, isActiveTab && useLocal, {
+    'git.searchEverywhere': () => setEverywhere('all'),
+    'git.findInFiles': () => { setFindInitial(undefined); setFindOpen(true); },
+    'git.gotoFile': () => setEverywhere('files'),
+    'git.gotoSymbol': () => setEverywhere('symbols'),
+    'git.back': () => navigate(-1),
+    'git.forward': () => navigate(1),
+    'git.commit': openCommit,
+    'git.push': openPush,
+    'git.update': () => { if (!refs?.state.operation) setUpdateOpen(true); },
+    'git.branches': () => setBranchPopupOpen(true),
+    'git.vcsOperations': () => setBranchPopupOpen(true),
+  });
+
+  // ── local editor: open files, reveal, Back / Forward ───────────────
+  const [reveal, setReveal] = useState<RevealTarget | undefined>();
+  const caretRef = useRef<{ path: string; line: number } | null>(null);
+  const navRef = useRef<{ stack: { path: string; line: number }[]; idx: number }>({ stack: [], idx: -1 });
+  const show = useCallback((p: string, line?: number) => {
+    const files = tab.gitOpenFiles ?? [];
+    const patch: Partial<Tab> = { gitOpenFiles: files.includes(p) ? files : [...files, p], gitActiveFile: p, gitView: 'browse' };
+    if (refs?.current && gitRef !== refs.current) patch.gitRef = refs.current; // the editor works on the checked-out branch
+    updateTab(tab.id, patch);
+    if (line) setReveal({ path: p, line, nonce: Date.now() });
+  }, [tab.id, tab.gitOpenFiles, updateTab, refs, gitRef]);
+  // Every jump records where we were, so ⌘[ / ⌘] can walk it back.
+  const openFile = useCallback((p: string, line?: number) => {
+    const nav = navRef.current;
+    const from = caretRef.current;
+    nav.stack = nav.stack.slice(0, nav.idx + 1);
+    if (from) nav.stack.push(from);
+    nav.stack.push({ path: p, line: line ?? 1 });
+    nav.idx = nav.stack.length - 1;
+    show(p, line);
+  }, [show]);
+  const navigate = useCallback((d: -1 | 1) => {
+    const nav = navRef.current;
+    const i = nav.idx + d;
+    if (i < 0 || i >= nav.stack.length) return;
+    nav.idx = i;
+    show(nav.stack[i].path, nav.stack[i].line);
+  }, [show]);
+
+  // Go to Declaration: same file first, then the same language, else a picker.
+  const [defChoices, setDefChoices] = useState<{ word: string; list: { name: string; kind: string; path: string; line: number; text: string }[] } | null>(null);
+  const gotoDefinition = useCallback(async (word: string, fromPath: string, fromLine: number) => {
+    if (!localRepo) return;
+    try {
+      const res = await gitAPI.symbols(localRepo.id, word, true);
+      let list = (res.data as { name: string; kind: string; path: string; line: number; text: string }[]) ?? [];
+      list = list.filter((x) => !(x.path === fromPath && x.line === fromLine));
+      const ext = fromPath.split('.').pop();
+      const same = list.filter((x) => x.path === fromPath);
+      const lang = list.filter((x) => x.path.split('.').pop() === ext);
+      const pick = same.length === 1 ? same : lang.length ? lang : list;
+      if (pick.length === 0) { toast({ title: t('nav.noDeclaration', { word }) }); return; }
+      if (pick.length === 1) { openFile(pick[0].path, pick[0].line); return; }
+      setDefChoices({ word, list: pick });
+    } catch (e) {
+      toast({ title: t('nav.noDeclaration', { word }), description: extractErr(e, ''), variant: 'destructive' });
+    }
+  }, [localRepo, openFile, toast, t]);
+
+  const [findOpen, setFindOpen] = useState(false);
+  const [findInitial, setFindInitial] = useState<{ q: string; word?: boolean; caseSensitive?: boolean } | undefined>();
+  const [everywhere, setEverywhere] = useState<null | 'all' | 'files' | 'symbols' | 'actions'>(null);
+  const findUsages = useCallback((word: string) => { setFindInitial({ q: word, word: true, caseSensitive: true }); setFindOpen(true); }, []);
+  const closeFile = useCallback((p: string) => {
+    const files = (tab.gitOpenFiles ?? []).filter((x) => x !== p);
+    const i = (tab.gitOpenFiles ?? []).indexOf(p);
+    updateTab(tab.id, { gitOpenFiles: files, gitActiveFile: tab.gitActiveFile === p ? files[Math.max(0, i - 1)] ?? '' : tab.gitActiveFile });
+  }, [tab.id, tab.gitOpenFiles, tab.gitActiveFile, updateTab]);
+  const onTreeChanged = useCallback((from?: string, to?: string) => {
+    const files = tab.gitOpenFiles ?? [];
+    const next = files.flatMap((f) => {
+      if (f !== from && !(from && f.startsWith(from + '/'))) return [f];
+      return to ? [to + f.slice(from!.length)] : [];
+    });
+    updateTab(tab.id, { gitOpenFiles: next, gitActiveFile: next.includes(tab.gitActiveFile ?? '') ? tab.gitActiveFile : next[0] ?? '' });
+    setRefsKey((k) => k + 1);
+  }, [tab.id, tab.gitOpenFiles, tab.gitActiveFile, updateTab]);
 
   // ── handlers (write through to the tab) ─────────────────────────────
   const handleConn = useCallback(async (v: string) => {
@@ -300,6 +509,7 @@ export function GitPanel({ tab }: { tab: Tab }) {
   const handleSelectRepo = useCallback(async (r: GitRepoSummary) => {
     if (!(await confirmDiscard())) return;
     const localId = localRepos.find((lr) => lr.projectRef === String(r.id))?.id ?? '';
+    setPinnedRepo(r);
     updateTab(tab.id, {
       gitRepoRef: String(r.id),
       gitRepoName: r.fullPath || r.name,
@@ -310,13 +520,15 @@ export function GitPanel({ tab }: { tab: Tab }) {
   }, [localRepos, tab.id, updateTab, confirmDiscard]);
 
   // ── clone ───────────────────────────────────────────────────────────
+  const touchRecent = useGitRecentFoldersStore((s) => s.touch);
+  const recentCount = useGitRecentFoldersStore((s) => s.folders.length);
   const handleClone = useCallback(async () => {
     if (!conn || !selectedRepo) return;
     setCloning(true);
     try {
       const accessToken = await gitOpsToken(conn.id);
       const repoId = crypto.randomUUID();
-      await gitAPI.clone(conn.id, {
+      const cloned = await gitAPI.clone(conn.id, {
         repoId,
         projectRef: String(selectedRepo.id),
         projectName: selectedRepo.fullPath || selectedRepo.name,
@@ -325,13 +537,31 @@ export function GitPanel({ tab }: { tab: Tab }) {
         accessToken,
       });
       toast({ title: t('clone.successTitle'), description: t('clone.successDesc', { repo: selectedRepo.fullPath || selectedRepo.name }) });
+      const row = (cloned.data as { repo?: GitLocalRepo } | undefined)?.repo;
+      if (row?.localPath) touchRecent({ repoId: row.id, path: row.localPath, name: row.projectName || row.localPath });
       await loadLocalRepos();
       updateTab(tab.id, { gitRepoId: repoId, gitView: 'changes' });
     } catch (err) {
       toast({ title: t('clone.failedTitle'), description: extractErr(err, t('errors.clone')), variant: 'destructive' });
     }
     setCloning(false);
-  }, [conn, selectedRepo, toast, loadLocalRepos, tab.id, updateTab, t]);
+  }, [conn, selectedRepo, toast, loadLocalRepos, tab.id, updateTab, t, touchRecent]);
+
+  // ── open folder (any git work tree on this machine) ────────────────
+  const openFolderPath = useCallback(async (path: string, recentId?: string) => {
+    if (!(await confirmDiscard())) return;
+    try {
+      const { tab: fields } = await openGitFolder(path, recentId);
+      await loadLocalRepos();
+      updateTab(tab.id, fields);
+    } catch (err) {
+      toast({ title: t('folder.openFailed'), description: extractErr(err, t('folder.openFailed')), variant: 'destructive' });
+    }
+  }, [confirmDiscard, loadLocalRepos, tab.id, updateTab, toast, t]);
+  const folderMissing = useCallback(
+    (repoId: string) => !!localRepos.find((r) => r.id === repoId)?.missing,
+    [localRepos],
+  );
 
   // ── reveal in OS file manager (desktop + local clone) ──────────────
   const handleReveal = useCallback(async () => {
@@ -349,20 +579,21 @@ export function GitPanel({ tab }: { tab: Tab }) {
     }
   }, [localRepo, toast, t]);
 
-  // ── pull (fast-forward the local clone to latest) ──────────────────
-  const handlePull = useCallback(async () => {
-    if (!localRepo) return;
-    setPulling(true);
-    try {
-      const accessToken = await gitOpsToken(localRepo.connectionId);
-      await gitAPI.pull(localRepo.id, { accessToken });
-      toast({ title: t('pull.successTitle'), description: t('pull.successDesc') });
-      setReloadKey((k) => k + 1);
-    } catch (err) {
-      toast({ title: t('pull.failedTitle'), description: extractErr(err, t('errors.pull')), variant: 'destructive' });
-    }
-    setPulling(false);
-  }, [localRepo, toast, t]);
+  // Empty states on desktop: open a folder from disk or a recent one.
+  const folderStart = desktop ? (
+    <div className="w-[320px] space-y-2">
+      <Button size="sm" className="h-8 gap-1.5 text-xs"
+        onClick={async () => { try { const p = await pickGitFolder(t('folder.pickTitle')); if (p) await openFolderPath(p); } catch (err) { toast({ title: t('folder.openFailed'), description: extractErr(err, t('folder.openFailed')), variant: 'destructive' }); } }}>
+        <FolderOpen className="h-3.5 w-3.5" /> {t('folder.open')}
+      </Button>
+      {recentCount > 0 && (
+        <div className="rounded-md border p-1 text-left">
+          <div className="px-2 pb-1 pt-0.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{t('folder.recent')}</div>
+          <RecentFolderList missing={folderMissing} onOpen={(f) => void openFolderPath(f.path, f.repoId)} />
+        </div>
+      )}
+    </div>
+  ) : undefined;
 
   const repoLabel = selectedRepo
     ? (selectedRepo.fullPath || selectedRepo.name)
@@ -372,42 +603,32 @@ export function GitPanel({ tab }: { tab: Tab }) {
     <div className="flex-1 flex flex-col overflow-hidden min-h-0">
       {/* Header — two rows: connection alone, then repo + branch. */}
       <div className="shrink-0 border-b">
-        {/* Row 1: connection picker (full width) */}
-        <div className="px-3 pt-3 pb-1.5 flex items-center gap-2">
-          <GitBranchIcon className="h-4 w-4 text-orange-500 shrink-0" />
-          <Select value={connId} onValueChange={handleConn}>
-            <SelectTrigger className="flex-1 max-w-md h-8 text-xs">
-              <SelectValue placeholder={t('connectionPicker.placeholder')} />
-            </SelectTrigger>
-            <SelectContent>
-              {connections.length === 0 ? (
-                <div className="px-2 py-3 text-xs text-muted-foreground">
-                  {t('connectionPicker.empty')}
-                </div>
-              ) : (
-                connections.map((c) => (
-                  <SelectItem key={c.id} value={c.id}>
-                    {c.name}
-                    {c.shared && <span className="ml-2 text-[10px] text-muted-foreground">· {c.grantRole === 'write' ? t('role.write') : t('role.read')}</span>}
-                  </SelectItem>
-                ))
-              )}
-            </SelectContent>
-          </Select>
-        </div>
-
         {/* Row 2: repo picker (leading icon aligned under row 1), branch
             picker pushed to the far right, then scope / clone on desktop. */}
-        <div className="px-3 pb-2 flex items-center gap-2 flex-wrap">
-          <FolderGit2 className="h-4 w-4 text-muted-foreground shrink-0" />
+        <div className="px-3 py-2 flex items-center gap-2 flex-wrap">
+          {/* Connection: just its icon; the picker is a modal (rarely changed). */}
+          <button
+            type="button"
+            onClick={() => setConnPickerOpen(true)}
+            className={cn(
+              'flex h-8 shrink-0 items-center gap-1.5 rounded-md border px-2 text-xs hover:bg-accent/50',
+              !connId && 'border-orange-500/60 text-orange-600 dark:text-orange-400',
+            )}
+            title={conn ? t('connectionPicker.current', { name: conn.name }) : t('connectionPicker.placeholder')}
+            aria-label={t('connectionPicker.change')}
+          >
+            <GitBranchIcon className="h-4 w-4 text-orange-500" />
+            {!connId && <span>{t('connectionPicker.placeholder')}</span>}
+          </button>
+          <span className="text-[11px] font-medium text-muted-foreground">{t('header.project')}</span>
           {/* Repo picker (searchable) */}
-          <Popover open={repoPickerOpen} onOpenChange={(o) => { if (connId) setRepoPickerOpen(o); }}>
+          <Popover open={repoPickerOpen} onOpenChange={(o) => { if (connId || (desktop && recentCount > 0)) setRepoPickerOpen(o); }}>
             <PopoverTrigger asChild>
               <Button
                 variant="outline"
                 size="sm"
-                className="h-8 gap-1.5 text-xs min-w-[220px] justify-between font-normal"
-                disabled={!connId}
+                className="h-8 gap-1.5 text-xs min-w-[170px] max-w-[260px] justify-between font-normal"
+                disabled={!connId && !(desktop && recentCount > 0)}
               >
                 <span className="truncate">{repoLabel}</span>
                 <ChevronDown className="h-3.5 w-3.5 opacity-60 shrink-0" />
@@ -456,14 +677,82 @@ export function GitPanel({ tab }: { tab: Tab }) {
                   })
                 )}
               </div>
+              {desktop && recentCount > 0 && !repoSearch && (
+                <div className="border-t p-1">
+                  <div className="px-2 pb-1 pt-0.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{t('folder.recent')}</div>
+                  <RecentFolderList missing={folderMissing} activeRepoId={localRepo?.id}
+                    onOpen={(f) => { setRepoPickerOpen(false); void openFolderPath(f.path, f.repoId); }} />
+                </div>
+              )}
             </PopoverContent>
           </Popover>
 
-          <div className="flex-1" />
+          {project && <span className="text-[11px] font-medium text-muted-foreground">{t('header.branch')}</span>}
+          {/* Local clone: JetBrains branch popup (checked-out branch + every
+              VCS action). The view ref (history / browse) follows checkout;
+              "Show" on a branch views it without checking it out. */}
+          {useLocal && localRepo && (
+            <>
+              {gitRef && refs && gitRef !== refs.current && (
+                <button
+                  type="button"
+                  className="flex items-center gap-1 h-8 px-2 rounded border border-dashed text-[11px] text-muted-foreground hover:bg-accent/40"
+                  title={t('vcs.viewingHint')}
+                  onClick={() => { if (refs.current) updateTab(tab.id, { gitRef: refs.current }); }}
+                >
+                  {t('vcs.viewing', { ref: gitRef })}
+                </button>
+              )}
+              <GitBranchPopup
+                repo={localRepo}
+                refs={refs}
+                open={branchPopupOpen}
+                onOpenChange={setBranchPopupOpen}
+                run={ops.run}
+                busy={ops.busy}
+                onShowRef={async (r) => { if (await confirmDiscard()) updateTab(tab.id, { gitRef: r }); }}
+                onCheckedOut={onCheckedOut}
+                onUpdate={() => setUpdateOpen(true)}
+                onCommit={openCommit}
+                onPush={openPush}
+                onRemotes={() => setRemotesOpen(true)}
+                onPrompt={setNamePrompt}
+              />
+              {/* JetBrains toolbar trio next to the branch widget: pull,
+                  commit, push — with behind / ahead counts. */}
+              <div className="flex items-center h-8 rounded-md border divide-x overflow-hidden">
+                <ToolbarBtn
+                  icon={ops.busy === 'pull' ? Loader2 : ArrowDownToLine}
+                  spin={ops.busy === 'pull'}
+                  label={t('vcs.toolbar.pull')}
+                  count={currentBranch?.behind}
+                  countClass="text-sky-600 dark:text-sky-400"
+                  title={`${t('vcs.update.title')} (${shortcutHint(GIT_KEYMAP, 'git.update')})`}
+                  disabled={!!ops.busy || !!refs?.state.operation}
+                  onClick={() => setUpdateOpen(true)}
+                />
+                <ToolbarBtn
+                  icon={Check}
+                  label={t('vcs.toolbar.commit')}
+                  title={`${t('vcs.commitAction')} (${shortcutHint(GIT_KEYMAP, 'git.commit')})`}
+                  onClick={openCommit}
+                />
+                <ToolbarBtn
+                  icon={ArrowUpFromLine}
+                  label={t('vcs.toolbar.push')}
+                  count={currentBranch?.ahead}
+                  countClass="text-emerald-600 dark:text-emerald-400"
+                  title={`${t('vcs.pushAction')} (${shortcutHint(GIT_KEYMAP, 'git.push')})`}
+                  disabled={!!refs?.state.operation}
+                  onClick={openPush}
+                />
+              </div>
+            </>
+          )}
 
           {/* Branch picker (far right, with a small leading branch icon) */}
-          <GitBranchIcon className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-          <Select
+          {!useLocal && <GitBranchIcon className="h-3.5 w-3.5 text-muted-foreground shrink-0" />}
+          {!useLocal && <Select
             value={gitRef}
             onValueChange={async (v) => { if (await confirmDiscard()) updateTab(tab.id, { gitRef: v }); }}
             disabled={!project || branches.length === 0}
@@ -494,7 +783,7 @@ export function GitPanel({ tab }: { tab: Tab }) {
                 </SelectItem>
               ))}
             </SelectContent>
-          </Select>
+          </Select>}
           {branchesError && (
             <button
               type="button"
@@ -516,6 +805,10 @@ export function GitPanel({ tab }: { tab: Tab }) {
             />
           )}
 
+          {desktop && (
+            <GitFolderMenu onOpenPath={openFolderPath} missing={folderMissing} activeRepoId={localRepo?.id} />
+          )}
+
           {/* Open locally (clone) — desktop only */}
           {desktop && selectedRepo && !localRepo && (
             <Button size="sm" variant="outline" className="h-8 gap-1.5 text-xs" disabled={cloning} onClick={handleClone}>
@@ -523,51 +816,149 @@ export function GitPanel({ tab }: { tab: Tab }) {
               {t('openLocally')}
             </Button>
           )}
-          {desktop && localRepo && (
-            <Badge variant="outline" className="h-8 gap-1 px-2 text-[10px] border-emerald-500/40 text-emerald-600 dark:text-emerald-400">
-              <DownloadCloud className="h-3 w-3" /> {t('badge.cloned')}
-            </Badge>
+          {desktop && localRepo && localRepo.cloneKind !== 'external' && (
+            <span
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-emerald-500/40 text-emerald-600 dark:text-emerald-400"
+              title={t('badge.cloned')}
+              aria-label={t('badge.cloned')}
+            >
+              <DownloadCloud className="h-3.5 w-3.5" />
+            </span>
           )}
           {desktop && localRepo && (
             <Button
               size="sm"
               variant="outline"
-              className="h-8 gap-1.5 text-xs"
+              className="h-8 w-8 p-0"
               onClick={handleReveal}
-              title={t('reveal.title')}
+              title={t('showInFinder')}
+              aria-label={t('showInFinder')}
             >
-              <FolderOpen className="h-3.5 w-3.5" /> {t('showInFinder')}
-            </Button>
-          )}
-          {desktop && localRepo && (
-            <Button
-              size="sm"
-              variant="outline"
-              className="h-8 gap-1.5 text-xs"
-              disabled={pulling}
-              onClick={handlePull}
-              title={t('pull.title')}
-            >
-              {pulling ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />}
-              {t('pull.button')}
+              <FolderOpen className="h-3.5 w-3.5" />
             </Button>
           )}
         </div>
       </div>
 
+      {useLocal && localRepo && refs?.state.operation && (
+        <GitOperationBanner state={refs.state} run={ops.run} repoId={localRepo.id} onResolve={goResolve} />
+      )}
+      {useLocal && localRepo && (
+        <>
+          <GitUpdateDialog
+            open={updateOpen}
+            onOpenChange={setUpdateOpen}
+            branch={refs?.current ?? ''}
+            upstream={currentBranch?.upstream}
+            onRun={runUpdate}
+          />
+          <GitRemotesDialog repoId={localRepo.id} open={remotesOpen} onOpenChange={setRemotesOpen} onChanged={afterOp} />
+          <GitNamePrompt state={namePrompt} onClose={() => setNamePrompt(null)} />
+          <GitFindInFiles repoId={localRepo.id} open={findOpen} onOpenChange={setFindOpen} initial={findInitial} onOpenHit={openFile} />
+          <GitSearchEverywhere
+            repoId={localRepo.id}
+            open={everywhere !== null}
+            onOpenChange={(o) => { if (!o) setEverywhere(null); }}
+            initialTab={everywhere ?? 'all'}
+            onOpenFile={openFile}
+            onFindText={(q) => { setFindInitial({ q }); setFindOpen(true); }}
+            actions={[
+              { id: 'update', label: t('vcs.update.title'), hint: shortcutHint(GIT_KEYMAP, 'git.update'), run: () => setUpdateOpen(true) },
+              { id: 'commit', label: t('vcs.commitAction'), hint: shortcutHint(GIT_KEYMAP, 'git.commit'), run: openCommit },
+              { id: 'push', label: t('vcs.pushAction'), hint: shortcutHint(GIT_KEYMAP, 'git.push'), run: openPush },
+              { id: 'branches', label: t('vcs.branchesTitle'), hint: shortcutHint(GIT_KEYMAP, 'git.branches'), run: () => setBranchPopupOpen(true) },
+              { id: 'find', label: t('search.findInFiles'), hint: shortcutHint(GIT_KEYMAP, 'git.findInFiles'), run: () => { setFindInitial(undefined); setFindOpen(true); } },
+              { id: 'remotes', label: t('vcs.remotes.title'), run: () => setRemotesOpen(true) },
+              { id: 'mrs', label: t('mode.mrs', { context: isGitHubConn ? 'pr' : undefined }), run: () => updateTab(tab.id, { gitView: 'mrs' }) },
+              { id: 'changes', label: t('mode.changes'), run: () => updateTab(tab.id, { gitView: 'changes' }) },
+            ]}
+          />
+          <Dialog open={!!defChoices} onOpenChange={(o) => { if (!o) setDefChoices(null); }}>
+            <DialogContent className="max-w-xl gap-2 p-3">
+              <DialogTitle className="text-sm">{t('nav.chooseDeclaration', { word: defChoices?.word })}</DialogTitle>
+              <div className="max-h-[50vh] overflow-auto">
+                {defChoices?.list.map((d) => (
+                  <button key={`${d.path}:${d.line}`} type="button" onClick={() => { setDefChoices(null); openFile(d.path, d.line); }}
+                    className="flex w-full flex-col items-start gap-0.5 rounded px-2 py-1.5 text-left text-xs hover:bg-accent/50">
+                    <span className="font-mono">{d.text}</span>
+                    <span className="text-[10px] text-muted-foreground">{d.path}:{d.line}</span>
+                  </button>
+                ))}
+              </div>
+            </DialogContent>
+          </Dialog>
+          <GitCommitDialog
+            open={commitOpen}
+            onOpenChange={setCommitOpen}
+            repoId={localRepo.id}
+            branch={refs?.current || refs?.state.head || ''}
+            onCommitted={(push) => { afterOp(); if (push) setPushOpen(true); }}
+          />
+          <GitPushDialog
+            open={pushOpen}
+            onOpenChange={setPushOpen}
+            repoId={localRepo.id}
+            connectionId={localRepo.connectionId}
+            branch={refs?.current || 'HEAD'}
+            defaultBranch={localRepo.defaultBranch}
+            onPushed={afterOp}
+            onUpdate={() => setUpdateOpen(true)}
+          />
+        </>
+      )}
+
+      <Dialog open={connPickerOpen} onOpenChange={setConnPickerOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>{t('connectionPicker.title')}</DialogTitle>
+          </DialogHeader>
+          <div className="max-h-[50vh] space-y-1 overflow-auto">
+            {connections.length === 0 ? (
+              <p className="py-6 text-center text-xs text-muted-foreground">{t('connectionPicker.empty')}</p>
+            ) : connections.map((c) => (
+              <button
+                key={c.id}
+                type="button"
+                onClick={() => { setConnPickerOpen(false); if (c.id !== connId) void handleConn(c.id); }}
+                className={cn('flex w-full items-center gap-2 rounded-md border px-3 py-2 text-left text-xs hover:bg-accent/50', c.id === connId && 'border-primary bg-primary/5')}
+              >
+                <GitBranchIcon className="h-4 w-4 shrink-0 text-orange-500" />
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate font-medium">{c.name}</span>
+                  {c.baseUrl && <span className="block truncate text-[10px] text-muted-foreground">{c.baseUrl}</span>}
+                </span>
+                {c.shared && <span className="shrink-0 text-[10px] text-muted-foreground">{c.grantRole === 'write' ? t('role.write') : t('role.read')}</span>}
+                {c.id === connId && <Check className="h-3.5 w-3.5 shrink-0 text-primary" />}
+              </button>
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* Body */}
-      {!connId ? (
+      {folderMode && localReposReady && !localRepo ? (
+        <EmptyState
+          icon={<FolderOpen className="h-10 w-10 opacity-30" />}
+          title={t('folder.goneTitle')}
+          hint={t('folder.goneHint')}
+          action={folderStart}
+        />
+      ) : !connId && !folderMode ? (
         <EmptyState
           icon={<GitBranchIcon className="h-10 w-10 opacity-30" />}
           title={t('empty.noConnectionTitle')}
-          hint={t('empty.noConnectionHint')}
+          hint={desktop ? t('folder.noConnectionHint') : t('empty.noConnectionHint')}
+          action={folderStart}
         />
       ) : !project ? (
         <EmptyState
           icon={<GitBranchIcon className="h-10 w-10 opacity-30" />}
           title={t('empty.noRepoTitle')}
           hint={t('empty.noRepoHint')}
+          action={folderStart}
         />
+      ) : folderMode && !localRepo ? (
+        <div className="flex flex-1 items-center justify-center"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>
       ) : (
         <div className="flex-1 min-h-0 flex overflow-hidden">
           {/* Left: mode switch — in Browse the file tree is hosted inline in
@@ -583,9 +974,27 @@ export function GitPanel({ tab }: { tab: Tab }) {
               {useLocal && (
                 <ModeButton icon={FileDiff} label={t('mode.changes')} active={mode === 'changes'} onClick={async () => { if (await confirmDiscard()) updateTab(tab.id, { gitView: 'changes' }); }} />
               )}
-              <ModeButton icon={Workflow} label={t('mode.ci')} active={mode === 'ci'} onClick={async () => { if (await confirmDiscard()) updateTab(tab.id, { gitView: 'ci' }); }} />
+              {!folderMode && (
+                <>
+                  <ModeButton icon={GitPullRequest} label={t('mode.mrs', { context: isGitHubConn ? 'pr' : undefined })} active={mode === 'mrs'} onClick={async () => { if (await confirmDiscard()) updateTab(tab.id, { gitView: 'mrs' }); }} />
+                  <ModeButton icon={Workflow} label={t('mode.ci')} active={mode === 'ci'} onClick={async () => { if (await confirmDiscard()) updateTab(tab.id, { gitView: 'ci' }); }} />
+                </>
+              )}
             </nav>
-            {mode === 'browse' && gitRef && (
+            {mode === 'browse' && editable && localRepo && (
+              <div className="flex-1 min-h-0 overflow-auto border-t">
+                <GitLocalTree
+                  key={`tree-${localRepo.id}`}
+                  repoId={localRepo.id}
+                  selected={tab.gitActiveFile}
+                  onOpen={openFile}
+                  onPrompt={setNamePrompt}
+                  onChanged={onTreeChanged}
+                  reloadKey={reloadKey}
+                />
+              </div>
+            )}
+            {mode === 'browse' && gitRef && !editable && !folderMode && (
               <div className="flex-1 min-h-0 overflow-auto border-t">
                 <GitBrowseTreePane
                   connId={connId}
@@ -616,8 +1025,33 @@ export function GitPanel({ tab }: { tab: Tab }) {
                 refsBySha={refsBySha}
               />
             )}
-            {mode === 'browse' && (
-              gitRef ? (
+            {mode === 'browse' && editable && localRepo ? (
+              <GitWorkspaceEditor
+                key={`ws-${localRepo.id}`}
+                reveal={reveal}
+                onGotoDefinition={(w, p, l) => void gotoDefinition(w, p, l)}
+                onFindUsages={findUsages}
+                onCaret={(p, l) => { caretRef.current = { path: p, line: l }; }}
+                repoId={localRepo.id}
+                files={tab.gitOpenFiles ?? []}
+                active={tab.gitActiveFile}
+                onActivate={(p) => updateTab(tab.id, { gitActiveFile: p })}
+                onClose={closeFile}
+                onDirtyChange={handleEditorDirty}
+                registerFlush={registerFlush}
+                onSaved={(o) => {
+                  // An auto save fires often: only the refs bar refreshes; the
+                  // tree / history reload on a manual save.
+                  setRefsKey((k) => k + 1);
+                  if (!o?.auto) { void loadLocalRepos(); setReloadKey((k) => k + 1); }
+                }}
+              />
+            ) : mode === 'browse' && (
+              folderMode ? (
+                <div className="flex-1 flex items-center justify-center p-6 text-center text-xs text-muted-foreground">
+                  {t('folder.browseCheckout')}
+                </div>
+              ) : gitRef ? (
                 <GitBrowseContent
                   connId={connId}
                   project={project}
@@ -635,16 +1069,53 @@ export function GitPanel({ tab }: { tab: Tab }) {
                 </div>
               )
             )}
-            {mode === 'ci' && (
-              <GitCIPanel connId={connId} project={project} gitRef={gitRef} canWrite={!!conn && (!conn.shared || conn.grantRole === 'write')} />
+            {mode === 'mrs' && !folderMode && (
+              <GitMRPanel
+                provider={conn?.provider}
+                connId={connId}
+                project={project}
+                canWrite={!!conn && (!conn.shared || conn.grantRole === 'write')}
+                localRepo={useLocal && localRepo ? { id: localRepo.id, connectionId: localRepo.connectionId } : null}
+                currentBranch={refs?.current}
+                defaultBranch={localRepo?.defaultBranch || selectedRepo?.defaultBranch}
+                onCheckedOut={(b) => { afterOp(); onCheckedOut(b); }}
+              />
+            )}
+            {mode === 'ci' && !folderMode && (
+              <GitCIPanel provider={conn?.provider} connId={connId} project={project} gitRef={gitRef} canWrite={!!conn && (!conn.shared || conn.grantRole === 'write')} />
             )}
             {mode === 'changes' && useLocal && localRepo && (
-              <GitChangesPanel repoId={localRepo.id} connectionId={localRepo.connectionId} onChanged={loadLocalRepos} onDirtyChange={handleChangesDirty} />
+              <GitChangesPanel key={`changes-${localRepo.id}-${reloadKey}`} repoId={localRepo.id} connectionId={localRepo.connectionId} onChanged={() => { void loadLocalRepos(); setRefsKey((k) => k + 1); }} onDirtyChange={handleChangesDirty} />
             )}
           </div>
         </div>
       )}
     </div>
+  );
+}
+
+function ToolbarBtn({ icon: Icon, spin, label, count, countClass, title, disabled, onClick }: {
+  icon: React.ComponentType<{ className?: string }>;
+  spin?: boolean;
+  label: string;
+  count?: number;
+  countClass?: string;
+  title: string;
+  disabled?: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      title={title}
+      disabled={disabled}
+      onClick={onClick}
+      className="flex items-center gap-1.5 h-full px-2.5 text-xs hover:bg-accent/50 disabled:opacity-40 disabled:pointer-events-none"
+    >
+      <Icon className={cn('h-3.5 w-3.5', spin && 'animate-spin')} />
+      <span>{label}</span>
+      {!!count && <span className={cn('text-[10px] font-medium tabular-nums', countClass)}>{count}</span>}
+    </button>
   );
 }
 
@@ -667,27 +1138,35 @@ function HistoryView({
   const [loadingMore, setLoadingMore] = useState(false);
   const [selected, setSelected] = useState<GitCommit | null>(null);
 
+  // Only the latest load may write state: a slower, superseded request (e.g.
+  // the remote read fired before the local clone list arrived) must not
+  // overwrite the local history with its error.
+  const loadSeq = useRef(0);
   const load = useCallback(async () => {
+    const seq = ++loadSeq.current;
     setLoading(true);
     setError('');
     setSelected(null);
     try {
       if (useLocal && localRepoId) {
         const res = await gitAPI.log(localRepoId, { ref: gitRef || undefined, limit: 200 });
+        if (seq !== loadSeq.current) return;
         setCommits((res.data as GitCommit[]) ?? []);
         setNextPage(null);
       } else {
         const res = await gitAPI.commits(connId, { project, ref: gitRef || undefined, page: 1 });
+        if (seq !== loadSeq.current) return;
         const d = (res.data ?? {}) as { commits?: GitCommit[]; nextPage?: number };
         setCommits(d.commits ?? []);
         setNextPage(d.nextPage && d.nextPage > 0 ? d.nextPage : null);
       }
     } catch (err) {
+      if (seq !== loadSeq.current) return;
       setError(extractErr(err, t('errors.loadHistory')));
       setCommits([]);
       setNextPage(null);
     } finally {
-      setLoading(false);
+      if (seq === loadSeq.current) setLoading(false);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [connId, project, gitRef, useLocal, localRepoId]);

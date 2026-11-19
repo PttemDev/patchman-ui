@@ -68,7 +68,9 @@ export function GitConnectionDialog({ open, onOpenChange, editing, onSaved }: Gi
   const { toast } = useToast();
 
   const [name, setName] = useState('');
+  const [provider, setProvider] = useState<'gitlab' | 'github'>('gitlab');
   const [baseUrl, setBaseUrl] = useState('https://gitlab.com');
+  const isGitHub = provider === 'github';
   const [authKind, setAuthKind] = useState<AuthKind>('oauth');
   const [credential, setCredential] = useState('');
 
@@ -96,13 +98,15 @@ export function GitConnectionDialog({ open, onOpenChange, editing, onSaved }: Gi
     setTestResult(null);
     if (editing) {
       setName(editing.name);
-      setBaseUrl(editing.baseUrl || 'https://gitlab.com');
+      setProvider(editing.provider === 'github' ? 'github' : 'gitlab');
+      setBaseUrl(editing.baseUrl || (editing.provider === 'github' ? 'https://github.com' : 'https://gitlab.com'));
       setAuthKind(editing.authKind === 'pat' ? 'pat' : 'oauth');
       setCredential('');
       const stored = editing.primaryScope ? (editing.primaryScope as DBScope) : undefined;
       setScope(stored ?? (scopes.includes('remote') ? 'remote' : (scopes[0] ?? 'remote')));
     } else {
       setName('');
+      setProvider('gitlab');
       setBaseUrl('https://gitlab.com');
       setAuthKind('oauth');
       setCredential('');
@@ -114,16 +118,17 @@ export function GitConnectionDialog({ open, onOpenChange, editing, onSaved }: Gi
   const buildPayload = useCallback((): Record<string, unknown> => {
     const payload: Record<string, unknown> = {
       name: name.trim(),
-      provider: 'gitlab',
+      provider,
       baseUrl: baseUrl.trim().replace(/\/+$/, ''),
-      authKind,
+      // GitHub connections use a personal access token (no account linking yet).
+      authKind: isGitHub ? 'pat' : authKind,
       primaryScope: scope,
     };
     // A PAT is only sent when freshly typed; empty on edit means "keep the
     // stored credential". Switching to oauth clears any credential BE-side.
-    if (authKind === 'pat' && credential.trim()) payload.credential = credential.trim();
+    if ((isGitHub || authKind === 'pat') && credential.trim()) payload.credential = credential.trim();
     return payload;
-  }, [name, baseUrl, authKind, credential, scope]);
+  }, [name, provider, isGitHub, baseUrl, authKind, credential, scope]);
 
   // Tests what is on screen, saved or not (see gitAPI.test).
   const handleTest = async () => {
@@ -146,7 +151,7 @@ export function GitConnectionDialog({ open, onOpenChange, editing, onSaved }: Gi
     setError('');
     if (!name.trim()) { setError(t('connDialog.nameRequired')); return; }
     if (!baseUrl.trim()) { setError(t('connDialog.baseUrlRequired')); return; }
-    if (authKind === 'pat' && !editing && !credential.trim()) {
+    if ((isGitHub || authKind === 'pat') && !editing && !credential.trim()) {
       setError(t('connDialog.patRequired'));
       return;
     }
@@ -191,13 +196,21 @@ export function GitConnectionDialog({ open, onOpenChange, editing, onSaved }: Gi
 
           <div>
             <Label className="text-xs">{t('connDialog.provider')}</Label>
-            <Select value="gitlab" disabled>
+            <Select value={provider} disabled={!!editing} onValueChange={(v) => {
+              const next = v as 'gitlab' | 'github';
+              setProvider(next);
+              // Swap the default address along with the provider.
+              setBaseUrl((cur) => (cur === 'https://gitlab.com' || cur === 'https://github.com' || !cur.trim()
+                ? (next === 'github' ? 'https://github.com' : 'https://gitlab.com') : cur));
+              if (next === 'github') setAuthKind('pat');
+            }}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="gitlab">GitLab</SelectItem>
+                <SelectItem value="github">GitHub</SelectItem>
               </SelectContent>
             </Select>
-            <p className="text-[10px] text-muted-foreground mt-1">{t('connDialog.providerNote')}</p>
+            <p className="text-[10px] text-muted-foreground mt-1">{isGitHub ? t('connDialog.providerNoteGithub') : t('connDialog.providerNote')}</p>
           </div>
 
           <div>
@@ -205,16 +218,16 @@ export function GitConnectionDialog({ open, onOpenChange, editing, onSaved }: Gi
             <Input
               value={baseUrl}
               onChange={(e) => setBaseUrl(e.target.value)}
-              placeholder="https://gitlab.com"
+              placeholder={isGitHub ? 'https://github.com' : 'https://gitlab.com'}
               className="font-mono text-xs"
               autoComplete="off"
             />
             <p className="text-[10px] text-muted-foreground mt-1">
-              <Trans t={t} i18nKey="connDialog.baseUrlNote" components={{ code: <code className="font-mono" /> }} />
+              <Trans t={t} i18nKey={isGitHub ? 'connDialog.baseUrlNoteGithub' : 'connDialog.baseUrlNote'} components={{ code: <code className="font-mono" /> }} />
             </p>
           </div>
 
-          <div>
+          {!isGitHub && <div>
             <Label className="text-xs">{t('connDialog.authentication')}</Label>
             <Select value={authKind} onValueChange={(v) => setAuthKind(v as AuthKind)}>
               <SelectTrigger><SelectValue /></SelectTrigger>
@@ -228,9 +241,9 @@ export function GitConnectionDialog({ open, onOpenChange, editing, onSaved }: Gi
                 ? t('connDialog.authOauthNote')
                 : t('connDialog.authPatNote')}
             </p>
-          </div>
+          </div>}
 
-          {authKind === 'pat' && (
+          {(isGitHub || authKind === 'pat') && (
             <div>
               <div className="flex items-center gap-1.5">
                 <Label className="text-xs">{t('connDialog.authPat')}</Label>
@@ -244,7 +257,7 @@ export function GitConnectionDialog({ open, onOpenChange, editing, onSaved }: Gi
                     <TooltipContent side="right" className="max-w-xs text-xs leading-relaxed">
                       <Trans
                         t={t}
-                        i18nKey="connDialog.patHelp"
+                        i18nKey={isGitHub ? 'connDialog.patHelpGithub' : 'connDialog.patHelp'}
                         values={{ host: hostOf(baseUrl) }}
                         components={{ code: <code className="font-mono" />, path: <span className="font-mono break-all" /> }}
                       />
@@ -256,7 +269,7 @@ export function GitConnectionDialog({ open, onOpenChange, editing, onSaved }: Gi
                 type="password"
                 value={credential}
                 onChange={(e) => setCredential(e.target.value)}
-                placeholder={editing?.hasCredential ? t('connDialog.patStored') : 'glpat-…'}
+                placeholder={editing?.hasCredential ? t('connDialog.patStored') : isGitHub ? 'github_pat_… / ghp_…' : 'glpat-…'}
                 className="font-mono text-xs"
                 autoComplete="off"
                 data-1p-ignore
@@ -264,7 +277,7 @@ export function GitConnectionDialog({ open, onOpenChange, editing, onSaved }: Gi
                 data-bwignore="true"
               />
               <p className="mt-1 text-[10px] leading-relaxed text-muted-foreground">
-                <Trans t={t} i18nKey="connDialog.patScopes" components={{ code: <code className="font-mono text-foreground/80" /> }} />
+                <Trans t={t} i18nKey={isGitHub ? 'connDialog.patScopesGithub' : 'connDialog.patScopes'} components={{ code: <code className="font-mono text-foreground/80" /> }} />
               </p>
             </div>
           )}

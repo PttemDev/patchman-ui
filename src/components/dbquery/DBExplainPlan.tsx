@@ -2,6 +2,8 @@ import { useMemo } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 import { ChevronRight, AlertTriangle, Database, Zap } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { MongoExplainPlan } from './MongoExplainPlan';
+import { isMongoExplain } from './mongoExplainUtil';
 
 interface DBExplainPlanProps {
   rows: unknown[][];
@@ -14,6 +16,8 @@ interface DBExplainPlanProps {
 export function DBExplainPlan({ rows, columns }: DBExplainPlanProps) {
   const { t } = useTranslation('dbquery');
   const plan = useMemo(() => extractPlanJson(rows, columns), [rows, columns]);
+  const mongo = rows[0]?.[0];
+  if (isMongoExplain(mongo)) return <MongoExplainPlan doc={mongo} />;
   if (!plan) {
     return (
       <div className="p-4 text-xs text-muted-foreground">

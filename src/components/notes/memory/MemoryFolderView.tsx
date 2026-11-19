@@ -16,6 +16,7 @@ import { formatWhen, noteTimesTitle } from '../time';
 import { lazyWithReload } from '@/lib/lazyWithReload';
 import { NoteLinksPanel } from './NoteLinksPanel';
 import { BrainHelpButton } from './BrainHelp';
+import { AgentWritesHint } from './TeamMemoryGuide';
 import { memoryRootOf } from '../noteUtils';
 
 const MemoryBrain = lazyWithReload(() => import('./MemoryBrain'));
@@ -136,13 +137,14 @@ export function MemoryFolderView({ note, canEdit, titleBlock }: { note: Note; ca
               <Settings2 className="h-3.5 w-3.5" />
             </Button>
             {canEdit && (
-              <Button size="sm" variant="outline" className="h-7 text-xs gap-1" onClick={() => void newCard()}>
+              <Button size="sm" variant="outline" className="h-7 text-xs gap-1" onClick={() => void newCard()} title={t('memory.teamGuide.newCardTitle')}>
                 <Plus className="h-3.5 w-3.5" /> {t('memory.newCard')}
               </Button>
             )}
           </div>
         </div>
         <p className="mt-2 text-xs text-muted-foreground">{mode === 'brain' ? t('memory.brainHint') : t('memory.folderHint')}</p>
+        {mode === 'list' && <AgentWritesHint className="mt-2" />}
 
         {mode === 'list' && (
           <div className="relative mt-4">

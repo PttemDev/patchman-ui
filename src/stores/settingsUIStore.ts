@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-export type SettingsSection = 'appearance' | 'language' | 'remote' | 'proxy' | 'integrations' | 'mcp' | 'data' | 'keymap' | 'about' | 'changelog' | 'updates';
+export type SettingsSection = 'security' | 'appearance' | 'language' | 'remote' | 'proxy' | 'integrations' | 'mcp' | 'data' | 'keymap' | 'editor' | 'gcp' | 'about' | 'changelog' | 'updates' | 'plugins';
 
 interface SettingsUIState {
   open: boolean;

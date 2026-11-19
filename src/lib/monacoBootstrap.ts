@@ -14,3 +14,10 @@ import { registerLangKit } from './monacoLangKit';
 
 // Runs once — ESM evaluates a module body a single time, so this is idempotent.
 registerLangKit(monaco);
+
+// The configured instance, for code that needs Monaco outside an <Editor>
+// (e.g. monacoShiki). Reach it with `await import('@/lib/monacoBootstrap')` —
+// never via @monaco-editor/react's loader.init(): called before this module
+// has run, that starts the loader's CDN fetch (blocked by the desktop CSP), and
+// every editor then waits on it forever ("Loading…").
+export { monaco };

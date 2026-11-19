@@ -102,7 +102,9 @@
     "histChecking": "Metrik arka ucu (Prometheus) aranıyor…",
     "histNote": "Prometheus üzerinden geçmiş metrikler ({{service}}).",
     "histEmpty": "Seçilen aralıkta bu pod için geçmiş veri yok.",
-    "histWarn": "Geçmiş metrikler alınamadı: {{error}}. Bunun yerine canlı örnekler gösteriliyor."
+    "histWarn": "Geçmiş metrikler alınamadı: {{error}}. Bunun yerine canlı örnekler gösteriliyor.",
+    "request": "request",
+    "limit": "limit"
   },
   "apply": {
     "title": "Değişiklikleri uygula <mono>· {{target}}</mono>",

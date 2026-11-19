@@ -63,7 +63,7 @@ export const REDIS_CHEATSHEET: CheatGroup[] = [
     label: 'Strings & counters',
     entries: [
       { cmd: 'GET', syntax: 'GET key', desc: 'Read a string value.', example: 'GET greeting' },
-      { cmd: 'SET', syntax: 'SET key value [EX seconds] [NX|XX] [KEEPTTL]', desc: 'Write a string; EX adds a TTL, NX only if absent.', example: 'SET user:1:name "Kenan" EX 3600', write: true },
+      { cmd: 'SET', syntax: 'SET key value [EX seconds] [NX|XX] [KEEPTTL]', desc: 'Write a string; EX adds a TTL, NX only if absent.', example: 'SET user:1:name "Jane" EX 3600', write: true },
       { cmd: 'SETEX', syntax: 'SETEX key seconds value', desc: 'Set a value with a TTL in one call.', example: 'SETEX otp:1 120 "482913"', write: true },
       { cmd: 'MGET', syntax: 'MGET key [key ...]', desc: 'Read many string keys at once.', example: 'MGET greeting counter' },
       { cmd: 'INCR', syntax: 'INCR key', desc: 'Atomically add 1 and return the new value.', example: 'INCR page:views', write: true },
@@ -76,7 +76,7 @@ export const REDIS_CHEATSHEET: CheatGroup[] = [
     id: 'hash',
     label: 'Hashes (objects)',
     entries: [
-      { cmd: 'HSET', syntax: 'HSET key field value [field value ...]', desc: 'Set one or more fields of a hash.', example: 'HSET user:1 name Kenan role admin', write: true },
+      { cmd: 'HSET', syntax: 'HSET key field value [field value ...]', desc: 'Set one or more fields of a hash.', example: 'HSET user:1 name Jane role admin', write: true },
       { cmd: 'HGET', syntax: 'HGET key field', desc: 'Read a single field.', example: 'HGET user:1 name' },
       { cmd: 'HGETALL', syntax: 'HGETALL key', desc: 'Read every field/value (avoid on huge hashes → HSCAN).', example: 'HGETALL user:1' },
       { cmd: 'HDEL', syntax: 'HDEL key field [field ...]', desc: 'Remove fields from a hash.', example: 'HDEL user:1 role', write: true },

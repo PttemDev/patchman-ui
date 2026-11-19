@@ -10,6 +10,7 @@ import { useRequestSettingsStore } from '@/stores/requestSettingsStore';
 import { isLocalMode, usesIndexedDB, getRepo } from '@/data';
 import { buildCookieHeaderForUrl, parseSetCookie, splitSetCookie, emitCookiesChanged } from '@/lib/cookieJar';
 import { useCookieConfigStore } from '@/stores/cookieConfigStore';
+import { standaloneTabId, forwardOpenTabToMain } from '@/lib/detach/openInMain';
 
 // ── Detached-window mode (see DETACH_TAB_RFC §0) ────────────────────
 // A "detach tab" window boots the same bundle with `?detached=<tabId>` in
@@ -205,6 +206,11 @@ export const useRequestStore = create<RequestState>()(
       detached: [],
 
       addTab: (tabOverrides?: Partial<Tab>, forceNew?: boolean) => {
+        // A detached window renders only its own tab — open new ones in main.
+        if (standaloneTabId()) {
+          forwardOpenTabToMain(tabOverrides, forceNew);
+          return;
+        }
         // If opening an existing request, check if it's already in a tab (unless forceNew).
         // Refresh that tab's request-data fields from the incoming payload so an
         // updated collection entry shows its latest state instead of the stale

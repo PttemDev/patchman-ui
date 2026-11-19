@@ -14,6 +14,8 @@ import {
   ChevronDown,
   Loader2,
   Tags,
+  Telescope,
+  Clock,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -40,7 +42,7 @@ import { dualWrite } from '@/stores/dbConnectionStore';
 import { useRequestStore } from '@/stores/requestStore';
 import { esConnectionAPI, esAPI, type DBScope } from '@/services/api';
 import { cn } from '@/lib/utils';
-import type { ESConnection, IndexRow, AliasRow } from '@/types';
+import type { ESConnection, IndexRow, AliasRow, ESDataView, ESKibanaSpaces } from '@/types';
 import { groupAliases, healthDot, formatCount, type AliasGroup } from './esRow';
 import { ESConnectionDialog } from './ESConnectionDialog';
 import { createSidebarDialogStore } from '@/stores/sidebarDialogStore';
@@ -95,12 +97,50 @@ export function ESSidebar() {
   const [filterByConn, setFilterByConn] = useState<Record<string, string>>({});
   const [closedIdx, setClosedIdx] = useState<Record<string, boolean>>({});
   const [closedAlias, setClosedAlias] = useState<Record<string, boolean>>({});
+  // Kibana data views per connection (+ its spaces and the picked space;
+  // undefined = the connection's configured space). `unsupported` = the BE
+  // predates data views (404) → the section says so.
+  const [dvByConn, setDvByConn] = useState<Record<string, DataViewState>>({});
+  const [spacesByConn, setSpacesByConn] = useState<Record<string, ESKibanaSpaces | undefined>>({});
+  const [spaceByConn, setSpaceByConn] = useState<Record<string, string | undefined>>({});
+  const [closedDv, setClosedDv] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     fetchConnections();
   }, [fetchConnections]);
 
+  const loadDataViews = useCallback(async (conn: ESConnection, space?: string, refresh?: boolean) => {
+    if (!hasKibana(conn)) {
+      setDvByConn((m) => ({ ...m, [conn.id]: { views: [], noKibana: true } }));
+      return;
+    }
+    const scope = scopeForEs(connections, conn.id);
+    setDvByConn((m) => ({ ...m, [conn.id]: { ...(m[conn.id] ?? { views: [] }), loading: true, error: undefined } }));
+    const [vr, sr] = await Promise.allSettled([
+      esAPI.dataViews(conn.id, space, scope, refresh),
+      spacesByConn[conn.id] && !refresh ? Promise.resolve(null) : esAPI.kibanaSpaces(conn.id, scope, refresh),
+    ]);
+    if (sr.status === 'fulfilled' && sr.value) {
+      setSpacesByConn((m) => ({ ...m, [conn.id]: sr.value!.data as ESKibanaSpaces }));
+    }
+    if (vr.status === 'fulfilled') {
+      setDvByConn((m) => ({ ...m, [conn.id]: { views: (vr.value.data as ESDataView[]) ?? [] } }));
+      return;
+    }
+    const e = vr.reason as { response?: { status?: number; data?: { error?: string; code?: string } }; message?: string };
+    const st = e?.response?.status;
+    setDvByConn((m) => ({
+      ...m,
+      [conn.id]: st === 404
+        ? { views: [], unsupported: true }
+        : e?.response?.data?.code === 'no_kibana'
+          ? { views: [], noKibana: true }
+          : { views: [], error: e?.response?.data?.error || e?.message || t('sidebar.dataViewsError') },
+    }));
+  }, [connections, spacesByConn, t]);
+
   const loadTree = useCallback(async (conn: ESConnection) => {
+    void loadDataViews(conn, spaceByConn[conn.id]);
     setLoadingIdx((m) => ({ ...m, [conn.id]: true }));
     const scope = scopeForEs(connections, conn.id);
     try {
@@ -124,7 +164,7 @@ export function ESSidebar() {
     } finally {
       setLoadingIdx((m) => ({ ...m, [conn.id]: false }));
     }
-  }, [connections]);
+  }, [connections, loadDataViews, spaceByConn]);
 
   const toggleExpand = useCallback((conn: ESConnection) => {
     const next = !expanded[conn.id];
@@ -144,6 +184,27 @@ export function ESSidebar() {
       esConnectionId: conn.id,
       esIndex: index,
       esQuery: q,
+    }, true);
+  }, [addTab]);
+
+  const openDataViewTab = useCallback((conn: ESConnection, dv: ESDataView, space: string | undefined) => {
+    const { tabs, setActiveTab } = useRequestStore.getState();
+    const existing = tabs.find((x) => x.type === 'es' && x.esConnectionId === conn.id
+      && x.esDataViewId === dv.id && x.esDataViewSpace === space);
+    if (existing) {
+      setActiveTab(existing.id);
+      return;
+    }
+    addTab({
+      type: 'es',
+      name: `${dv.name} · ${conn.name}`,
+      method: 'GET',
+      url: '',
+      esConnectionId: conn.id,
+      esDataViewId: dv.id,
+      esDataViewName: dv.name,
+      esDataViewSpace: space,
+      esIndex: dv.pattern,
     }, true);
   }, [addTab]);
 
@@ -266,6 +327,13 @@ export function ESSidebar() {
                 const alias = q
                   ? allAlias.filter((a) => a.alias.toLowerCase().includes(q) || a.indices.some((i) => i.toLowerCase().includes(q)))
                   : allAlias;
+                const dvState = dvByConn[conn.id];
+                const allDv = dvState?.views ?? [];
+                const dvs = q
+                  ? allDv.filter((d) => d.name.toLowerCase().includes(q) || d.pattern.toLowerCase().includes(q))
+                  : allDv;
+                const spaces = spacesByConn[conn.id];
+                const pickedSpace = spaceByConn[conn.id];
                 return (
                   <div className="ml-3 border-l border-border/60 pl-1 py-1 space-y-1">
                     {/* Filter both listings by index / alias name. */}
@@ -285,6 +353,84 @@ export function ESSidebar() {
                       </div>
                     ) : (
                       <>
+                        {/* ── Data views (Kibana) ─────────────────── */}
+                        {dvState && (
+                          <>
+                            <SubHeader
+                              label={t('sidebar.dataViews')}
+                              count={dvs.length}
+                              open={!closedDv[conn.id]}
+                              onToggle={() => setClosedDv((m) => ({ ...m, [conn.id]: !m[conn.id] }))}
+                            />
+                            {!closedDv[conn.id] && (
+                              <>
+                                {spaces?.supported && spaces.spaces.length > 1 && (
+                                  <div className="px-2 py-0.5 flex items-center gap-1">
+                                    <span className="text-[10px] text-muted-foreground/70 shrink-0">{t('sidebar.space')}</span>
+                                    <select
+                                      value={pickedSpace ?? (spaces.default || 'default')}
+                                      onChange={(e) => {
+                                        const v = e.target.value;
+                                        setSpaceByConn((m) => ({ ...m, [conn.id]: v }));
+                                        void loadDataViews(conn, v);
+                                      }}
+                                      className="flex-1 min-w-0 h-5 rounded border bg-background px-1 text-[10px]"
+                                    >
+                                      {spaces.spaces.map((sp) => <option key={sp.id} value={sp.id}>{sp.name}</option>)}
+                                    </select>
+                                  </div>
+                                )}
+                                {dvState.loading ? (
+                                  <div className="flex items-center gap-1.5 px-2 py-0.5 text-[10px] text-muted-foreground">
+                                    <Loader2 className="h-3 w-3 animate-spin" /> {t('sidebar.loadingDataViews')}
+                                  </div>
+                                ) : dvState.unsupported ? (
+                                  <div className="px-2 py-1 text-[10px] text-muted-foreground/80">{t('sidebar.dataViewsUnsupported')}</div>
+                                ) : dvState.noKibana ? (
+                                  <div className="px-2 py-1 text-[10px] text-muted-foreground/80 space-y-0.5">
+                                    <div>{t('sidebar.dataViewsNoKibana')}</div>
+                                    {!conn.shared && (
+                                      <button type="button" className="text-primary hover:underline" onClick={() => openEdit(conn)}>
+                                        {t('sidebar.dataViewsAddKibana')}
+                                      </button>
+                                    )}
+                                  </div>
+                                ) : dvState.error ? (
+                                  <div className="px-2 py-1 text-[10px] text-destructive/90 break-words" title={dvState.error}>
+                                    <span className="line-clamp-3">{dvState.error}</span>
+                                    <button type="button" className="text-primary hover:underline" onClick={() => void loadDataViews(conn, pickedSpace, true)}>
+                                      {t('common:retry')}
+                                    </button>
+                                  </div>
+                                ) : dvs.length === 0 ? (
+                                  <div className="px-2 py-1 text-[10px] text-muted-foreground/70">{t('sidebar.dataViewsNone')}</div>
+                                ) : (
+                                  dvs.map((d) => (
+                                    <button
+                                      key={d.id}
+                                      type="button"
+                                      onClick={() => openDataViewTab(conn, d, pickedSpace)}
+                                      className="w-full flex flex-col gap-0.5 px-2 py-0.5 rounded text-left hover:bg-accent/40"
+                                      title={d.timeField
+                                        ? t('sidebar.dataViewTitle', { pattern: d.pattern, timeField: d.timeField })
+                                        : d.pattern}
+                                    >
+                                      <div className="flex items-center gap-1.5">
+                                        <Telescope className="h-3 w-3 shrink-0 text-yellow-500" />
+                                        <span className="text-xs truncate">{d.name}</span>
+                                        {d.timeField && <Clock className="ml-auto h-2.5 w-2.5 shrink-0 text-muted-foreground/60" />}
+                                      </div>
+                                      {d.pattern !== d.name && (
+                                        <span className="pl-4 text-[9px] font-mono text-muted-foreground/60 truncate">{d.pattern}</span>
+                                      )}
+                                    </button>
+                                  ))
+                                )}
+                              </>
+                            )}
+                          </>
+                        )}
+
                         {/* ── Indexes ──────────────────────────────── */}
                         <SubHeader
                           label={t('indexBrowser.sectionIndexes')}
@@ -414,4 +560,18 @@ function SubHeader({ label, count, open, onToggle }: { label: string; count: num
       <span className="text-muted-foreground/40">· {count}</span>
     </button>
   );
+}
+
+interface DataViewState {
+  views: ESDataView[];
+  loading?: boolean;
+  error?: string;
+  noKibana?: boolean;
+  unsupported?: boolean;
+}
+
+// Data views need Kibana: the "via Kibana" mode, or an optional Kibana URL on
+// a direct connection.
+function hasKibana(conn: ESConnection): boolean {
+  return conn.authKind === 'kibanaProxy' || !!(conn.kibanaUrl ?? (conn.options?.kibanaUrl as string | undefined));
 }

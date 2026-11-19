@@ -142,7 +142,7 @@
     "cardsCount_one": "{{count}} kart",
     "cardsCount_other": "{{count}} kart",
     "filter": "Kart ve sayfalarda filtrele…",
-    "empty": "Henüz kart yok. Yapay zekâ ajanların saklamaya değer bir şey öğrendiğinde ekler — ya da kendin ekle.",
+    "empty": "Henüz kart yok. Yapay zekâ ajanlarınız saklamaya değer bir şey öğrendiğinde bunları MCP üzerinden ekler — ajanınıza “bunu hatırla” deyin.",
     "folderHint": "Bilgi kartları: her biri tek bir bilgi, karar ya da kök neden; ajanlar önce tek satırlık özeti okur.",
     "newCard": "Yeni kart",
     "newCardTitle": "Yeni kart",
@@ -299,7 +299,58 @@
     "foldersCount_other": "{{count}} klasör",
     "notInFolder": "Klasörde değil",
     "emptyFolder": "boş",
-    "openFolder": "Aç"
+    "openFolder": "Aç",
+    "teamGuide": {
+      "title": "Takım hafızası — nasıl çalışır",
+      "intro": "Takım hafızası, ekibinizin yapay zekâ ajanları için ortak bir beyindir: bir ekip arkadaşının ajanının öğrendiğini, herkesin ajanı hatırlayabilir. Güncel tutulacak bir wiki ya da kişiler arası kopyala-yapıştır yok.",
+      "link": "Takım hafızası nasıl çalışır",
+      "howTitle": "Nasıl çalışır",
+      "flow": {
+        "learn": {
+          "title": "Öğren",
+          "body": "Ajan çalışırken saklamaya değer bir şey bulur: bir kök neden, bir karar, bir servisin nasıl davrandığı."
+        },
+        "remember": {
+          "title": "Hatırla",
+          "body": "MCP üzerinden takım hafızasına kısa bir kart kaydeder; kart ajanın adıyla imzalanır."
+        },
+        "recall": {
+          "title": "Bul",
+          "body": "Sonra bir ekip arkadaşının ajanı, ilgili işe başlamadan önce hafızada arar — kimsenin ona yol göstermesi gerekmez."
+        },
+        "reuse": {
+          "title": "Kullan",
+          "body": "Kart [team: …] etiketiyle gelir; ajan aynı şeyi yeniden keşfetmek yerine onun üstüne kurar."
+        }
+      },
+      "mcpTitle": "Kartları ajanınız yazsın — elle açmanız gerekmez",
+      "mcpBody": "Kartlar, yapay zekâ ajanınız (Claude Code, Cursor, Claude Desktop…) tarafından PatchMan'in MCP araçlarıyla oluşturulmak üzere tasarlandı. Ajan her kartı tek konuda tutar, neyle ilgili olduğunu adıyla yazar ve ilgili kartlara bağlar; sonradan bulunabilmesini sağlayan budur. Ajana düz bir dille söylemeniz yeterli:",
+      "prompts": {
+        "save": "Bunu takım için hatırla: <öğrendiğin şey>",
+        "ask": "Başlamadan önce takım hafızasına bak — <servis ya da konu> hakkında ne biliyoruz?",
+        "review": "Bugün aldığımız kararı takım hafızasına kaydet ve ilgili kartlara bağla."
+      },
+      "mcpHandEdit": "Bir kartı elle düzeltmek ya da silmek sorun değil. Ajanlar bir kişinin yazdığının üzerine yazmaz; kabul ya da reddetmeniz için gelen kutusuna öneri bırakır.",
+      "whoTitle": "Kim neyi görür",
+      "who": {
+        "personal": "Takım için istemediğiniz sürece ajanın kaydettiği her şey kişisel hafızanıza gider. Onu yalnız siz görürsünüz.",
+        "team": "Takım hafızası, bir takımla paylaşılmış bir hafıza klasörüdür: düzenleme yetkisi olan ekip arkadaşları ekleyebilir, paylaşılan herkes içinden arayabilir.",
+        "tagged": "Arama sonuçları her kartın nereden geldiğini gösterir — [team: …], [shared by …] — böylece ajan onu sizin talimatınız değil, bir ekip arkadaşının notu olarak ele alır.",
+        "secrets": "Şifre, token ve anahtarlar reddedilir; bunun yerine sırrın nerede durduğunu gösteren bir işaret kaydedin."
+      },
+      "setupTitle": "Kurulum (takım başına bir kez)",
+      "setup": {
+        "connect": "Her ekip üyesi yapay zekâ ajanını {{path}} bölümünden PatchMan'e bağlar.",
+        "share": "Bir kişi bir klasörü ajan hafızası yapar (⋯ → “{{useAsMemory}}”) ve takımla düzenleyici olarak paylaşır (⋯ → {{share}}).",
+        "pick": "Birden fazla takım hafızasına yazabiliyorsanız, ajanların kullanacağı varsayılanı seçin."
+      },
+      "pickDefault": "Varsayılan takım hafızasını seç",
+      "copy": "İstemi kopyala",
+      "copied": "İstem kopyalandı",
+      "copyFailed": "Kopyalanamadı",
+      "hint": "Bu kartları yapay zekâ ajanınız MCP üzerinden yazar — elle eklemeniz gerekmez. Ajana “bunu takım için hatırla” demeniz yeterli.",
+      "newCardTitle": "Elle kart ekle — bunu genellikle yapay zekâ ajanınız MCP üzerinden sizin için yapar"
+    }
   },
   "sharing": {
     "everyone": "Herkes",
@@ -313,5 +364,9 @@
     "updated": "Güncellendi: {{when}}",
     "created": "Oluşturuldu: {{when}}",
     "createdBy": "oluşturan {{name}} · {{when}}"
-  }
+  },
+  "groupMemory": "Ajan hafızası",
+  "groupNotes": "Notlar",
+  "myMemory": "Hafızam",
+  "sharedMemories": "Benimle paylaşılan hafızalar"
 }

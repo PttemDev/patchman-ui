@@ -58,7 +58,14 @@
     "promoteTitle": "Promote to admin",
     "password": "Password",
     "resetPasswordTitle": "Reset password",
-    "manage": "Manage"
+    "manage": "Manage",
+    "signOut": "Sign out",
+    "signOutTitle": "Sign this user out on every device",
+    "signOutConfirm": "Sign {{name}} out everywhere?",
+    "signOutBody": "Every device this user is signed in on loses access on its next request. Use it for a lost or stolen laptop.",
+    "signedOut_one": "Signed out of {{count}} device",
+    "signedOut_other": "Signed out of {{count}} devices",
+    "signOutFailed": "Couldn't sign the user out"
   },
   "pagination": {
     "rowsPerPage": "Rows per page",

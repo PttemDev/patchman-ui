@@ -138,11 +138,15 @@ function initialState(): Pick<AuthState, 'user' | 'token' | 'mode' | 'dataSource
   return { user: null, token: null, mode: 'synced', dataSource: initialDataSource('synced'), isAuthenticated: false, isLoading: false, ...base };
 }
 
+// Which backend issued the stored session token (its API base URL).
+const TOKEN_BACKEND_KEY = 'patchman_token_backend';
+
 export const useAuthStore = create<AuthState>((set) => ({
   ...initialState(),
 
   setUserAndToken: (user, token) => {
     localStorage.setItem('patchman_token', token);
+    localStorage.setItem(TOKEN_BACKEND_KEY, getRemoteBaseUrl());
     localStorage.setItem('patchman_user', JSON.stringify(user));
     localStorage.removeItem(MODE_KEY);
     localStorage.removeItem(DATA_SOURCE_KEY);
@@ -155,6 +159,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     const response = await authAPI.login(email, password);
     const { token, user } = response.data;
     localStorage.setItem('patchman_token', token);
+    localStorage.setItem(TOKEN_BACKEND_KEY, getRemoteBaseUrl());
     localStorage.setItem('patchman_user', JSON.stringify(user));
     localStorage.removeItem(MODE_KEY);
     localStorage.removeItem(DATA_SOURCE_KEY);
@@ -214,6 +219,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     const response = await authAPI.register(name, email, password);
     const { token, user } = response.data;
     localStorage.setItem('patchman_token', token);
+    localStorage.setItem(TOKEN_BACKEND_KEY, getRemoteBaseUrl());
     localStorage.setItem('patchman_user', JSON.stringify(user));
     localStorage.removeItem(MODE_KEY);
     localStorage.removeItem(DATA_SOURCE_KEY);
@@ -240,6 +246,19 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
 
   logout: () => {
+    // End the session server-side too, so the token can't be reused — on the
+    // backend that ISSUED it. Callers may already have switched the active
+    // remote (backend switch, connect link): sending the token to the new one
+    // would hand it to a server that never had it. Unknown issuer → skip.
+    const tok = localStorage.getItem('patchman_token');
+    const issuer = localStorage.getItem(TOKEN_BACKEND_KEY);
+    if (tok && issuer) {
+      void fetch(`${issuer.replace(/\/+$/, '')}/auth/logout`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${tok}` },
+      }).catch(() => {});
+    }
+    localStorage.removeItem(TOKEN_BACKEND_KEY);
     localStorage.removeItem('patchman_token');
     localStorage.removeItem('patchman_user');
     localStorage.removeItem(MODE_KEY);

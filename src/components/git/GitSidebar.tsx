@@ -13,6 +13,7 @@ import {
   Loader2,
   ChevronRight,
   FolderGit2,
+  FolderInput,
   Search,
 } from 'lucide-react';
 import {
@@ -33,6 +34,9 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
+import { isDesktop } from '@/lib/platform';
+import { useGitRecentFoldersStore } from '@/stores/gitRecentFoldersStore';
+import { RecentFolderList, openGitFolder, pickGitFolder } from './GitFolderMenu';
 import { useGitConnectionStore, scopeForGit } from '@/stores/gitConnectionStore';
 import { useGitSidebarUI } from '@/stores/gitSidebarUIStore';
 import { useRequestStore } from '@/stores/requestStore';
@@ -234,6 +238,8 @@ export function GitSidebar() {
             ))}
           </div>
         )}
+        {/* Folders on this computer: works without any connection or login. */}
+        {isDesktop() && loaded && <SidebarFolders />}
       </div>
 
       <GitConnectionDialog
@@ -340,6 +346,55 @@ function RepoList({ conn, onOpen }: { conn: GitConnection; onOpen: (repo: GitRep
             </button>
           );
         })
+      )}
+    </div>
+  );
+}
+
+// Git sidebar → Folders: open any git folder on this computer (desktop) in a
+// Git tab, and reopen recent ones. The only way in when there are no
+// connections yet.
+function SidebarFolders() {
+  const { t } = useTranslation('git');
+  const { toast } = useToast();
+  const addTab = useRequestStore((s) => s.addTab);
+  const recentCount = useGitRecentFoldersStore((s) => s.folders.length);
+  const [busy, setBusy] = useState<string | null>(null);
+  const open = async (key: string, path: string | null, recentId?: string) => {
+    if (!path) return;
+    setBusy(key);
+    try {
+      const existing = recentId && useRequestStore.getState().tabs.find((tb) => tb.type === 'git' && tb.gitRepoId === recentId);
+      if (existing) { useRequestStore.getState().setActiveTab(existing.id); return; }
+      const { repo, tab } = await openGitFolder(path, recentId);
+      addTab({ type: 'git', name: repo.projectName || repo.localPath, method: 'GET', url: '', ...tab }, true);
+    } catch (err) {
+      toast({ title: t('folder.openFailed'), description: extractErr(err, t('folder.openFailed')), variant: 'destructive' });
+    } finally {
+      setBusy(null);
+    }
+  };
+  const pickAndOpen = async () => {
+    try { await open('pick', await pickGitFolder(t('folder.pickTitle'))); } catch (err) {
+      toast({ title: t('folder.openFailed'), description: extractErr(err, t('folder.openFailed')), variant: 'destructive' });
+    }
+  };
+  return (
+    <div className="mt-2 border-t p-2">
+      <div className="mb-1 flex items-center justify-between px-1">
+        <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{t('folder.section')}</span>
+        <button type="button" disabled={!!busy} title={t('folder.open')} aria-label={t('folder.open')}
+          className="rounded p-0.5 text-muted-foreground hover:bg-accent hover:text-foreground"
+          onClick={() => void pickAndOpen()}>
+          {busy === 'pick' ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <FolderInput className="h-3.5 w-3.5" />}
+        </button>
+      </div>
+      {recentCount > 0 && <RecentFolderList busy={busy} missing={() => false} onOpen={(f) => void open(f.repoId, f.path, f.repoId)} />}
+      {recentCount === 0 && (
+        <Button size="sm" variant="outline" className="h-7 w-full gap-1.5 text-xs" disabled={!!busy}
+          onClick={() => void pickAndOpen()}>
+          <FolderInput className="h-3.5 w-3.5" /> {t('folder.open')}
+        </Button>
       )}
     </div>
   );

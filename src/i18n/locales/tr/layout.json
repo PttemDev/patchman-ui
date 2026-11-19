@@ -19,7 +19,8 @@
     "cookies": "Çerezler",
     "audit": "Denetim ve Etkinlik",
     "notes": "Notlar & Brain",
-    "dashboards": "Dashboard'lar"
+    "dashboards": "Dashboard'lar",
+    "plugins": "Eklentiler"
   },
   "beta": "beta",
   "settingsProxyOn": "Ayarlar (özel proxy açık)",

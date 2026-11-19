@@ -10,7 +10,10 @@
     "changelog": "Changelog",
     "updateAvailable": "Update available",
     "remote": "Remote",
-    "appearance": "Appearance"
+    "appearance": "Appearance",
+    "security": "Security",
+    "editor": "Editor",
+    "gcp": "Google Cloud"
   },
   "proxy": {
     "heading": "Custom Proxy",
@@ -153,7 +156,8 @@
         "grafana": "Grafana",
         "rabbitmq": "RabbitMQ",
         "graylog": "Graylog",
-        "observability": "Observability (service map)"
+        "observability": "Observability (service map)",
+        "gcp": "Google Cloud"
       }
     }
   },
@@ -239,7 +243,47 @@
     "pasteHistory": "Paste history",
     "globalSearch": "Global search",
     "groupApp": "App",
-    "quit": "Quit"
+    "quit": "Quit",
+    "groupGit": "Git (local clone, Git tab)",
+    "gitCommit": "Commit…",
+    "gitPush": "Push…",
+    "gitUpdate": "Update Project…",
+    "gitVcsOperations": "VCS operations (branch popup)",
+    "gitBranches": "Branches",
+    "gitFindInFiles": "Find in Files",
+    "gitGotoFile": "Go to File",
+    "gitGotoSymbol": "Go to Symbol",
+    "gitBack": "Back",
+    "gitForward": "Forward",
+    "gitSearchEverywhere": "Search Everywhere (⇧⇧)",
+    "gitDeclaration": "Go to Declaration",
+    "gitUsages": "Find Usages",
+    "gitSave": "Save file (Git editor)",
+    "descriptionEditable": "Click a shortcut to record a new one (Esc cancels). + adds another binding; hover a binding to remove it.",
+    "search": "Search actions or keys",
+    "preset": "Preset",
+    "resetAll": "Reset all",
+    "resetAllTitle": "Reset every shortcut?",
+    "resetAllBody": "Your custom bindings are removed; the selected preset applies.",
+    "scope": {
+      "global": "Everywhere",
+      "git": "Git tab",
+      "editor": "Git editor"
+    },
+    "custom": "custom",
+    "pressKeys": "Press keys…",
+    "clickToChange": "Click to change",
+    "remove": "Remove binding",
+    "add": "Add binding",
+    "none": "none",
+    "reset": "Reset",
+    "resetOne": "Reset to {{chord}}",
+    "osReserved": "{{chord}} is reserved by the operating system.",
+    "conflict": "{{chord}} is also bound to: {{names}}. The first match wins.",
+    "browserReserved": "In the browser this chord may be taken by the browser; it works reliably in the desktop app.",
+    "footer": "Saved on this device. Git tab and editor shortcuts win over the global ones while that view is active.",
+    "gitCtrlClick": "Go to Declaration (mouse)",
+    "clearOthers": "Remove from the others"
   },
   "remote": {
     "heading": "Remote backend",
@@ -288,5 +332,79 @@
       "ocean": "Ocean",
       "grape": "Grape"
     }
+  },
+  "security": {
+    "title": "Security",
+    "desktopOnly": "App lock and step-up confirmation are available in the desktop app.",
+    "lockNow": "Lock now",
+    "noAuth": "This Mac can't confirm your identity (no Touch ID or password policy available), so the lock and step-up are off.",
+    "lockHeading": "App lock",
+    "lockEnabled": "Lock the app",
+    "lockEnabledHint": "Ask for Touch ID or your Mac password on launch and after the events below.",
+    "idle": "Lock after inactivity",
+    "idleHint": "Locks when your Mac has had no keyboard or mouse input for this long.",
+    "onSleep": "Lock when the Mac sleeps",
+    "onSleepHint": "Also covers closing the lid.",
+    "onScreenLock": "Lock with the screen",
+    "onScreenLockHint": "Locks when macOS locks the screen.",
+    "blockMcp": "Block AI agents while locked",
+    "blockMcpHint": "MCP tools (Claude, Cursor…) get no data until you unlock.",
+    "sudoHeading": "Sensitive actions",
+    "sudoEnabled": "Confirm sensitive actions",
+    "sudoEnabledHint": "Revealing passwords and tokens, shells, port-forwards and cluster changes ask for Touch ID first.",
+    "sudoWindow": "Remember confirmation for",
+    "sudoWindowHint": "No new prompt within this window.",
+    "minutes_one": "{{count}} minute",
+    "minutes_other": "{{count}} minutes",
+    "custom": "Custom",
+    "apply": "Set",
+    "saveFailed": "Couldn't save the security settings",
+    "alwaysOn": "Always on: only this app can talk to its local backend (per-launch token, origin and host lock), and backend-switch links ask before connecting. Turning a protection off or loosening it asks for Touch ID first.",
+    "devices": "Signed-in devices",
+    "devicesHint": "Devices signed in to your team backend. Sign out one you lost or no longer use.",
+    "devicesUnsupported": "This backend doesn't track devices yet.",
+    "devicesFailed": "Couldn't load or change your devices.",
+    "revoke": "Sign out",
+    "revokeConfirm": "Sign this device out?",
+    "revokeOthers": "Sign out all others",
+    "revokeOthersConfirm": "Sign out every other device?",
+    "thisDevice": "this device",
+    "lastSeen": "last active {{when}}"
+  },
+  "editor": {
+    "heading": "Editor",
+    "description": "How the code editor in the Git tab behaves. Saved on this device.",
+    "autoSave": "Auto save",
+    "guardNote": "A file that changed on disk since you opened it is never overwritten by auto save; ⌘S asks before overwriting it.",
+    "mode": {
+      "onFocusChange": {
+        "title": "When focus leaves",
+        "hint": "Save when you switch file tabs, leave the editor or leave the window."
+      },
+      "afterDelay": {
+        "title": "After a pause",
+        "hint": "Save 1 second after you stop typing."
+      },
+      "off": {
+        "title": "Off",
+        "hint": "Save only with ⌘S or the Save button."
+      }
+    }
+  },
+  "gcp": {
+    "heading": "Google Cloud",
+    "description": "Limits for Google Cloud tools. They apply to you in the app and to AI agents working for you.",
+    "bigquery": "BigQuery scan limits",
+    "maxScan": "Maximum scan per query",
+    "askAbove": "Ask before scanning more than",
+    "note": "Every query is checked for free first. Above the first value it doesn't run; above the second you're asked. A connection can set its own limits.",
+    "ceilingNote": "Your server allows at most {{gb}} GB.",
+    "save": "Save",
+    "saved": "BigQuery limits saved",
+    "saveFailed": "Couldn't save the limits",
+    "loadFailed": "Couldn't load the limits",
+    "errPositive": "Both values must be above 0.",
+    "errAskAboveMax": "The \"ask\" value can't be above the maximum.",
+    "errCeiling": "The maximum can't be above the server's {{gb}} GB."
   }
 }

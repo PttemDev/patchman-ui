@@ -19,7 +19,8 @@
     "cookies": "Cookies",
     "audit": "Audit & Activity",
     "notes": "Notes & Brain",
-    "dashboards": "Dashboards"
+    "dashboards": "Dashboards",
+    "plugins": "Plugins"
   },
   "beta": "beta",
   "settingsProxyOn": "Settings (custom proxy on)",

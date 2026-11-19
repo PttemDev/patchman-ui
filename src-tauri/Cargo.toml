@@ -1,6 +1,6 @@
 [package]
 name = "patchman-desktop"
-version = "1.59.2"
+version = "1.67.1"
 description = "PatchMan desktop shell — spawns the embedded Go BE and renders the FE."
 authors = ["PatchMan"]
 license = ""
@@ -27,6 +27,19 @@ tauri-plugin-updater = "2"
 tauri-plugin-process = "2"
 tauri-plugin-dialog = "2"
 tauri-plugin-opener = "2.5.5"
+# Launch token for the embedded BE (DESKTOP_SECURITY_RFC L1); already in the lock.
+getrandom = "0.2"
+
+# App lock / step-up auth (src/security.rs): LocalAuthentication via the
+# objc2 runtime and CoreGraphics' session dictionary for screen-lock state.
+# All already in the lock through tauri/tao.
+[target.'cfg(target_os = "macos")'.dependencies]
+objc2 = "0.6"
+block2 = "0.6"
+objc2-foundation = { version = "0.3", features = ["NSString"] }
+core-foundation = "0.10"
+# Cipher key in the login Keychain instead of a file next to the DB (RFC L5).
+security-framework = "3"
 
 # Release profile — minimal tuning only.
 #

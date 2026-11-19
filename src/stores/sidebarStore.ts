@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
-type SidebarTab = 'collections' | 'database' | 'kafka' | 'storage' | 'redis' | 'elasticsearch' | 'kubernetes' | 'git' | 'ai' | 'devtools' | 'excalidraw' | 'notes' | 'dashboards' | 'history' | 'qa' | 'qa-planning' | 'mock' | 'websocket' | 'cookies' | 'audit' | 'environments';
+type SidebarTab = 'collections' | 'database' | 'kafka' | 'storage' | 'redis' | 'elasticsearch' | 'kubernetes' | 'git' | 'ai' | 'devtools' | 'excalidraw' | 'notes' | 'dashboards' | 'history' | 'qa' | 'qa-planning' | 'mock' | 'websocket' | 'cookies' | 'audit' | 'environments' | 'plugins';
 
 interface SidebarState {
   activeTab: SidebarTab;

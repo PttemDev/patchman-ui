@@ -4,7 +4,7 @@ import type { TFunction } from 'i18next';
 import {
   Plus, Trash2, History, RotateCcw, Eye, ChevronDown, ChevronUp,
   Send, ShieldCheck, Variable, Clock, Play, Check, Info,
-  CheckCircle2, XCircle, AlertTriangle,
+  CheckCircle2, XCircle, AlertTriangle, ListChecks,
 } from 'lucide-react';
 import { testCasesAPI, testCaseVersionsAPI } from '@/services/api';
 import { parseCurlAsRecord } from '@/lib/parseCurl';
@@ -86,6 +86,11 @@ const STEP_ICONS: Record<string, React.ElementType> = {
 // The step body editor: the ui <Textarea> look, on a VariableTextarea (bare).
 const STEP_BODY_CLASS =
   'flex min-h-[60px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-xs font-mono shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring';
+
+// A step with no runnable type (only action/expected) is a manual step: the
+// runner skips it, the editor shows and edits its text.
+const isManualStep = (step: TestStep) => !STEP_ICONS[step.type as string];
+const CASE_TYPES = ['functional', 'integration', 'performance', 'security'];
 
 const STEP_COLORS: Record<string, string> = {
   request: 'text-blue-500 bg-blue-500/10',
@@ -325,7 +330,9 @@ export function TestCaseEditor({
       setDescription(testCase.description);
       setPriority(testCase.priority);
       setStatus(testCase.status || 'draft');
-      setType(testCase.type);
+      // Cases created before the four categories (or by API callers) carry
+      // manual/automated; show them as functional rather than an empty select.
+      setType(CASE_TYPES.includes(testCase.type) ? testCase.type : 'functional');
       setTags(Array.isArray(testCase.tags) ? testCase.tags.join(', ') : '');
       const parsed = Array.isArray(testCase.steps) ? testCase.steps : [];
       setSteps(parsed.length > 0 ? parsed : []);
@@ -447,6 +454,14 @@ export function TestCaseEditor({
       extractions[extractionIndex] = { ...extractions[extractionIndex], ...updates } as ExtractionItem;
       step.extractions = extractions;
       next[stepIndex] = step;
+      return next;
+    });
+  };
+
+  const updateManualStep = (index: number, field: 'action' | 'expected', value: string) => {
+    setSteps((prev) => {
+      const next = [...prev];
+      next[index] = { ...next[index], [field]: value };
       return next;
     });
   };
@@ -831,6 +846,16 @@ export function TestCaseEditor({
     </div>
   );
 
+  const renderManualEditor = (step: TestStep, index: number) => (
+    <div className="space-y-1.5">
+      <p className="text-[10px] text-muted-foreground">{t('caseEditor.manualHint')}</p>
+      <Input value={step.action || ''} onChange={(e) => updateManualStep(index, 'action', e.target.value)}
+        placeholder={t('sharedSteps.actionPlaceholder')} className="h-7 text-[10px]" />
+      <Input value={step.expected || ''} onChange={(e) => updateManualStep(index, 'expected', e.target.value)}
+        placeholder={t('sharedSteps.expectedPlaceholder')} className="h-7 text-[10px]" />
+    </div>
+  );
+
   // ── Execution result display ──
 
   const renderExecResult = () => {
@@ -1058,9 +1083,10 @@ export function TestCaseEditor({
               )}
 
               {steps.map((step, index) => {
-                const Icon = STEP_ICONS[step.type] || Send;
-                const color = STEP_COLORS[step.type] || '';
-                const label = t(`stepKind.${step.type}`, { defaultValue: step.type });
+                const manual = isManualStep(step);
+                const Icon = manual ? ListChecks : STEP_ICONS[step.type];
+                const color = manual ? 'text-slate-500 bg-slate-500/10' : STEP_COLORS[step.type];
+                const label = manual ? t('stepKind.manual') : t(`stepKind.${step.type}`, { defaultValue: step.type });
                 const isExpanded = expandedSteps.has(index);
 
                 // Step summary for collapsed view
@@ -1075,6 +1101,8 @@ export function TestCaseEditor({
                   summary = `{{${step.extractions[0].variable}}}`;
                 } else if (step.type === 'wait') {
                   summary = `${step.waitMs || 1000}ms`;
+                } else if (manual && step.action) {
+                  summary = step.action;
                 }
 
                 return (
@@ -1110,6 +1138,7 @@ export function TestCaseEditor({
                           {step.type === 'assertion' && renderAssertionEditor(step, index)}
                           {step.type === 'extract' && renderExtractionEditor(step, index)}
                           {step.type === 'wait' && renderWaitEditor(step, index)}
+                          {manual && renderManualEditor(step, index)}
                         </div>
                       </RuntimeVarsProvider>
                     )}

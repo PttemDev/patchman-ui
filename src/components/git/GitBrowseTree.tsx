@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { gitAPI } from '@/services/api';
 import { useThemeStore } from '@/stores/themeStore';
+import { useCodeTheme } from '@/lib/monacoShiki';
 import { useToast } from '@/components/ui/use-toast';
 import { confirmDialog } from '@/components/ui/confirm';
 import { Button } from '@/components/ui/button';
@@ -189,6 +190,7 @@ export function GitBrowseContent({
   const { t } = useTranslation('git');
   const { theme } = useThemeStore();
   const [file, setFile] = useState<FileState | null>(null);
+  const codeTheme = useCodeTheme(theme === 'dark', languageForPath(path));
 
   const useEditor = !!editable && !!localRepoId && !!path;
 
@@ -259,7 +261,7 @@ export function GitBrowseContent({
             <CodeEditor
               height="100%"
               language={languageForPath(file.path)}
-              theme={theme === 'dark' ? 'vs-dark' : 'light'}
+              theme={codeTheme}
               value={file.content}
               options={{
                 readOnly: true,
@@ -384,6 +386,7 @@ function GitFileEditor({
 }) {
   const { t } = useTranslation('git');
   const { theme } = useThemeStore();
+  const codeTheme = useCodeTheme(theme === 'dark', languageForPath(path));
   const { toast } = useToast();
   const {
     content, setContent, editing, setEditing,
@@ -502,7 +505,7 @@ function GitFileEditor({
           <CodeEditor
             height="100%"
             language={languageForPath(path)}
-            theme={theme === 'dark' ? 'vs-dark' : 'light'}
+            theme={codeTheme}
             value={content}
             onChange={(v) => setContent(v ?? '')}
             options={{

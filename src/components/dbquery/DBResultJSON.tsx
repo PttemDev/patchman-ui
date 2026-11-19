@@ -23,12 +23,14 @@ export function DBResultJSON({ result }: DBResultJSONProps) {
   const objects = useMemo(() => {
     const cols = result.columns ?? [];
     const rows = result.rows ?? [];
-    return rows.map((row) => {
+    return rows.map((row, r) => {
+      // Mongo: leave out the fields this document does not have.
+      const skip = new Set(result.absent?.[r] ?? []);
       const o: Record<string, unknown> = {};
-      cols.forEach((c, i) => { o[c.name] = row[i]; });
+      cols.forEach((c, i) => { if (!skip.has(i)) o[c.name] = row[i]; });
       return o;
     });
-  }, [result.rows, result.columns]);
+  }, [result.rows, result.columns, result.absent]);
 
   const fullText = useMemo(() => {
     if (mode === 'jsonl') return objects.map((o) => JSON.stringify(o)).join('\n');

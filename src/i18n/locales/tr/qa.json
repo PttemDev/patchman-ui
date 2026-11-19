@@ -78,13 +78,15 @@
     "request": "İstek",
     "assertion": "Doğrulama",
     "extract": "Çıkar",
-    "wait": "Bekle"
+    "wait": "Bekle",
+    "manual": "Manuel"
   },
   "stepKind": {
     "request": "API İsteği",
     "assertion": "Yanıtı Kontrol Et",
     "extract": "Değişken Kaydet",
-    "wait": "Bekle"
+    "wait": "Bekle",
+    "manual": "Manuel adım"
   },
   "addStepBtn": {
     "request": "İstek",
@@ -506,7 +508,8 @@
     "run": "Çalıştır",
     "saving": "Kaydediliyor...",
     "update": "Güncelle",
-    "create": "Oluştur"
+    "create": "Oluştur",
+    "manualHint": "Manuel adım: koşturucu atlar, elle uygulanır."
   },
   "defectStatus": {
     "open": "Açık",

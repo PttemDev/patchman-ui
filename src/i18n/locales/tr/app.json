@@ -96,7 +96,12 @@
     "incompatibleTitle": "Sunucu uyumlu değil",
     "incompatibleDescription": "Mevcut sunucu uygulamanın bu sürümüyle uyumlu değil. Uyumlu bir sunucuya bağlanın veya çevrimdışı devam edin.",
     "switchedNotice": "{{from}} sunucusundan {{to}} sunucusuna geçildi — önceki sunucu bu uygulama sürümüyle uyumlu değil.",
-    "dismiss": "Kapat"
+    "dismiss": "Kapat",
+    "deepLinkTitle": "PatchMan {{host}} sunucusuna geçsin mi?",
+    "deepLinkBody": "Bir bağlantı PatchMan'den {{url}} adresindeki “{{name}}” backend'ini kullanmasını istedi. Oturumun kapanacak ve sonraki giriş o sunucuya yapılacak. Yalnızca bağlantıyı kendin açtıysan ve sunucuya güveniyorsan devam et.",
+    "deepLinkInsecure": "Bu sunucu HTTPS kullanmıyor: şifren ve verilerin şifrelenmeden gider.",
+    "deepLinkUnknown": "Bu sunucuya daha önce hiç bağlanmadın.",
+    "deepLinkConfirm": "Backend'i değiştir"
   },
   "tray": {
     "show": "PatchMan’i Göster",
@@ -109,5 +114,12 @@
     "title": "PatchMan'den çıkılsın mı?",
     "description": "Devam eden istekler durur.",
     "confirm": "Çıkış"
+  },
+  "lock": {
+    "title": "PatchMan kilitli",
+    "body": "Sen olduğunu doğrulayana kadar bağlantıların ve gizli bilgilerin kapalı kalır.",
+    "unlock": "Kilidi aç",
+    "cancelled": "Kilit açma iptal edildi.",
+    "failed": "Kimliğin doğrulanamadı. Tekrar dene."
   }
 }

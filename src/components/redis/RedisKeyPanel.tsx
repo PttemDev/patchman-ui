@@ -1104,6 +1104,9 @@ function ValueViewer({
   const { t } = useTranslation('redis');
   if (value.type === 'string') {
     const decoded = decodeStr(value, decode);
+    // JSON objects/arrays get a read-only Monaco view (folding, highlighting)
+    // in auto/json modes; hex/base64/utf8 keep the raw text.
+    const jsonPretty = decode === 'auto' || decode === 'json' ? prettyJsonContainer(decoded) : null;
     return (
       <div className="space-y-1.5">
         <div className="flex items-center justify-between">
@@ -1126,9 +1129,13 @@ function ValueViewer({
             </Select>
           </div>
         </div>
-        <pre className="text-[11px] font-mono whitespace-pre-wrap break-words border rounded-md p-2 bg-muted/30 max-h-[420px] overflow-auto">
-          {decoded}
-        </pre>
+        {jsonPretty !== null ? (
+          <JsonValueEditor text={jsonPretty} />
+        ) : (
+          <pre className="text-[11px] font-mono whitespace-pre-wrap break-words border rounded-md p-2 bg-muted/30 max-h-[420px] overflow-auto">
+            {decoded}
+          </pre>
+        )}
       </div>
     );
   }
@@ -1446,6 +1453,49 @@ function elementConfirmText(ref: RedisElementRef, key: string, t: TFunction): { 
         }),
       };
   }
+}
+
+// prettyJsonContainer returns the 2-space pretty form when s is a JSON object
+// or array (scalars like "42" or "true" stay plain text), else null.
+function prettyJsonContainer(s: string): string | null {
+  const head = s.trimStart()[0];
+  if (head !== '{' && head !== '[') return null;
+  try {
+    const v: unknown = JSON.parse(s);
+    return v !== null && typeof v === 'object' ? JSON.stringify(v, null, 2) : null;
+  } catch {
+    return null;
+  }
+}
+
+function JsonValueEditor({ text }: { text: string }) {
+  const { theme } = useThemeStore();
+  // Grow with content up to the old <pre> cap, so short values stay compact.
+  const lines = text.split('\n').length;
+  const height = Math.min(420, Math.max(80, lines * 18 + 12));
+  return (
+    <div className="border rounded-md overflow-hidden" style={{ height }}>
+      <CodeEditor
+        height="100%"
+        language="json"
+        theme={theme === 'dark' ? 'vs-dark' : 'light'}
+        value={text}
+        options={{
+          readOnly: true,
+          domReadOnly: true,
+          fontSize: 12,
+          fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
+          minimap: { enabled: false },
+          lineNumbers: 'on',
+          folding: true,
+          wordWrap: 'on',
+          scrollBeyondLastLine: false,
+          automaticLayout: true,
+          renderLineHighlight: 'none',
+        }}
+      />
+    </div>
+  );
 }
 
 function ErrorBlock({ text }: { text: string }) {

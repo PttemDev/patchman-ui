@@ -28,7 +28,8 @@ export type DetachMsgType =
   | 'detach:handoff' // main → child: here is your serialized Tab
   | 'detach:return' // child → main: final flush before teardown
   | 'detach:rollcall' // main → all: main reloaded, who's still alive?
-  | 'detach:here'; // child → main: rollcall answer
+  | 'detach:here' // child → main: rollcall answer
+  | 'detach:open-tab'; // child → main: open a NEW tab in the main window
 
 export interface DetachMsg {
   type: DetachMsgType;
@@ -37,6 +38,9 @@ export interface DetachMsg {
   epoch: number;
   /** Full serialized Tab — present on handoff and return. */
   tab?: Tab;
+  /** open-tab: the new tab's overrides (what addTab would have received). */
+  open?: Partial<Tab>;
+  forceNew?: boolean;
 }
 
 export interface CrossWindowChannel {

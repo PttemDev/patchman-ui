@@ -68,7 +68,7 @@ export function GlobalConfirm() {
             {req?.title}
           </AlertDialogTitle>
           {req?.description && (
-            <AlertDialogDescription>{req.description}</AlertDialogDescription>
+            <AlertDialogDescription className="whitespace-pre-line">{req.description}</AlertDialogDescription>
           )}
         </AlertDialogHeader>
         <AlertDialogFooter>

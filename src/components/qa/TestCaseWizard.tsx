@@ -51,6 +51,7 @@ import {
   Play,
   Info,
   GripVertical,
+  ListChecks,
 } from 'lucide-react';
 import { testCasesAPI } from '@/services/api';
 import { VariableInput, VariableTextarea, RuntimeVarsProvider } from '@/components/environment/VariableInput';
@@ -400,6 +401,8 @@ function getStepMeta(type: TestStep['type']) {
       return { icon: Variable, color: 'text-purple-500', bg: 'bg-purple-500/10', border: 'border-purple-500/20', labelKey: 'stepKind.extract' };
     case 'wait':
       return { icon: Clock, color: 'text-gray-500', bg: 'bg-gray-500/10', border: 'border-gray-500/20', labelKey: 'stepKind.wait' };
+    default: // manual step (action/expected only)
+      return { icon: ListChecks, color: 'text-slate-500', bg: 'bg-slate-500/10', border: 'border-slate-500/20', labelKey: 'stepKind.manual' };
   }
 }
 

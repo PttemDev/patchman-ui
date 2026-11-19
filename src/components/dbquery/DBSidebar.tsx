@@ -17,6 +17,7 @@ import {
   MonitorSmartphone,
   Cloud,
   Search,
+  KeyRound,
 } from 'lucide-react';
 import {
   ContextMenu,
@@ -59,7 +60,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { cn } from '@/lib/utils';
-import type { DBConnection, DBKind, SavedDBQuery } from '@/types';
+import type { DBConnection, DBKind, SavedDBQuery, Tab } from '@/types';
 import { DB_KIND_LABEL } from '@/types';
 import { DBConnectionDialog } from './DBConnectionDialog';
 import { createSidebarDialogStore } from '@/stores/sidebarDialogStore';
@@ -183,7 +184,7 @@ export function DBSidebar() {
   }, [setAllowWrite, toast, t]);
 
   const openTabFor = useCallback(
-    (connectionId: string, kind: DBKind, name: string, seedQuery?: string) => {
+    (connectionId: string, kind: DBKind, name: string, seedQuery?: string, extra?: Partial<Tab>) => {
       addTab(
         {
           type: 'db',
@@ -192,6 +193,7 @@ export function DBSidebar() {
           dbQuery: seedQuery ?? '',
           method: 'GET',
           url: '',
+          ...extra,
         },
         true,
       );
@@ -230,6 +232,14 @@ export function DBSidebar() {
   const openTableQuery = useCallback((conn: DBConnection, table: { schema?: string; name: string }) => {
     const seed = buildTableSeedQuery(conn.kind, table);
     openTabFor(conn.id, conn.kind, table.name, seed);
+  }, [openTabFor]);
+
+  // Mongo: open the collection straight in the Indexes view.
+  const openIndexes = useCallback((conn: DBConnection, table: { schema?: string; name: string }) => {
+    openTabFor(conn.id, conn.kind, table.name, buildTableSeedQuery(conn.kind, table), {
+      dbMongoView: 'indexes',
+      dbMongoTarget: { db: table.schema || undefined, coll: table.name },
+    });
   }, [openTabFor]);
 
   const grouped = groupByKind(connections);
@@ -503,6 +513,17 @@ export function DBSidebar() {
                                                     {cols.length}
                                                   </span>
                                                 </button>
+                                                {conn.kind === 'mongo' && (
+                                                  <button
+                                                    type="button"
+                                                    onClick={() => openIndexes(conn, tbl)}
+                                                    className="shrink-0 rounded p-0.5 text-muted-foreground/60 hover:text-foreground"
+                                                    title={t('sidebar.indexes')}
+                                                    aria-label={t('sidebar.indexes')}
+                                                  >
+                                                    <KeyRound className="h-2.5 w-2.5" />
+                                                  </button>
+                                                )}
                                               </div>
                                               {open && (() => {
                                                 const colFilterQ = (columnFilter[tKey] ?? '').trim().toLowerCase();
@@ -655,7 +676,7 @@ export function DBSidebar() {
 function groupByKind(conns: DBConnection[]): { kind: DBKind; items: DBConnection[] }[] {
   const order: DBKind[] = [
     'postgres', 'cockroachdb', 'yugabytedb', 'redshift',
-    'mysql', 'mariadb', 'tidb', 'sqlserver', 'mongo',
+    'mysql', 'mariadb', 'tidb', 'sqlserver', 'bigquery', 'mongo',
   ];
   const map = new Map<DBKind, DBConnection[]>();
   conns.forEach((c) => {
@@ -855,6 +876,12 @@ function buildTableSeedQuery(kind: DBKind, t: { schema?: string; name: string })
       return `db.getSiblingDB('${t.schema}').${t.name}.find().limit(100)`;
     }
     return `db.${t.name}.find().limit(100)`;
+  }
+  if (kind === 'bigquery') {
+    // GoogleSQL quotes identifiers with backticks ("…" is a string). LIMIT
+    // doesn't lower the bytes scanned — the cost guard asks if it's big.
+    const qualified = t.schema ? `\`${t.schema}.${t.name}\`` : `\`${t.name}\``;
+    return `SELECT * FROM ${qualified} LIMIT 100;`;
   }
   if (kind === 'sqlserver') {
     // T-SQL has no LIMIT — it uses TOP, before the column list.

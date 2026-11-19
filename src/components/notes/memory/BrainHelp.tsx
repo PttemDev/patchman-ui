@@ -6,7 +6,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { useMemoryStore } from '@/stores/memoryStore';
 import { useSettingsUIStore } from '@/stores/settingsUIStore';
 import { cn } from '@/lib/utils';
-import { MemorySettingsDialog } from './MemorySettingsDialog';
+import { TeamMemoryGuideDialog } from './TeamMemoryGuide';
 
 const DISMISS_KEY = 'patchman_brain_help_dismissed';
 
@@ -14,7 +14,7 @@ const DISMISS_KEY = 'patchman_brain_help_dismissed';
 // it remember (the personal "Agent Memory" folder is created on its first
 // remember; any own folder can be made a memory too), then open the memory in
 // the Brain view. onLeave runs before jumping elsewhere (MCP settings, the
-// team-memory explanation) so a surrounding dialog can close first.
+// team-memory guide) so a surrounding dialog can close first.
 function BrainHelpSteps({ intro, onLeave, onTeam, className }: { intro: boolean; onLeave?: () => void; onTeam: () => void; className?: string }) {
   const { t } = useTranslation(['notes', 'common', 'settings']);
   const openSettings = useSettingsUIStore((s) => s.openSettings);
@@ -32,10 +32,11 @@ function BrainHelpSteps({ intro, onLeave, onTeam, className }: { intro: boolean;
         <li>{t('memory.brainHelp.remember', { myNotes: t('myNotes'), useAsMemory: t('memory.useAsMemory') })}</li>
         <li>{t('memory.brainHelp.view', { brain: t('memory.brainView') })}</li>
       </ol>
+      <p>{t('memory.teamGuide.hint')}</p>
       <p>
         {t('memory.brainHelp.team')}{' '}
         <button type="button" className={link} onClick={() => { onLeave?.(); onTeam(); }}>
-          {t('memory.brainHelp.teamLink')}
+          {t('memory.teamGuide.link')}
         </button>
       </p>
     </div>
@@ -80,7 +81,7 @@ export function BrainHelpCard() {
           <BrainHelpSteps intro onTeam={() => setTeam(true)} />
         </div>
       )}
-      {team && <MemorySettingsDialog open={team} onOpenChange={setTeam} />}
+      {team && <TeamMemoryGuideDialog open={team} onOpenChange={setTeam} />}
     </>
   );
 }
@@ -114,7 +115,7 @@ export function BrainHelpButton({ className, variant = 'ghost' }: { className?: 
           <BrainHelpSteps intro={false} onLeave={() => setOpen(false)} onTeam={() => setTeam(true)} className="text-sm text-muted-foreground" />
         </DialogContent>
       </Dialog>
-      {team && <MemorySettingsDialog open={team} onOpenChange={setTeam} />}
+      {team && <TeamMemoryGuideDialog open={team} onOpenChange={setTeam} />}
     </>
   );
 }

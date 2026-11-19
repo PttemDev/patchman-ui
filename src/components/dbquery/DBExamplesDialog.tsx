@@ -348,6 +348,11 @@ const MONGO_SECTIONS: Section[] = [
         tags: ['explain'],
         code: `db.orders.find({ status: 'paid' }).explain('executionStats')`,
       },
+      {
+        key: 'explainAggregate',
+        tags: ['explain', 'aggregate'],
+        code: `db.orders.aggregate([\n  { $match: { status: 'paid' } },\n  { $group: { _id: '$userId', total: { $sum: '$total' } } }\n]).explain()`,
+      },
     ],
   },
 ];

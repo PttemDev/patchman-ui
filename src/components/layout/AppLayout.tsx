@@ -6,7 +6,6 @@ import { Sidebar } from './Sidebar';
 import { StatusBar } from './StatusBar';
 import { RequestPanel } from '@/components/request/RequestPanel';
 import { Toaster } from '@/components/ui/toaster';
-import { GlobalConfirm } from '@/components/ui/confirm';
 import { Button } from '@/components/ui/button';
 import {
   Tooltip,
@@ -17,6 +16,7 @@ import {
 import { useSidebarStore } from '@/stores/sidebarStore';
 import { useAppStartupNotices } from '@/hooks/useAppStartupNotices';
 import { ImpersonationBanner } from '@/components/admin/ImpersonationBanner';
+import { PluginDevBanner } from '@/components/plugins/PluginDevBanner';
 
 export function AppLayout() {
   const { t } = useTranslation('layout');
@@ -92,6 +92,7 @@ export function AppLayout() {
     <div className="h-screen flex flex-col overflow-hidden">
       <ImpersonationBanner />
       <TopBar />
+      <PluginDevBanner />
       <div ref={containerRef} className="flex flex-1 overflow-hidden relative">
         {sidebarVisible ? (
           <>
@@ -155,7 +156,6 @@ export function AppLayout() {
         <div className="fixed inset-0 z-50 cursor-col-resize" />
       )}
       <Toaster />
-      <GlobalConfirm />
     </div>
   );
 }

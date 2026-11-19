@@ -102,7 +102,9 @@
     "histChecking": "Buscando un backend de métricas (Prometheus)…",
     "histNote": "Métricas históricas vía Prometheus ({{service}}).",
     "histEmpty": "No hay datos históricos para este pod en el rango seleccionado.",
-    "histWarn": "Métricas históricas no disponibles: {{error}}. Mostrando muestras en vivo."
+    "histWarn": "Métricas históricas no disponibles: {{error}}. Mostrando muestras en vivo.",
+    "request": "request",
+    "limit": "límite"
   },
   "apply": {
     "title": "Aplicar cambios <mono>· {{target}}</mono>",

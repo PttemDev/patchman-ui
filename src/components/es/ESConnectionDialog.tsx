@@ -102,6 +102,11 @@ export function ESConnectionDialog({ open, onOpenChange, editing, onSaved }: ESC
   const [kibanaAuthMode, setKibanaAuthMode] = useState<'basic' | 'cookie'>('basic');
   const [kibanaSpace, setKibanaSpace] = useState('');
   const [cookie, setCookie] = useState('');
+  // Direct ES connections: optional Kibana (for data views). It shares
+  // kibanaUrl / kibanaSpace with the proxy mode, plus its own TLS knobs since
+  // Kibana usually sits on another host with another certificate.
+  const [kibanaCaCert, setKibanaCaCert] = useState('');
+  const [kibanaSkipVerify, setKibanaSkipVerify] = useState(false);
 
   // Advanced options → assembled into the `options` blob.
   const [caCert, setCaCert] = useState('');
@@ -117,7 +122,7 @@ export function ESConnectionDialog({ open, onOpenChange, editing, onSaved }: ESC
   const [scope, setScope] = useState<DBScope>('remote');
 
   const [testing, setTesting] = useState(false);
-  const [testResult, setTestResult] = useState<{ ok: boolean; error?: string; version?: string; flavor?: string; health?: string } | null>(null);
+  const [testResult, setTestResult] = useState<TestResult | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
@@ -167,6 +172,8 @@ export function ESConnectionDialog({ open, onOpenChange, editing, onSaved }: ESC
       );
       setKibanaSpace(String(editing.kibanaSpace ?? editing.options?.kibanaSpace ?? ''));
       setCookie('');
+      setKibanaCaCert(String(editing.options?.kibanaCaCert ?? ''));
+      setKibanaSkipVerify(Boolean(editing.options?.kibanaInsecureSkipVerify));
       const stored = editing.primaryScope ? (editing.primaryScope as DBScope) : undefined;
       setScope(stored ?? (scopes.includes('remote') ? 'remote' : (scopes[0] ?? 'remote')));
     } else {
@@ -190,6 +197,8 @@ export function ESConnectionDialog({ open, onOpenChange, editing, onSaved }: ESC
       setKibanaAuthMode('basic');
       setKibanaSpace('');
       setCookie('');
+      setKibanaCaCert('');
+      setKibanaSkipVerify(false);
       setScope(scopes.includes('remote') ? 'remote' : 'local');
     }
     setAdvanced(false);
@@ -208,9 +217,14 @@ export function ESConnectionDialog({ open, onOpenChange, editing, onSaved }: ESC
       if (kibanaUrl.trim()) options.kibanaUrl = kibanaUrl.trim();
       options.kibanaAuthMode = kibanaAuthMode;
       if (kibanaSpace.trim()) options.kibanaSpace = kibanaSpace.trim();
+    } else if (kibanaUrl.trim()) {
+      options.kibanaUrl = kibanaUrl.trim();
+      if (kibanaSpace.trim()) options.kibanaSpace = kibanaSpace.trim();
+      if (kibanaCaCert.trim()) options.kibanaCaCert = kibanaCaCert.trim();
+      if (kibanaSkipVerify) options.kibanaInsecureSkipVerify = true;
     }
     return options;
-  }, [caCert, insecureSkipVerify, caFingerprint, clientCert, clientKey, defaultIndex, isKibanaProxy, kibanaUrl, kibanaAuthMode, kibanaSpace]);
+  }, [caCert, insecureSkipVerify, caFingerprint, clientCert, clientKey, defaultIndex, isKibanaProxy, kibanaUrl, kibanaAuthMode, kibanaSpace, kibanaCaCert, kibanaSkipVerify]);
 
   const buildPayload = useCallback((): Record<string, unknown> => {
     const nodesJoined = nodes.map((s) => s.trim()).filter(Boolean).join(',');
@@ -265,7 +279,7 @@ export function ESConnectionDialog({ open, onOpenChange, editing, onSaved }: ESC
       const res = editing && hasStoredSecretForKind() && !typedSecret()
         ? await esConnectionAPI.test(editing.id, undefined, scope)
         : await esConnectionAPI.test(null, payload, scope);
-      setTestResult(res.data as { ok: boolean; error?: string; version?: string; flavor?: string; health?: string });
+      setTestResult(res.data as TestResult);
     } catch (err) {
       setTestResult({ ok: false, error: extractErr(err, t('dialog.testFailed')) });
     }
@@ -285,6 +299,16 @@ export function ESConnectionDialog({ open, onOpenChange, editing, onSaved }: ESC
       }
     } else if (nodes.every((s) => !s.trim()) && !cloudId.trim()) {
       setError(t('dialog.errNodeRequired'));
+      return;
+    }
+    // The stored ES secret is also sent to Kibana: setting or changing the
+    // Kibana host requires re-entering it (the BE enforces the same rule).
+    if (
+      editing && !isKibanaProxy && authKind !== 'none'
+      && kibanaHost(kibanaUrl) && kibanaHost(kibanaUrl) !== kibanaHost(String(editing.kibanaUrl ?? editing.options?.kibanaUrl ?? ''))
+      && hasStoredSecretForKind() && !typedSecret()
+    ) {
+      setError(t('dialog.errKibanaSecret'));
       return;
     }
 
@@ -678,6 +702,62 @@ export function ESConnectionDialog({ open, onOpenChange, editing, onSaved }: ESC
             </div>
           )}
 
+          {!isKibanaProxy && (
+            <div className="space-y-3 rounded-md border p-3">
+              <div>
+                <Label className="text-xs">{t('dialog.kibanaOptional')}</Label>
+                <p className="text-[10px] text-muted-foreground">{t('dialog.kibanaOptionalHelp')}</p>
+              </div>
+              <div>
+                <Label className="text-xs">{t('dialog.kibanaUrl')}</Label>
+                <Input
+                  value={kibanaUrl}
+                  onChange={(e) => setKibanaUrl(e.target.value)}
+                  placeholder={t('dialog.kibanaUrlPlaceholder')}
+                  className="font-mono text-xs"
+                  autoComplete="off"
+                />
+                {authKind !== 'none' && kibanaUrl.trim() && (
+                  <p className="text-[10px] text-muted-foreground mt-1">{t('dialog.kibanaSecretNote')}</p>
+                )}
+              </div>
+              {kibanaUrl.trim() && (
+                <>
+                  <div>
+                    <Label className="text-xs">{t('dialog.space')}</Label>
+                    <Input
+                      value={kibanaSpace}
+                      onChange={(e) => setKibanaSpace(e.target.value)}
+                      placeholder={t('dialog.spacePlaceholder')}
+                      className="font-mono text-xs"
+                      autoComplete="off"
+                    />
+                  </div>
+                  {/^https:\/\//i.test(kibanaUrl.trim()) || !kibanaUrl.includes('://') ? (
+                    <>
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <Label className="text-xs">{t('dialog.kibanaSkipTls')}</Label>
+                          <p className="text-[10px] text-muted-foreground">{t('dialog.kibanaSkipTlsHelp')}</p>
+                        </div>
+                        <Switch checked={kibanaSkipVerify} onCheckedChange={setKibanaSkipVerify} />
+                      </div>
+                      <div>
+                        <Label className="text-xs">{t('dialog.kibanaCaCert')}</Label>
+                        <Textarea
+                          value={kibanaCaCert}
+                          onChange={(e) => setKibanaCaCert(e.target.value)}
+                          className="font-mono text-xs min-h-[50px]"
+                          placeholder={'-----BEGIN CERTIFICATE-----\n…'}
+                        />
+                      </div>
+                    </>
+                  ) : null}
+                </>
+              )}
+            </div>
+          )}
+
           <div className="space-y-3 rounded-md border p-3">
             <div className="flex items-center justify-between">
               <div>
@@ -818,6 +898,23 @@ export function ESConnectionDialog({ open, onOpenChange, editing, onSaved }: ESC
               </span>
             </div>
           )}
+          {testResult?.kibana && (
+            <div
+              className={cn(
+                'flex items-start gap-2 p-2 rounded text-xs',
+                testResult.kibana.ok
+                  ? 'bg-green-500/10 text-green-700 dark:text-green-300'
+                  : 'bg-amber-500/10 text-amber-700 dark:text-amber-300',
+              )}
+            >
+              {testResult.kibana.ok
+                ? <CheckCircle2 className="h-3.5 w-3.5 shrink-0 mt-0.5" />
+                : <AlertTriangle className="h-3.5 w-3.5 shrink-0 mt-0.5" />}
+              <span className="min-w-0 break-words">
+                {testResult.kibana.ok ? t('dialog.kibanaTestOk') : t('dialog.kibanaTestFail', { error: testResult.kibana.error ?? '' })}
+              </span>
+            </div>
+          )}
           {error && <p className="text-xs text-destructive break-words">{error}</p>}
         </div>
 
@@ -874,4 +971,25 @@ function extractErr(err: unknown, fallback: string): string {
     return e.response?.data?.error || fallback;
   }
   return fallback;
+}
+
+interface TestResult {
+  ok: boolean;
+  error?: string;
+  version?: string;
+  flavor?: string;
+  health?: string;
+  /** Present when a direct connection has an optional Kibana URL. */
+  kibana?: { ok: boolean; error?: string };
+}
+
+/** Lower-cased host[:port] of a Kibana URL ("" when empty / unparsable). */
+function kibanaHost(raw: string): string {
+  const v = raw.trim();
+  if (!v) return '';
+  try {
+    return new URL(v.includes('://') ? v : `https://${v}`).host.toLowerCase();
+  } catch {
+    return '';
+  }
 }

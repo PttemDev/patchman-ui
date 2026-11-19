@@ -52,7 +52,8 @@
       "grafana": "Panel de Grafana",
       "rabbit": "RabbitMQ",
       "graylog": "Graylog",
-      "servicemap": "Mapa de servicios"
+      "servicemap": "Mapa de servicios",
+      "plugin": "Complemento"
     },
     "moreParams": "parámetros más"
   },

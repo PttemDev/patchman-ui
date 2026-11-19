@@ -3,8 +3,11 @@ import { useTranslation } from 'react-i18next';
 import { CodeDiffEditor } from '@/components/ui/CodeEditor';
 import { Columns2, Rows2 } from 'lucide-react';
 import { useThemeStore } from '@/stores/themeStore';
+import { useCodeTheme } from '@/lib/monacoShiki';
 import { Button } from '@/components/ui/button';
 import { languageForPath } from './util';
+
+const DIFF_MODE_KEY = 'patchman.git.diffMode';
 
 interface GitDiffViewerProps {
   /** Base-ref content (left / removed side). Empty for an added file. */
@@ -26,8 +29,17 @@ interface GitDiffViewerProps {
 export function GitDiffViewer({ original, modified, path, language }: GitDiffViewerProps) {
   const { t } = useTranslation('git');
   const { theme } = useThemeStore();
-  const [sideBySide, setSideBySide] = useState(true);
+  // Remembered across diffs (commit / push dialogs, history, changes).
+  const [sideBySide, setSideBySideState] = useState<boolean>(() => {
+    try { return localStorage.getItem(DIFF_MODE_KEY) !== 'inline'; } catch { return true; }
+  });
+  const setSideBySide = (fn: (v: boolean) => boolean) => setSideBySideState((v) => {
+    const next = fn(v);
+    try { localStorage.setItem(DIFF_MODE_KEY, next ? 'side' : 'inline'); } catch { /* storage blocked */ }
+    return next;
+  });
   const lang = language ?? languageForPath(path);
+  const codeTheme = useCodeTheme(theme === 'dark', lang);
 
   return (
     <div className="flex flex-col h-full min-h-0">
@@ -50,13 +62,16 @@ export function GitDiffViewer({ original, modified, path, language }: GitDiffVie
         <CodeDiffEditor
           height="100%"
           language={lang}
-          theme={theme === 'dark' ? 'vs-dark' : 'light'}
+          theme={codeTheme}
           original={original}
           modified={modified}
           options={{
             readOnly: true,
             originalEditable: false,
             renderSideBySide: sideBySide,
+            // Monaco silently drops to inline below ~900px (dialogs, split
+            // panes); the toggle must mean what it says.
+            useInlineViewWhenSpaceIsLimited: false,
             hideUnchangedRegions: { enabled: true },
             minimap: { enabled: false },
             fontSize: 12,

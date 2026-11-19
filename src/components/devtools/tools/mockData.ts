@@ -57,7 +57,7 @@ export interface MockField {
 }
 
 // ── generic source data (short, generic) ────────────────────────────────
-const FIRST = ['Ada', 'Kenan', 'Mert', 'Zoe', 'Liam', 'Emma', 'Noah', 'Olivia', 'Ethan', 'Mia', 'Aria', 'Leo', 'Nora', 'Ivan', 'Sara', 'Omar', 'Lena', 'Yusuf', 'Elif', 'Deniz'];
+const FIRST = ['Ada', 'Kai', 'Mert', 'Zoe', 'Liam', 'Emma', 'Noah', 'Olivia', 'Ethan', 'Mia', 'Aria', 'Leo', 'Nora', 'Ivan', 'Sara', 'Omar', 'Lena', 'Yusuf', 'Elif', 'Deniz'];
 const LAST = ['Kurt', 'Yilmaz', 'Demir', 'Kaya', 'Smith', 'Johnson', 'Brown', 'Garcia', 'Nguyen', 'Kim', 'Rossi', 'Novak', 'Silva', 'Haddad', 'Ivanov', 'Wagner', 'Costa', 'Popov', 'Chen', 'Diallo'];
 const CITY = ['Istanbul', 'Ankara', 'Izmir', 'Berlin', 'Paris', 'Madrid', 'Rome', 'Lisbon', 'Vienna', 'Prague', 'Warsaw', 'Oslo', 'Dublin', 'Zurich', 'Athens', 'Porto'];
 const COUNTRY = ['Turkey', 'Germany', 'France', 'Spain', 'Italy', 'Portugal', 'Austria', 'Poland', 'Norway', 'Ireland', 'Greece', 'Netherlands', 'Sweden', 'Denmark'];

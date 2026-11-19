@@ -96,7 +96,12 @@
     "incompatibleTitle": "Backend not compatible",
     "incompatibleDescription": "The current backend isn’t compatible with this version of the app. Connect a compatible backend, or continue offline.",
     "switchedNotice": "Switched from {{from}} to {{to}} — the previous backend isn’t compatible with this app version.",
-    "dismiss": "Dismiss"
+    "dismiss": "Dismiss",
+    "deepLinkTitle": "Switch PatchMan to {{host}}?",
+    "deepLinkBody": "A link asked PatchMan to use the backend “{{name}}” at {{url}}. You will be signed out and the next sign-in goes to that server — only continue if you opened this link yourself and trust the server.",
+    "deepLinkInsecure": "This server does not use HTTPS: your password and data would travel unencrypted.",
+    "deepLinkUnknown": "You have never connected to this server before.",
+    "deepLinkConfirm": "Switch backend"
   },
   "tray": {
     "show": "Show PatchMan",
@@ -109,5 +114,12 @@
     "title": "Quit PatchMan?",
     "description": "Any in-progress requests will stop.",
     "confirm": "Quit"
+  },
+  "lock": {
+    "title": "PatchMan is locked",
+    "body": "Your connections and secrets stay closed until you confirm it's you.",
+    "unlock": "Unlock",
+    "cancelled": "Unlock was cancelled.",
+    "failed": "Couldn't verify it's you. Try again."
   }
 }

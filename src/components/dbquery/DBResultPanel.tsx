@@ -12,6 +12,7 @@ import {
   ChevronLeft,
   ChevronRight,
   AlertTriangle,
+  FileText,
 } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Button } from '@/components/ui/button';
@@ -28,7 +29,9 @@ import type { DBQueryResult } from '@/types';
 import { DBResultTable } from './DBResultTable';
 import { DBResultChart } from './DBResultChart';
 import { DBResultJSON } from './DBResultJSON';
+import { isMongoExplain } from './mongoExplainUtil';
 import { DBExplainPlan } from './DBExplainPlan';
+import { DBResultDocs } from './DBResultDocs';
 import { DBCellInspector } from './DBCellInspector';
 import { DBRowInspector } from './DBRowInspector';
 import { DBSummaryFooter } from './DBSummaryFooter';
@@ -48,15 +51,17 @@ interface DBResultPanelProps {
   onPageChange?: (delta: 1 | -1) => void;
   /** Visible row cap so pagination prev/next can be styled */
   rowLimit?: number;
+  /** Mongo: offer (and start on) the document card view. */
+  documents?: boolean;
 }
 
-type ResultView = 'table' | 'json' | 'chart' | 'explain';
+type ResultView = 'docs' | 'table' | 'json' | 'chart' | 'explain';
 
 // DBResultPanel composes the toolbar (export/view/columns) over one of
 // three views, plus the cell inspector, row inspector and summary footer.
-export function DBResultPanel({ result, onAddFilter, onOpenFK, onPageChange, rowLimit }: DBResultPanelProps) {
+export function DBResultPanel({ result, onAddFilter, onOpenFK, onPageChange, rowLimit, documents }: DBResultPanelProps) {
   const { t } = useTranslation('dbquery');
-  const [view, setView] = useState<ResultView>('table');
+  const [view, setView] = useState<ResultView>(documents ? 'docs' : 'table');
   const [cell, setCell] = useState<{ rowIndex: number; colName: string; value: unknown } | null>(null);
   const [rowIdx, setRowIdx] = useState<number | null>(null);
   // Large-result guard: even with virtualization, a very wide/tall grid is
@@ -91,6 +96,12 @@ export function DBResultPanel({ result, onAddFilter, onOpenFK, onPageChange, row
   );
 
   const lookExplain = useMemo(() => detectExplain(result), [result]);
+  // A Mongo .explain() result is only useful as a plan: open it there.
+  useEffect(() => {
+    const first = result.rows?.[0]?.[0];
+    if (result.columns?.length === 1 && result.columns[0].name === 'explain' && isMongoExplain(first)) setView('explain');
+    else if (documents) setView((v) => (v === 'explain' ? 'docs' : v));
+  }, [result, documents]);
 
   // Reset the large-result opt-in whenever a fresh result arrives.
   useEffect(() => { setForceShowTable(false); }, [result.queryId, rows.length]);
@@ -203,6 +214,9 @@ export function DBResultPanel({ result, onAddFilter, onOpenFK, onPageChange, row
 
         {/* View switcher */}
         <div className="flex border rounded">
+          {documents && (
+            <ViewBtn icon={<FileText className="h-3 w-3" />} label={t('results.viewDocs')} active={view === 'docs'} onClick={() => setView('docs')} />
+          )}
           <ViewBtn icon={<TableIcon className="h-3 w-3" />} label={t('results.viewTable')} active={view === 'table'} onClick={() => setView('table')} />
           <ViewBtn icon={<Braces className="h-3 w-3" />} label="JSON" active={view === 'json'} onClick={() => setView('json')} />
           <ViewBtn icon={<BarChart3 className="h-3 w-3" />} label={t('results.viewChart')} active={view === 'chart'} onClick={() => setView('chart')} />
@@ -282,6 +296,9 @@ export function DBResultPanel({ result, onAddFilter, onOpenFK, onPageChange, row
               onOpenFK={onOpenFK}
             />
           )
+        )}
+        {view === 'docs' && (
+          <DBResultDocs result={result} />
         )}
         {view === 'json' && (
           <DBResultJSON result={result} />

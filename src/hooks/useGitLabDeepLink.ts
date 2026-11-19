@@ -1,4 +1,5 @@
 // Desktop-only: receive `patchman://auth/gitlab/callback?code=…&state=…`
+// (and `patchman://auth/github|google/callback` for those sign-ins)
 // deep links from the OS and dispatch them to the right flow.
 //
 // Two flows share this URI scheme:
@@ -28,7 +29,9 @@ export function useGitLabDeepLink() {
           // accept either `patchman://auth/gitlab/callback` (host=auth) or
           // a clean pathname match.
           const path = `${u.host}${u.pathname}`.replace(/\/+/g, '/').replace(/^\//, '');
-          if (path !== 'auth/gitlab/callback') continue;
+          // GitHub / Google sign-in callbacks: sign-in only.
+          const signInOnly = path === 'auth/github/callback' || path === 'auth/google/callback';
+          if (path !== 'auth/gitlab/callback' && !signInOnly) continue;
           const code = u.searchParams.get('code') || '';
           const state = u.searchParams.get('state') || '';
           const error = u.searchParams.get('error') || u.searchParams.get('error_description') || '';
@@ -44,9 +47,10 @@ export function useGitLabDeepLink() {
           if (state && ssoExpected && state === ssoExpected) {
             // Navigate the in-app webview to the SSO callback route so
             // SSOCallbackPage runs and signs the user in.
-            navigate(`/auth/gitlab/callback?code=${encodeURIComponent(code)}&state=${encodeURIComponent(state)}${error ? `&error=${encodeURIComponent(error)}` : ''}`);
+            navigate(`/${path}?code=${encodeURIComponent(code)}&state=${encodeURIComponent(state)}${error ? `&error=${encodeURIComponent(error)}` : ''}`);
             continue;
           }
+          if (signInOnly) continue; // stale / foreign state: never treat as a GitLab link
 
           // Integration flow — same localStorage handoff as before.
           const payload = { code, state, error };

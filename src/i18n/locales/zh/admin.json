@@ -58,7 +58,14 @@
     "promoteTitle": "提升为管理员",
     "password": "密码",
     "resetPasswordTitle": "重置密码",
-    "manage": "管理"
+    "manage": "管理",
+    "signOut": "全部登出",
+    "signOutTitle": "在所有设备上登出此用户",
+    "signOutConfirm": "在所有设备上登出 {{name}}？",
+    "signOutBody": "该用户已登录的每台设备将在下一次请求时失去访问权限。适用于丢失或被盗的电脑。",
+    "signedOut_one": "已在 {{count}} 台设备上登出",
+    "signedOut_other": "已在 {{count}} 台设备上登出",
+    "signOutFailed": "无法登出该用户"
   },
   "pagination": {
     "rowsPerPage": "每页行数",

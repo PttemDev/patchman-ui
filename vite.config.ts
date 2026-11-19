@@ -1,4 +1,4 @@
-import { defineConfig } from 'vite'
+import { defineConfig, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import path from 'path'
@@ -18,8 +18,26 @@ function resolveBuildCommit(): string {
   }
 }
 
+// Excalidraw lists a CDN copy (esm.sh) after every local font URL. The app
+// ships the fonts in /excalidraw-assets/ (excalidrawSetup.ts), the desktop
+// CSP has no esm.sh in font-src, and offline-first means no CDN: point the
+// fallback at the same local folder so no font URL ever names esm.sh.
+function excalidrawLocalFontFallback(): Plugin {
+  const re = /(ASSETS_FALLBACK_URL",\s*)`https:\/\/esm\.sh\/.*?\/dist\/(?:prod|dev)\/`/
+  return {
+    name: 'patchman-excalidraw-local-fonts',
+    apply: 'build',
+    transform(code, id) {
+      if (!id.includes('@excalidraw/excalidraw/dist/') || !code.includes('ASSETS_FALLBACK_URL')) return null
+      const out = code.replace(re, '$1(typeof window!=="undefined"?window.location.origin:"http://localhost")+"/excalidraw-assets/"')
+      if (out === code) this.warn('Excalidraw font fallback URL not found — CDN fallback left in place')
+      return out === code ? null : { code: out, map: null }
+    },
+  }
+}
+
 export default defineConfig({
-  plugins: [react(), tailwindcss()],
+  plugins: [react(), tailwindcss(), excalidrawLocalFontFallback()],
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),

@@ -65,6 +65,15 @@ function usePersistedOpen(key: string): [boolean, () => void] {
   return [open, toggle];
 }
 
+// A group title above its sections (Memory / Notes).
+function GroupLabel({ icon, label, className }: { icon: ReactNode; label: string; className?: string }) {
+  return (
+    <div className={`flex items-center gap-1.5 border-b px-1 pb-1 text-[11px] font-semibold text-foreground/90 ${className ?? ''}`}>
+      {icon}<span>{label}</span>
+    </div>
+  );
+}
+
 function SectionHeader({ open, onToggle, icon, label, count }: { open: boolean; onToggle: () => void; icon: ReactNode; label: string; count: number }) {
   return (
     <button
@@ -158,6 +167,8 @@ export function NotesSidebar() {
   const [mineOpen, toggleMine] = usePersistedOpen('patchman_notes_mine_open');
   const [sharedOpen, toggleShared] = usePersistedOpen('patchman_notes_shared_open');
   const [everyoneOpen, toggleEveryone] = usePersistedOpen('patchman_notes_everyone_open');
+  const [myMemoryOpen, toggleMyMemory] = usePersistedOpen('patchman_notes_mymemory_open');
+  const [sharedMemOpen, toggleSharedMem] = usePersistedOpen('patchman_notes_sharedmemory_open');
   const [query, setQuery] = useState('');
 
   useEffect(() => {
@@ -167,18 +178,35 @@ export function NotesSidebar() {
 
   // Split the shared list by its share root: company-wide ("everyone") spaces
   // get their own section; direct/team shares stay in "Shared with me".
-  const { direct, everyone } = useMemo(() => {
-    const byId = new Map(shared.map((n) => [n.id, n]));
-    const rootOf = (n: NoteMeta) => {
-      let cur = n;
-      for (let i = 0; i < 64 && cur.parentId && byId.has(cur.parentId); i++) cur = byId.get(cur.parentId)!;
-      return cur;
+  // Memories and notes are shown as two groups: a subtree whose root is an
+  // agent memory folder goes to Memory, everything else to Notes. Shared
+  // notes split further by their root: company-wide ("everyone") spaces vs
+  // direct / team shares.
+  const { ownMemory, ownNotes, sharedMemory, direct, everyone } = useMemo(() => {
+    const rootIn = (list: NoteMeta[]) => {
+      const byId = new Map(list.map((n) => [n.id, n]));
+      return (n: NoteMeta) => {
+        let cur = n;
+        for (let i = 0; i < 64 && cur.parentId && byId.has(cur.parentId); i++) cur = byId.get(cur.parentId)!;
+        return cur;
+      };
     };
+    const ownRoot = rootIn(notes);
+    const om: NoteMeta[] = [];
+    const on: NoteMeta[] = [];
+    for (const n of notes) (ownRoot(n).memory ? om : on).push(n);
+    const sharedRoot = rootIn(shared);
+    const sm: NoteMeta[] = [];
     const d: NoteMeta[] = [];
     const e: NoteMeta[] = [];
-    for (const n of shared) (rootOf(n).everyone ? e : d).push(n);
-    return { direct: d, everyone: e };
-  }, [shared]);
+    for (const n of shared) {
+      const r = sharedRoot(n);
+      if (r.memory) sm.push(n);
+      else (r.everyone ? e : d).push(n);
+    }
+    return { ownMemory: om, ownNotes: on, sharedMemory: sm, direct: d, everyone: e };
+  }, [notes, shared]);
+  const roots = (l: NoteMeta[]) => l.filter((n) => !n.parentId).length;
 
   const newPage = async () => {
     const n = await createNote({ title: t('untitled') });
@@ -208,13 +236,31 @@ export function NotesSidebar() {
         <>
           <MemoryStrip />
           <BrainHelpCard />
+          {(ownMemory.length > 0 || sharedMemory.length > 0) && (
+            <>
+              {/* The Agent Memory bar above heads this group. */}
+              {ownMemory.length > 0 && (
+                <section className="flex flex-col">
+                  <SectionHeader open={myMemoryOpen} onToggle={toggleMyMemory} icon={<Brain className="h-3 w-3 text-violet-400" />} label={t('myMemory')} count={roots(ownMemory)} />
+                  {myMemoryOpen && <div className="pl-1 pr-0.5 pt-1"><NoteTree notes={ownMemory} mode="own" onOpen={open} /></div>}
+                </section>
+              )}
+              {!isLocal && sharedMemory.length > 0 && (
+                <section className="flex flex-col">
+                  <SectionHeader open={sharedMemOpen} onToggle={toggleSharedMem} icon={<Users2 className="h-3 w-3 text-violet-400" />} label={t('sharedMemories')} count={roots(sharedMemory)} />
+                  {sharedMemOpen && <div className="pl-1 pr-0.5 pt-1"><NoteTree notes={sharedMemory} mode="shared" onOpen={open} /></div>}
+                </section>
+              )}
+              <GroupLabel icon={<NotebookText className="h-3.5 w-3.5 text-sky-500" />} label={t('groupNotes')} className="mt-1" />
+            </>
+          )}
           <section className="flex flex-col">
-            <SectionHeader open={mineOpen} onToggle={toggleMine} icon={<NotebookText className="h-3 w-3 text-sky-500" />} label={t('myNotes')} count={notes.filter((n) => !n.parentId).length} />
+            <SectionHeader open={mineOpen} onToggle={toggleMine} icon={<NotebookText className="h-3 w-3 text-sky-500" />} label={t('myNotes')} count={roots(ownNotes)} />
             {mineOpen && (
               <div className="pl-1 pr-0.5 pt-1">
                 {notes.length === 0 && (loading || !loaded) ? (
                   <div className="flex items-center justify-center py-3"><Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" /></div>
-                ) : notes.length === 0 ? (
+                ) : ownNotes.length === 0 ? (
                   <div className="px-2 py-1.5">
                     <p className="text-[11px] text-muted-foreground italic">{t('empty')}</p>
                     <Button size="sm" variant="outline" className="mt-2 h-7 text-xs gap-1" onClick={newPage}>
@@ -222,7 +268,7 @@ export function NotesSidebar() {
                     </Button>
                   </div>
                 ) : (
-                  <NoteTree notes={notes} mode="own" onOpen={open} />
+                  <NoteTree notes={ownNotes} mode="own" onOpen={open} />
                 )}
               </div>
             )}
@@ -230,9 +276,8 @@ export function NotesSidebar() {
 
           {!isLocal && (
             <>
-              <div className="h-px bg-border mx-2" />
               <section className="flex flex-col">
-                <SectionHeader open={sharedOpen} onToggle={toggleShared} icon={<Users2 className="h-3 w-3 text-primary" />} label={t('sharedWithMe')} count={direct.filter((n) => !n.parentId).length} />
+                <SectionHeader open={sharedOpen} onToggle={toggleShared} icon={<Users2 className="h-3 w-3 text-primary" />} label={t('sharedWithMe')} count={roots(direct)} />
                 {sharedOpen && (
                   <div className="pl-1 pr-0.5 pt-1">
                     {direct.length === 0
@@ -242,17 +287,14 @@ export function NotesSidebar() {
                 )}
               </section>
               {everyone.length > 0 && (
-                <>
-                  <div className="h-px bg-border mx-2" />
-                  <section className="flex flex-col">
-                    <SectionHeader open={everyoneOpen} onToggle={toggleEveryone} icon={<Globe2 className="h-3 w-3 text-sky-500" />} label={t('everyoneSpaces')} count={everyone.filter((n) => !n.parentId).length} />
-                    {everyoneOpen && (
-                      <div className="pl-1 pr-0.5 pt-1">
-                        <NoteTree notes={everyone} mode="shared" onOpen={open} />
-                      </div>
-                    )}
-                  </section>
-                </>
+                <section className="flex flex-col">
+                  <SectionHeader open={everyoneOpen} onToggle={toggleEveryone} icon={<Globe2 className="h-3 w-3 text-sky-500" />} label={t('everyoneSpaces')} count={roots(everyone)} />
+                  {everyoneOpen && (
+                    <div className="pl-1 pr-0.5 pt-1">
+                      <NoteTree notes={everyone} mode="shared" onOpen={open} />
+                    </div>
+                  )}
+                </section>
               )}
             </>
           )}

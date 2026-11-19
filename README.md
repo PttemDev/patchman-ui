@@ -11,7 +11,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/PttemDev/patchman-ui/raw/master/downloads/PatchMan-1.59.2-aarch64.dmg"><img src="https://img.shields.io/badge/Download_for_macOS-Apple_Silicon-000000?style=for-the-badge&logo=apple&logoColor=white" alt="Download PatchMan for macOS (Apple Silicon)"/></a><br/>
+  <a href="https://github.com/PttemDev/patchman-ui/releases/latest"><img src="https://img.shields.io/badge/Download_for_macOS-Apple_Silicon-000000?style=for-the-badge&logo=apple&logoColor=white" alt="Download PatchMan for macOS (Apple Silicon)"/></a><br/>
   <sub>Signed and notarized · <a href="#download-macos-apple-silicon">download details</a></sub>
 </p>
 
@@ -43,16 +43,22 @@
 
 PatchMan started as a Postman-style API client and grew into a single place for the daily work around a backend: the requests you send, the databases and queues behind them, the tests you run against them and the knowledge you keep about them.
 
-- **One app, many tools.** The HTTP client sits next to database, Redis, Elasticsearch, Kafka, RabbitMQ, S3 and Kubernetes browsers, so you don't need a separate tool for each.
+- **One app, many tools.** The HTTP client sits next to database, Redis, Elasticsearch, Kafka, RabbitMQ, S3, Kubernetes and Google Cloud browsers, plus a Git workspace for GitLab, GitHub and local folders, so you don't need a separate tool for each.
 - **Self-hosted, for teams.** Run one backend for your team. Workspaces, roles and per-person sharing control who can see and change what. Connection secrets are encrypted at rest.
 - **Desktop and web.** Use it in the browser against your server, or install the desktop app. The desktop app also works offline without an account.
-- **Built for AI agents.** PatchMan is an MCP server with **119 tools**. Agents such as Claude Code, Claude Desktop or Cursor can send requests, query data, file test cases, draw diagrams and keep a shared long-term memory, with per-token permissions.
+- **Built for AI agents.** PatchMan is an MCP server with **more than 130 tools**, and installed plugins can add their own. Agents such as Claude Code, Claude Desktop or Cursor can send requests, query data, file test cases, draw diagrams and keep a shared long-term memory, with per-token permissions.
 
 ---
 
 ## Download (macOS, Apple Silicon)
 
-You can download the signed and notarized macOS build (Apple Silicon) here: [`PatchMan-1.59.2-aarch64.dmg`](https://github.com/PttemDev/patchman-ui/raw/master/downloads/PatchMan-1.59.2-aarch64.dmg) (about 40 MB). The SHA-256 checksum is in [`downloads/SHA256SUMS`](downloads/SHA256SUMS). For other platforms, build the desktop app from source (see [Desktop app (macOS)](#desktop-app-macos)).
+Download the signed and notarized macOS build (Apple Silicon) from the [latest GitHub Release](https://github.com/PttemDev/patchman-ui/releases/latest). Each release has the `PatchMan-<version>-aarch64.dmg` file and a `SHA256SUMS` file for checking it:
+
+```bash
+shasum -a 256 -c SHA256SUMS
+```
+
+Every release has a matching `v<version>` tag in this repository and in [patchman-api](https://github.com/PttemDev/patchman-api), so you can see which source a build came from. To get notified about new versions, use **Watch → Custom → Releases**. Earlier versions are on the [Releases page](https://github.com/PttemDev/patchman-ui/releases). For other platforms, build the desktop app from source (see [Desktop app (macOS)](#desktop-app-macos)).
 
 The desktop app runs **standalone and offline**. It bundles its own backend (SQLite), so you do not need a server or the `patchman-api` repository to use a built copy. Sign in to a server later if you want to sync.
 
@@ -93,22 +99,26 @@ Every connection uses the same model: credentials are stored encrypted, and the 
 
 | Tool | What you can do |
 |---|---|
-| **Databases** | PostgreSQL (and Cockroach, Yugabyte, Redshift), MySQL (and MariaDB, TiDB), SQL Server and MongoDB. Editor with examples and saved queries, schema browser, result grid with filters, aggregates, charts and export. |
+| **Databases** | PostgreSQL (and Cockroach, Yugabyte, Redshift), MySQL (and MariaDB, TiDB), SQL Server, MongoDB and BigQuery. Editor with examples and saved queries, schema browser, result grid with filters, aggregates, charts and export. MongoDB adds index management, explain plans and an aggregation pipeline builder. BigQuery checks every query with a free dry run first and enforces scan limits you set (per query, per connection, or a server-wide ceiling). |
 | **Redis** | Key browser with smart SCAN, typed value views, TTL and memory, a console and a cheatsheet. Read-only by default. |
-| **Elasticsearch** | Index and alias browser, mappings, and a console with completion, drafts and saved queries. |
+| **Elasticsearch** | Index and alias browser, mappings, Kibana data views with search, and a console with completion, drafts and saved queries. |
 | **Kafka** | Brokers, topics with sizes, consumer groups and lag, and message peek. Peek never commits offsets. |
 | **RabbitMQ** | Overview, queues, exchanges, topology, peek with requeue, publish, a live tail and moving messages out of a DLQ. |
 | **S3** | Buckets and objects. |
 | **Kubernetes** | Contexts, resources, pod logs with search and download, an exec terminal, apply, and historical pod metrics from Prometheus. |
+| **Google Cloud** | Projects, Cloud Storage buckets and objects, Pub/Sub topics and subscriptions with peek (without consuming) and publish, GKE clusters, Cloud Logging search and BigQuery. Connect with a service account key, gcloud on this computer (desktop), or your Google account (web). |
 
 ### Observability and dashboards
 - **Grafana:** native dashboard rendering through the Grafana HTTP API, using a token, basic auth or anonymous access.
 - **Graylog:** log search with a histogram, streams and field-level drill-down. Read-only.
 - **Service map:** a live, animated map built from APM providers (Coroot, Prometheus-compatible backends, Jaeger, Kiali, SigNoz, Datadog).
 
-### Git and CI/CD (GitLab)
-- Repositories and branches, and merge requests with diffs and notes.
-- CI/CD: pipelines and jobs (including trigger jobs and downstream pipelines), job logs, schedules shown in plain words, and variables. Values are revealed one at a time, and each reveal is audited.
+### Git and CI/CD (GitLab and GitHub)
+- GitLab and GitHub (including GitHub Enterprise Server) connections with a personal access token, or a GitLab account linked through OAuth.
+- Repositories, branches, history, commits and files, comparisons and code search.
+- Merge requests and pull requests: list, read the conversation, review the changes with line comments, reply to and resolve threads, approve, mark as draft or ready, close or reopen, and update the branch.
+- CI/CD: GitLab pipelines and jobs (including trigger jobs and downstream pipelines) and GitHub Actions workflow runs, with job logs, retry, run again, schedules shown in plain words, and variables. Values are revealed one at a time, and each reveal is audited.
+- A Git workspace that works like an IDE: open any git folder on your computer (desktop) without a connection, edit files with syntax highlighting and auto save, stage, commit, pull, push, and the full JetBrains-style branch menu (checkout, new branch, update a branch you are not on, merge, rebase, compare, rename, delete). Saves are hash-guarded, so a file changed elsewhere is not overwritten.
 
 ### QA and performance
 - Test cases with request, check (status, body, JSON path, header, response time), extract and wait steps.
@@ -122,13 +132,20 @@ Every connection uses the same model: credentials are stored encrypted, and the 
 
 ### Teams, security and operations
 - Personal and team workspaces with Admin, Editor and Viewer roles. Share connections, collections, boards and notes with people or teams.
-- Sign in with email and password or GitLab SSO. Sessions slide while you stay active.
+- Sign in with email and password, GitLab SSO, GitHub or Google (optionally limited to your Google Workspace domains). Each provider's button only appears when the server has it configured.
+- Sessions slide while you stay active, with an optional idle timeout (`SESSION_IDLE_TTL`). **Settings → Security** lists the devices signed in to your account; sign out one or all others. Admins can sign a user out everywhere.
 - Connection secrets are encrypted with AES using a key you provide (`GITLAB_TOKEN_ENC_KEY`).
 - An audit log and activity feed, plus admin usage views.
 - The UI is available in English, Turkish, Spanish and Chinese.
 
+### Plugins
+- Extend PatchMan with plugins: WebAssembly modules (built with [Extism](https://extism.org)) that add connection types, screens and MCP tools.
+- Each plugin runs in a sandbox: it reaches only the hosts it declares, sees only its own connection's secrets, and its screens run isolated from the app. Private networks are blocked unless an admin allows them (`PLUGIN_PRIVATE_CIDRS`).
+- Signed plugins are checked against trusted publisher keys (`PATCHMAN_PLUGIN_TRUSTED_KEYS`). For plugin authors, the desktop app can restart in developer mode (Touch ID required) to install an unsigned plugin from a local folder for one session.
+
 ### Desktop app
 - A Tauri 2 desktop app with an embedded backend (a Go sidecar using SQLite).
+- Security: only the app itself can talk to its embedded backend (a per-launch token and a strict origin check), a content security policy, an optional app lock with Touch ID or your Mac password (on open and after a period of inactivity), and Touch ID before every secret is revealed. The key that encrypts your saved secrets is kept in the macOS Keychain.
 - Works offline without an account. Sign in later to sync to your server.
 - Menu-bar tray, support for an auto-update channel and a built-in Claude Code terminal. Auto-update needs your own endpoint and signing key (see [Desktop app notes](#desktop-app-notes)).
 - macOS is the supported desktop target. Windows and Linux builds are not verified yet.
@@ -137,7 +154,7 @@ Every connection uses the same model: credentials are stored encrypted, and the 
 
 ## AI agents (MCP)
 
-PatchMan is a [Model Context Protocol](https://modelcontextprotocol.io) server. Agents get tools for everything above: sending HTTP requests, querying databases, Redis, Elasticsearch, Kafka, RabbitMQ, S3 and Kubernetes, reading GitLab merge requests and CI, editing collections, test cases and mock servers, and drawing on whiteboards.
+PatchMan is a [Model Context Protocol](https://modelcontextprotocol.io) server. Agents get tools for everything above: sending HTTP requests, querying databases, Redis, Elasticsearch, Kafka, RabbitMQ, S3, Kubernetes and Google Cloud, reading GitLab merge requests, GitHub pull requests and CI, editing collections, test cases and mock servers, and drawing on whiteboards.
 
 **Two ways to connect**
 
@@ -166,13 +183,16 @@ Claude Desktop / Cursor (`mcpServers`):
 }
 ```
 
-**Permissions.** Each token can be limited to a set of tool groups: `collections`, `requests`, `environments`, `testcases`, `mocks`, `connections`, `http`, `db`, `es`, `redis`, `kafka`, `s3`, `k8s`, `git`, `devtools`, `whiteboards`, `notes`, `grafana`, `rabbitmq`, `observability`, `graylog`.
+**Permissions.** Each token can be limited to a set of tool groups: `collections`, `requests`, `environments`, `testcases`, `mocks`, `connections`, `http`, `db`, `es`, `redis`, `kafka`, `s3`, `k8s`, `git`, `devtools`, `whiteboards`, `notes`, `grafana`, `rabbitmq`, `observability`, `graylog`, `gcp`, plus one `plugin:<id>` group per installed plugin.
+
+**Resources, prompts and progress.** Besides tools, PatchMan serves MCP resources and prompts, and long-running tools report progress. Tool replies are compact and suggest the next useful step.
 
 **Agent Memory.**
 - `remember` saves one fact per card: a decision, a root cause or a convention. `recall` finds cards again, ranked for the project the agent works in.
 - Cards are grouped into projects. Through the stdio bridge the project is the agent's working directory; remote clients pass `project`. Each card is signed with the agent's name.
 - Memories can be personal, shared with a team, or shared with a colleague. `recall(from: "<name>")` searches only what that person shared with you.
-- A secret filter refuses credentials.
+- Agents can update a card in place with a stable key and remove outdated ones with `forget`. When they connect, agents are told which memories they can read (personal, team and shared).
+- A secret filter refuses credentials but accepts code references that only look like them.
 
 ---
 
@@ -302,6 +322,19 @@ This repository does not contain signing keys, Apple credentials or a working au
 
 The bundle identifier `com.pttem.patchman` in `tauri.conf.json` is the upstream default. Change it if you publish your own fork.
 
+### Publishing a release (maintainers)
+
+Desktop builds are published as [GitHub Releases](https://github.com/PttemDev/patchman-ui/releases), never committed to the repository. Signing and notarization need the maintainer's Apple Developer ID certificate in the local Keychain and the notarization credentials, so the release build runs on the maintainer's Mac:
+
+1. Bump the version in `package.json`, `src-tauri/Cargo.toml` and `src-tauri/tauri.conf.json`, and add a `src/data/changelog.ts` entry.
+2. Build, sign and notarize: `bash scripts/release-build.sh` (needs `APPLE_ID`, `APPLE_PASSWORD`, `APPLE_TEAM_ID` and `TAURI_SIGNING_PRIVATE_KEY`). The DMG lands in `public/downloads/PatchMan-<version>-aarch64.dmg`.
+3. Write the checksum file: `cd public/downloads && shasum -a 256 PatchMan-<version>-aarch64.dmg > SHA256SUMS`
+4. Tag the same version in both repositories (`git tag v<version>` here and in `patchman-api`) and push the tags.
+5. Create the release and attach the files:
+   `gh release create v<version> public/downloads/PatchMan-<version>-aarch64.dmg public/downloads/SHA256SUMS --title "PatchMan <version>" --notes-file <notes>`
+
+The download button in this README points at `releases/latest`, so it always gets the newest release.
+
 **Building without signing credentials.** Without a tenant overlay, `tauri build` fails on purpose (empty signing identity, updater artifacts need a key). For a local, ad-hoc signed build with auto-update disabled, create a local, gitignored `src-tauri/tauri.tenant.json`. macOS blocks such a build on first launch (Privacy & Security → Open Anyway). For a build that opens without that warning, sign it with your Apple Developer ID and notarize it (set `signingIdentity` in the overlay and `APPLE_ID`, `APPLE_PASSWORD` and `APPLE_TEAM_ID` in the environment).
 
 ```json
@@ -394,6 +427,8 @@ Checks run on this repository before the initial public release (November 2026):
 - [x] No update manifests, updater keys or signing keys are part of the repository
 - [x] `npm audit` reports no critical or high severity advisories
 - [ ] `npm audit` still reports 13 moderate/low advisories that need major upgrades or have no upstream fix yet (`react-router-dom` 6 → 7, `katex` via `mermaid`, `@excalidraw/*`, and the `typescript-eslint` / `minimatch` dev tooling). See [SECURITY.md](SECURITY.md).
+
+Re-checked for 1.67.1 (November 2026): `npm run build`, `npm run check:i18n` and `cargo check` (desktop shell) pass; the source tree was scanned again for secrets, internal hostnames and personal names; `npm audit` shows the same 13 moderate/low advisories listed above and nothing critical or high.
 
 Dependency notes: `xlsx` is installed from the SheetJS CDN (`0.20.3`) because newer releases are not published to npm, and `package.json` uses `overrides` to pin patched versions of `lodash-es`, `dompurify` and `nanoid`.
 

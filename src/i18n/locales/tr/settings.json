@@ -10,7 +10,10 @@
     "changelog": "Sürüm notları",
     "updateAvailable": "Güncelleme mevcut",
     "remote": "Sunucu",
-    "appearance": "Görünüm"
+    "appearance": "Görünüm",
+    "security": "Güvenlik",
+    "editor": "Editör",
+    "gcp": "Google Cloud"
   },
   "proxy": {
     "heading": "Özel Proxy",
@@ -153,7 +156,8 @@
         "grafana": "Grafana",
         "rabbitmq": "RabbitMQ",
         "graylog": "Graylog",
-        "observability": "Gözlemlenebilirlik (servis haritası)"
+        "observability": "Gözlemlenebilirlik (servis haritası)",
+        "gcp": "Google Cloud"
       }
     }
   },
@@ -239,7 +243,47 @@
     "pasteHistory": "Yapıştırma geçmişi",
     "globalSearch": "Genel arama",
     "groupApp": "Uygulama",
-    "quit": "Çıkış"
+    "quit": "Çıkış",
+    "groupGit": "Git (yerel klon, Git sekmesi)",
+    "gitCommit": "Commit…",
+    "gitPush": "Push…",
+    "gitUpdate": "Projeyi Güncelle…",
+    "gitVcsOperations": "VCS işlemleri (branch popup)",
+    "gitBranches": "Branch'ler",
+    "gitFindInFiles": "Dosyalarda Bul",
+    "gitGotoFile": "Dosyaya Git",
+    "gitGotoSymbol": "Sembole Git",
+    "gitBack": "Geri",
+    "gitForward": "İleri",
+    "gitSearchEverywhere": "Her Yerde Ara (⇧⇧)",
+    "gitDeclaration": "Tanıma Git",
+    "gitUsages": "Kullanımları Bul",
+    "gitSave": "Dosyayı kaydet (Git editörü)",
+    "descriptionEditable": "Yeni kısayol kaydetmek için bir kısayola tıkla (Esc iptal eder). + başka bir tuş ekler; silmek için bir tuşun üstüne gel.",
+    "search": "Eylem ya da tuş ara",
+    "preset": "Şablon",
+    "resetAll": "Tümünü sıfırla",
+    "resetAllTitle": "Tüm kısayollar sıfırlansın mı?",
+    "resetAllBody": "Özel tuşların silinir; seçili şablon uygulanır.",
+    "scope": {
+      "global": "Her yerde",
+      "git": "Git sekmesi",
+      "editor": "Git editörü"
+    },
+    "custom": "özel",
+    "pressKeys": "Tuşlara bas…",
+    "clickToChange": "Değiştirmek için tıkla",
+    "remove": "Tuşu kaldır",
+    "add": "Tuş ekle",
+    "none": "yok",
+    "reset": "Sıfırla",
+    "resetOne": "{{chord}} olarak sıfırla",
+    "osReserved": "{{chord}} işletim sistemine ayrılmış.",
+    "conflict": "{{chord}} şunlara da atanmış: {{names}}. İlk eşleşen çalışır.",
+    "browserReserved": "Tarayıcıda bu tuşu tarayıcı yakalayabilir; masaüstü uygulamada sorunsuz çalışır.",
+    "footer": "Bu cihazda saklanır. Git sekmesi ve editör kısayolları, o görünüm açıkken genel kısayolların önüne geçer.",
+    "gitCtrlClick": "Tanıma Git (fare)",
+    "clearOthers": "Ötekilerden kaldır"
   },
   "remote": {
     "heading": "Sunucu",
@@ -288,5 +332,79 @@
       "ocean": "Okyanus",
       "grape": "Üzüm"
     }
+  },
+  "security": {
+    "title": "Güvenlik",
+    "desktopOnly": "Uygulama kilidi ve hassas işlem onayı masaüstü uygulamasında kullanılabilir.",
+    "lockNow": "Şimdi kilitle",
+    "noAuth": "Bu Mac kimliğini doğrulayamıyor (Touch ID ya da parola politikası yok), bu yüzden kilit ve hassas işlem onayı kapalı.",
+    "lockHeading": "Uygulama kilidi",
+    "lockEnabled": "Uygulamayı kilitle",
+    "lockEnabledHint": "Açılışta ve aşağıdaki durumlardan sonra Touch ID ya da Mac parolanı ister.",
+    "idle": "Hareketsizlikten sonra kilitle",
+    "idleHint": "Mac'te bu süre boyunca klavye ya da fare kullanılmazsa kilitlenir.",
+    "onSleep": "Mac uykuya geçince kilitle",
+    "onSleepHint": "Kapağı kapatmayı da kapsar.",
+    "onScreenLock": "Ekranla birlikte kilitle",
+    "onScreenLockHint": "macOS ekranı kilitlediğinde kilitlenir.",
+    "blockMcp": "Kilitliyken yapay zekâ ajanlarını engelle",
+    "blockMcpHint": "MCP araçları (Claude, Cursor…) kilidi açana kadar veri alamaz.",
+    "sudoHeading": "Hassas işlemler",
+    "sudoEnabled": "Hassas işlemleri onayla",
+    "sudoEnabledHint": "Şifre ve token gösterme, shell, port-forward ve cluster değişiklikleri önce Touch ID ister.",
+    "sudoWindow": "Onayı şu süre hatırla",
+    "sudoWindowHint": "Bu süre içinde yeniden sorulmaz.",
+    "minutes_one": "{{count}} dakika",
+    "minutes_other": "{{count}} dakika",
+    "custom": "Özel",
+    "apply": "Ayarla",
+    "saveFailed": "Güvenlik ayarları kaydedilemedi",
+    "alwaysOn": "Her zaman açık: yerel backend'e yalnızca bu uygulama konuşabilir (açılış başına token, origin ve host kilidi) ve backend değiştiren bağlantılar bağlanmadan önce sorar. Bir korumayı kapatmak ya da gevşetmek önce Touch ID ister.",
+    "devices": "Oturum açık cihazlar",
+    "devicesHint": "Ekip backend'inde oturumu açık cihazların. Kaybettiğin ya da artık kullanmadığın cihazın oturumunu kapat.",
+    "devicesUnsupported": "Bu backend henüz cihazları takip etmiyor.",
+    "devicesFailed": "Cihazların yüklenemedi ya da değiştirilemedi.",
+    "revoke": "Oturumu kapat",
+    "revokeConfirm": "Bu cihazın oturumu kapatılsın mı?",
+    "revokeOthers": "Diğerlerinin oturumunu kapat",
+    "revokeOthersConfirm": "Diğer tüm cihazların oturumu kapatılsın mı?",
+    "thisDevice": "bu cihaz",
+    "lastSeen": "son etkinlik {{when}}"
+  },
+  "editor": {
+    "heading": "Editör",
+    "description": "Git sekmesindeki kod editörünün davranışı. Bu cihazda saklanır.",
+    "autoSave": "Otomatik kaydet",
+    "guardNote": "Siz açtıktan sonra diskte değişen bir dosyanın üzerine otomatik kaydetme asla yazmaz; ⌘S üzerine yazmadan önce sorar.",
+    "mode": {
+      "onFocusChange": {
+        "title": "Odak ayrılınca",
+        "hint": "Dosya sekmesi değişince, editörden ya da pencereden çıkınca kaydet."
+      },
+      "afterDelay": {
+        "title": "Kısa bir duraklamadan sonra",
+        "hint": "Yazmayı bıraktıktan 1 saniye sonra kaydet."
+      },
+      "off": {
+        "title": "Kapalı",
+        "hint": "Yalnız ⌘S ya da Kaydet düğmesiyle kaydet."
+      }
+    }
+  },
+  "gcp": {
+    "heading": "Google Cloud",
+    "description": "Google Cloud araçları için sınırlar. Uygulamada sana ve senin için çalışan yapay zekâ ajanlarına uygulanır.",
+    "bigquery": "BigQuery tarama sınırları",
+    "maxScan": "Sorgu başına en fazla tarama",
+    "askAbove": "Şundan fazla taramadan önce sor",
+    "note": "Her sorgu önce ücretsiz olarak kontrol edilir. İlk değerin üstündeki sorgu çalışmaz; ikinci değerin üstünde sana sorulur. Bir bağlantı kendi sınırlarını belirleyebilir.",
+    "ceilingNote": "Sunucun en fazla {{gb}} GB'a izin veriyor.",
+    "save": "Kaydet",
+    "saved": "BigQuery sınırları kaydedildi",
+    "saveFailed": "Sınırlar kaydedilemedi",
+    "loadFailed": "Sınırlar yüklenemedi",
+    "errPositive": "İki değer de 0'dan büyük olmalı.",
+    "errAskAboveMax": "\"Sor\" değeri en fazla taramadan büyük olamaz.",
+    "errCeiling": "En fazla tarama, sunucunun {{gb}} GB sınırını aşamaz."
   }
 }

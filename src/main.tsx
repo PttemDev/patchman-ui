@@ -1,3 +1,9 @@
+// FIRST: wrap fetch / XHR / WebSocket / EventSource so every call to the
+// embedded desktop BE carries the launch token (DESKTOP_SECURITY_RFC L1) —
+// before any other module can fire a request.
+import { ensureLocalToken } from './lib/localApiAuth'
+import { startSecurityClient } from './lib/securityClient'
+import { BootGate } from './components/security/BootGate'
 // Initialize i18n (react-i18next) FIRST — before any other module runs, so the
 // fresh-install language detection reads localStorage while it's still the
 // on-disk state (a returning user's keys are already present; a genuine first
@@ -37,10 +43,19 @@ installInputWheelScroll()
 // wiring behaves identically; Monaco loads lazily on first editor as elsewhere.
 const detachedTabId = new URLSearchParams(window.location.search).get('detached')
 
-ReactDOM.createRoot(document.getElementById('root')!).render(
-  <React.StrictMode>
-    <BrowserRouter>
-      {detachedTabId ? <StandaloneTab tabId={detachedTabId} /> : <App />}
-    </BrowserRouter>
-  </React.StrictMode>,
-)
+// A detached window learns the token over IPC; render once it's known so its
+// WebSockets / EventSources (which can't wait) get it too. The main window has
+// it synchronously, so this resolves immediately there.
+// The lock state is read before the first render so a locked app never mounts
+// against a BE that refuses every call.
+void ensureLocalToken().then(() => startSecurityClient()).finally(() => {
+  ReactDOM.createRoot(document.getElementById('root')!).render(
+    <React.StrictMode>
+      <BrowserRouter>
+        <BootGate>
+          {detachedTabId ? <StandaloneTab tabId={detachedTabId} /> : <App />}
+        </BootGate>
+      </BrowserRouter>
+    </React.StrictMode>,
+  )
+})

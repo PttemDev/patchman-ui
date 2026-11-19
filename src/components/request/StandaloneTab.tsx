@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
-import { Database, Radio, HardDrive, GitBranch, Wrench, ExternalLink, LayoutDashboard, Rabbit, Waypoints, ScrollText } from 'lucide-react';
+import { LockScreen } from '@/components/security/LockScreen';
+import { CloudCog, Database, Radio, HardDrive, GitBranch, Wrench, ExternalLink, LayoutDashboard, Rabbit, Waypoints, ScrollText } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useRequestStore } from '@/stores/requestStore';
 import { useAuthStore } from '@/stores/authStore';
@@ -45,6 +46,8 @@ function TypeIcon({ tab }: { tab: Tab }) {
       return <Rabbit className="h-4 w-4 text-orange-500 shrink-0" />;
     case 'graylog':
       return <ScrollText className="h-4 w-4 text-rose-500 shrink-0" />;
+    case 'gcp':
+      return <CloudCog className="h-4 w-4 text-sky-500 shrink-0" />;
     case 'servicemap':
       return <Waypoints className="h-4 w-4 text-violet-500 shrink-0" />;
     case 'tool': {
@@ -136,6 +139,7 @@ export function StandaloneTab({ tabId }: { tabId: string }) {
     <TooltipProvider>
       <div className="h-screen w-screen bg-background text-foreground">{content}</div>
       <Toaster />
+      <LockScreen />
     </TooltipProvider>
   );
 }

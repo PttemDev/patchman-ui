@@ -338,7 +338,24 @@ function podContainers(obj: Record<string, unknown> | null): string[] {
 // resource table, and a right detail drawer (Overview / YAML / Describe /
 // Logs / Events). v1 is READ ONLY — no exec/edit/delete/scale. Matches the
 // design language of RedisKeyPanel / ESConsolePanel.
+// Remounts the explorer whenever the connection row changes (kubeconfig /
+// options / context edit bumps updatedAt). Every fetch, the RBAC cache, open
+// drawers and their errors were tied to the old credentials, so a clean
+// remount is the only reliable reset; view state (kind/ns/context) lives on the
+// tab and survives.
 export function K8sExplorerPanel({ tab }: K8sExplorerPanelProps) {
+  const connVersion = useK8sConnectionStore(
+    (s) => s.connections.find((c) => c.id === tab.k8sConnectionId)?.updatedAt ?? '',
+  );
+  // The first version seen (incl. the store's initial load) is the baseline,
+  // so opening a tab never mounts twice; only a later edit remounts.
+  const baseline = useRef<string | null>(null);
+  if (baseline.current === null && connVersion) baseline.current = connVersion;
+  const key = !connVersion || connVersion === baseline.current ? 'initial' : connVersion;
+  return <K8sExplorerPanelInner key={key} tab={tab} />;
+}
+
+function K8sExplorerPanelInner({ tab }: K8sExplorerPanelProps) {
   const { t } = useTranslation('k8s');
   const connections = useK8sConnectionStore((s) => s.connections);
   const fetchConnections = useK8sConnectionStore((s) => s.fetchConnections);

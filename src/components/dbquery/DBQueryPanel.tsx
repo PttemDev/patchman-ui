@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import i18n from '@/i18n';
+import { confirmDialog } from '@/components/ui/confirm';
 import { useTranslation } from 'react-i18next';
 import {type Monaco} from '@monaco-editor/react';
 import { CodeEditor } from '@/components/ui/CodeEditor';
@@ -19,12 +21,20 @@ import {
   Zap,
   Cloud,
   ChevronDown,
+  Code2,
+  KeyRound,
+  SlidersHorizontal,
+  Layers,
 } from 'lucide-react';
+import { MongoIndexesView, type MongoTarget } from './MongoIndexesView';
+import { MongoQueryBar } from './MongoQueryBar';
+import { parseAggregate, parseFind } from './mongoBarQuery';
+import { MongoPipelineBuilder } from './MongoPipelineBuilder';
 import { useThemeStore } from '@/stores/themeStore';
 import { useDBConnectionStore, availableDBScopes } from '@/stores/dbConnectionStore';
 import { useRequestStore } from '@/stores/requestStore';
 import type { DBScope } from '@/services/api';
-import { dbQueryAPI, dbSavedQueryAPI } from '@/services/api';
+import { dbQueryAPI } from '@/services/api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -109,6 +119,28 @@ export function DBQueryPanel({ tab }: DBQueryPanelProps) {
   // through either side.
   const scopes = availableDBScopes();
   const canPickExecScope = scopes.length > 1;
+  // Mongo: editor or the Indexes view, and the collection the current query
+  // is about (seeds the Indexes view).
+  const mongoView = conn?.kind === 'mongo' ? (tab.dbMongoView ?? 'query') : 'query';
+  const guessedTarget = useMemo<MongoTarget | undefined>(
+    () => (conn?.kind === 'mongo' ? mongoTargetFromQuery(tab.dbQuery ?? '') : undefined),
+    [conn?.kind, tab.dbQuery],
+  );
+  // Editor -> bar: a plain find fills the bar; anything else keeps the bar
+  // as it was. Indexes: seed the collection from the query.
+  const switchMongoView = (v: 'query' | 'bar' | 'aggregate' | 'indexes') => {
+    const patch: Partial<Tab> = { dbMongoView: v };
+    if (v === 'bar' && mongoView === 'query') {
+      const parsed = parseFind(tab.dbQuery ?? '');
+      if (parsed) { patch.dbMongoBar = parsed.bar; patch.dbMongoTarget = parsed.target; }
+    }
+    if (v === 'aggregate' && mongoView === 'query') {
+      const parsed = parseAggregate(tab.dbQuery ?? '');
+      if (parsed) { patch.dbMongoPipeline = parsed.stages; patch.dbMongoTarget = parsed.target; }
+    }
+    if (!tab.dbMongoTarget && !patch.dbMongoTarget && guessedTarget) patch.dbMongoTarget = guessedTarget;
+    updateTab(tab.id, patch);
+  };
   const effectiveScope: DBScope = tab.dbExecScope ?? conn?.scope ?? (scopes.includes('remote') ? 'remote' : 'local');
 
   // Existing folders for the current connection — feeds the combobox
@@ -188,9 +220,11 @@ export function DBQueryPanel({ tab }: DBQueryPanelProps) {
     [tab.id, updateTab, loadSchema],
   );
 
-  const runOnce = useCallback(async () => {
+  // override: the query bar runs the text it built (the tab's dbQuery is
+  // updated in the same tick, so this closure would still see the old one).
+  const runOnce = useCallback(async (override?: unknown) => {
     if (!conn || running) return;
-    const raw = tab.dbQuery ?? '';
+    const raw = typeof override === 'string' ? override : tab.dbQuery ?? '';
     if (!raw.trim()) return;
     const query = substituteQueryParams(raw, tab.dbParams ?? {});
     setRunning(true);
@@ -200,7 +234,7 @@ export function DBQueryPanel({ tab }: DBQueryPanelProps) {
     const controller = new AbortController();
     abortRef.current = controller;
     try {
-      const res = await dbQueryAPI.execute({
+      const res = await executeWithCostCheck({
         connectionId: conn.id,
         query,
         limit: tab.dbLimit ?? defaultRowLimit,
@@ -374,12 +408,14 @@ export function DBQueryPanel({ tab }: DBQueryPanelProps) {
     const controller = new AbortController();
     abortRef.current = controller;
     try {
+      // Paging re-runs a query the user already ran (and agreed to).
       const res = await dbQueryAPI.execute({
         connectionId: conn.id,
         query,
         limit: tab.dbLimit ?? defaultRowLimit,
         offset,
         queryId,
+        confirmCost: conn.kind === 'bigquery' ? true : undefined,
       }, controller.signal, effectiveScope);
       const data = res.data as DBQueryResult | { results: DBQueryResult[] };
       let primary: DBQueryResult;
@@ -449,6 +485,8 @@ export function DBQueryPanel({ tab }: DBQueryPanelProps) {
   const stmtResults = tab.dbStmtResults;
   const stmtIdx = tab.dbStmtIdx ?? 0;
   const activeResult = stmtResults?.[stmtIdx] ?? tab.dbResult ?? null;
+  // Aggregation builder: full height until there is something to show below.
+  const aggHasOutput = !!(tab.dbError || running || activeResult);
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
@@ -483,8 +521,34 @@ export function DBQueryPanel({ tab }: DBQueryPanelProps) {
           </SelectContent>
         </Select>
 
+        {conn?.kind === 'mongo' && (
+          <div className="flex h-9 items-center rounded-md border p-0.5" role="tablist">
+            {([
+              { v: 'query', icon: Code2, label: t('mongoView.query') },
+              { v: 'bar', icon: SlidersHorizontal, label: t('mongoView.bar') },
+              { v: 'aggregate', icon: Layers, label: t('mongoView.aggregate') },
+              { v: 'indexes', icon: KeyRound, label: t('mongoView.indexes') },
+            ] as const).map(({ v, icon: Icon, label }) => (
+              <button
+                key={v}
+                type="button"
+                role="tab"
+                aria-selected={mongoView === v}
+                onClick={() => switchMongoView(v)}
+                className={cn(
+                  'flex h-full items-center gap-1.5 rounded px-2.5 text-xs',
+                  mongoView === v ? 'bg-accent text-foreground' : 'text-muted-foreground hover:text-foreground',
+                )}
+              >
+                <Icon className="h-3.5 w-3.5" /> {label}
+              </button>
+            ))}
+          </div>
+        )}
+
         <div className="flex-1" />
 
+        {mongoView === 'query' && (
         <TooltipProvider delayDuration={200}>
           {running && (
             <div className="flex items-center gap-1 text-[11px] text-amber-500 font-mono mr-1">
@@ -665,11 +729,13 @@ export function DBQueryPanel({ tab }: DBQueryPanelProps) {
             </Tooltip>
           )}
         </TooltipProvider>
+        )}
         </div>
 
         {/* Secondary row — editor-helper actions that don't need to live with
             the primary Run flow. Wraps below the connection picker so the
             top row stays readable on narrow windows. */}
+        {mongoView === 'query' && (
         <div className="px-4 pb-3 flex items-center gap-1 flex-wrap">
           <TooltipProvider delayDuration={200}>
             <Tooltip>
@@ -730,15 +796,57 @@ export function DBQueryPanel({ tab }: DBQueryPanelProps) {
             </Tooltip>
           </TooltipProvider>
         </div>
+        )}
       </div>
 
+      {mongoView === 'indexes' && conn ? (
+        <MongoIndexesView
+          conn={conn}
+          scope={effectiveScope}
+          target={tab.dbMongoTarget ?? guessedTarget}
+          tables={schemas[conn.id]?.tables ?? []}
+          onTargetChange={(tg) => updateTab(tab.id, { dbMongoTarget: tg })}
+        />
+      ) : (<>
+      {mongoView !== 'bar' && (
       <DBQueryParamsBar
         query={tab.dbQuery ?? ''}
         values={tab.dbParams ?? {}}
         onChange={(next) => updateTab(tab.id, { dbParams: next })}
       />
+      )}
 
       <div ref={containerRef} className="flex-1 flex flex-col overflow-hidden min-h-0">
+        {mongoView === 'aggregate' && conn ? (<>
+          <div className="flex min-h-0 flex-col overflow-hidden" style={{ flex: aggHasOutput ? `0 0 ${splitRatio}%` : '1 1 auto' }}>
+          <MongoPipelineBuilder
+            conn={conn}
+            scope={effectiveScope}
+            target={tab.dbMongoTarget ?? guessedTarget}
+            tables={schemas[conn.id]?.tables ?? []}
+            stages={tab.dbMongoPipeline ?? [{ op: '$match', body: '{ }', enabled: true }]}
+            running={running}
+            onChange={(st) => updateTab(tab.id, { dbMongoPipeline: st })}
+            onTargetChange={(tg) => updateTab(tab.id, { dbMongoTarget: tg })}
+            onRun={(q) => { updateTab(tab.id, { dbQuery: q }); void runOnce(q); }}
+            onOpenInEditor={(q) => updateTab(tab.id, { dbQuery: q, dbMongoView: 'query' })}
+          />
+          </div>
+          {aggHasOutput && <div className="h-1 cursor-row-resize bg-border hover:bg-primary/40 shrink-0" onMouseDown={onSplitDown} />}
+        </>) : mongoView === 'bar' && conn ? (
+          <MongoQueryBar
+            conn={conn}
+            scope={effectiveScope}
+            target={tab.dbMongoTarget ?? guessedTarget}
+            tables={schemas[conn.id]?.tables ?? []}
+            value={tab.dbMongoBar}
+            running={running}
+            onChange={(b) => updateTab(tab.id, { dbMongoBar: b })}
+            onTargetChange={(tg) => updateTab(tab.id, { dbMongoTarget: tg })}
+            onRun={(q) => { updateTab(tab.id, { dbQuery: q }); void runOnce(q); }}
+            onOpenInEditor={(q) => updateTab(tab.id, { dbQuery: q, dbMongoView: 'query' })}
+          />
+        ) : (<>
         <div className="flex flex-col overflow-hidden" style={{ flex: `0 0 ${splitRatio}%` }}>
           <CodeEditor
             height="100%"
@@ -766,8 +874,9 @@ export function DBQueryPanel({ tab }: DBQueryPanelProps) {
           className="h-1 cursor-row-resize bg-border hover:bg-primary/40 shrink-0"
           onMouseDown={onSplitDown}
         />
+        </>)}
 
-        <div className="flex-1 min-h-0 overflow-hidden">
+        <div className={cn('flex-1 min-h-0 overflow-hidden', mongoView === 'aggregate' && !aggHasOutput && 'hidden')}>
           {tab.dbError ? (
             <div className="p-4 flex items-start gap-2 text-xs text-destructive">
               <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
@@ -812,6 +921,7 @@ export function DBQueryPanel({ tab }: DBQueryPanelProps) {
                   onOpenFK={conn?.kind !== 'mongo' ? handleOpenFK : undefined}
                   onPageChange={conn?.kind !== 'mongo' ? handlePageChange : undefined}
                   rowLimit={tab.dbLimit ?? defaultRowLimit}
+                  documents={conn?.kind === 'mongo'}
                 />
               </div>
               {(tab.dbHistory?.length ?? 0) > 1 && (
@@ -832,6 +942,8 @@ export function DBQueryPanel({ tab }: DBQueryPanelProps) {
         </div>
       </div>
 
+      </>)}
+
       <DBSaveQueryDialog
         open={saveDialogOpen}
         onOpenChange={setSaveDialogOpen}
@@ -849,6 +961,21 @@ export function DBQueryPanel({ tab }: DBQueryPanelProps) {
       />
     </div>
   );
+}
+
+// db.getSiblingDB('x').coll… / db.getSiblingDB('x').getCollection('c')… /
+// db.getCollection('c')… / db.coll… → the collection a Mongo query targets.
+function mongoTargetFromQuery(q: string): MongoTarget | undefined {
+  const s = q.trim();
+  let m = s.match(/^db\.getSiblingDB\(\s*['"]([^'"]+)['"]\s*\)\.(?:getCollection\(\s*['"]([^'"]+)['"]\s*\)|([\w-]+))/);
+  if (m) return { db: m[1], coll: m[2] ?? m[3] };
+  m = s.match(/^db\.getCollection\(\s*['"]([^'"]+)['"]\s*\)/);
+  if (m) return { coll: m[1] };
+  m = s.match(/^db\.([\w-]+)\.([\w-]+)\.[a-zA-Z]+\s*\(/);
+  if (m) return { db: m[1], coll: m[2] };
+  m = s.match(/^db\.([\w-]+)\.[a-zA-Z]+\s*\(/);
+  if (m) return { coll: m[1] };
+  return undefined;
 }
 
 function RecentRunsStrip({
@@ -907,4 +1034,35 @@ function sqlLit(v: unknown): string {
   if (typeof v === 'number' || typeof v === 'bigint') return String(v);
   if (typeof v === 'boolean') return v ? 'TRUE' : 'FALSE';
   return `'${String(v).replace(/'/g, "''")}'`;
+}
+
+// BigQuery: a query whose dry run scans more than the user's "ask first"
+// threshold comes back 409 costConfirm. Ask, and re-run once with
+// confirmCost; "no" surfaces as a cancelled run.
+async function executeWithCostCheck(
+  data: Parameters<typeof dbQueryAPI.execute>[0],
+  signal: AbortSignal,
+  scope: Parameters<typeof dbQueryAPI.execute>[2],
+) {
+  try {
+    return await dbQueryAPI.execute(data, signal, scope);
+  } catch (err) {
+    const body = (err as { response?: { status?: number; data?: { costConfirm?: boolean; bytes?: number; askBytes?: number } } }).response;
+    if (body?.status !== 409 || !body.data?.costConfirm) throw err;
+    const ok = await confirmDialog({
+      title: i18n.t('dbquery:bigquery.costTitle', { size: formatBytes(body.data.bytes ?? 0) }),
+      description: i18n.t('dbquery:bigquery.costBody', { ask: formatBytes(body.data.askBytes ?? 0) }),
+      confirmLabel: i18n.t('dbquery:bigquery.costRun'),
+    });
+    if (!ok) throw new DOMException('cancelled', 'AbortError');
+    return dbQueryAPI.execute({ ...data, confirmCost: true }, signal, scope);
+  }
+}
+
+export function formatBytes(n: number): string {
+  const units = ['B', 'KB', 'MB', 'GB', 'TB', 'PB'];
+  let f = n;
+  let i = 0;
+  while (f >= 1024 && i < units.length - 1) { f /= 1024; i++; }
+  return i === 0 ? `${n} B` : `${f.toFixed(1)} ${units[i]}`;
 }
