@@ -2,6 +2,8 @@
 
 Thanks for helping out. Bug reports, fixes, new connection types and translations are all welcome.
 
+Before starting on a bigger change, or if you get stuck, ask in the [PatchMan Slack workspace](https://join.slack.com/t/patchman-workspace/shared_invite/zt-4hjqey19u-~AxNN3qSh51RbOsedKTwdw).
+
 ## Setup
 
 PatchMan needs the backend from [patchman-api](https://github.com/PttemDev/patchman-api). Clone both repositories next to each other and follow the **Quick start** in the [README](README.md).

@@ -8,6 +8,7 @@
 
 <p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT"/></a>
+  <a href="https://join.slack.com/t/patchman-workspace/shared_invite/zt-4hjqey19u-~AxNN3qSh51RbOsedKTwdw"><img src="https://img.shields.io/badge/Slack-join_the_community-4A154B?logo=slack&logoColor=white" alt="Slack: join the community"/></a>
 </p>
 
 <p align="center">
@@ -15,6 +16,11 @@
   <a href="https://github.com/PttemDev/patchman-ui/releases/latest"><img src="https://img.shields.io/badge/Download_for_Windows-x64-0078D4?style=for-the-badge&logo=windows&logoColor=white" alt="Download PatchMan for Windows (x64)"/></a>
   <a href="https://github.com/PttemDev/patchman-ui/releases/latest"><img src="https://img.shields.io/badge/Download_for_Linux-x64-FCC624?style=for-the-badge&logo=linux&logoColor=black" alt="Download PatchMan for Linux (x64)"/></a><br/>
   <sub>macOS: signed and notarized · Windows and Linux: preview builds · <a href="#download">download details</a></sub>
+</p>
+
+<p align="center">
+  <a href="https://join.slack.com/t/patchman-workspace/shared_invite/zt-4hjqey19u-~AxNN3qSh51RbOsedKTwdw"><img src="https://img.shields.io/badge/Join_the_community-on_Slack-4A154B?style=for-the-badge&logo=slack&logoColor=white" alt="Join the PatchMan community on Slack"/></a><br/>
+  <sub>Questions, feedback, feature ideas and release news. Come say hi.</sub>
 </p>
 
 <p align="center">
@@ -456,6 +462,10 @@ Re-checked for 1.70.0 (November 2026): `npm run build`, `npm run check:i18n` and
 Dependency notes: `xlsx` is installed from the SheetJS CDN (`0.20.3`) because newer releases are not published to npm, and `package.json` uses `overrides` to pin patched versions of `lodash-es`, `dompurify` and `nanoid`.
 
 These checks are a point-in-time snapshot, not a security audit. Run `npm audit` regularly. To report a vulnerability, see [SECURITY.md](SECURITY.md).
+
+## Community
+
+Join the [PatchMan Slack workspace](https://join.slack.com/t/patchman-workspace/shared_invite/zt-4hjqey19u-~AxNN3qSh51RbOsedKTwdw) to ask questions, share feedback and ideas, and hear about new releases. Bug reports and feature requests are also welcome as GitHub issues.
 
 ## Contributing
 
