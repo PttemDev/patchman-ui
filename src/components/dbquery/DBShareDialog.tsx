@@ -13,6 +13,8 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { dbConnectionAPI, teamsAPI, usersAPI } from '@/services/api';
 import type { DBConnection, DBConnectionGrant, Team } from '@/types';
+import { useGrantLabels } from '@/components/common/useGrantLabels';
+import { grantMover, moveLocalGrants, shareScopeFor } from '@/components/common/shareScope';
 
 interface DBShareDialogProps {
   open: boolean;
@@ -34,6 +36,9 @@ interface AddOption {
 export function DBShareDialog({ open, onOpenChange, connection }: DBShareDialogProps) {
   const { t } = useTranslation('dbquery');
   const [grants, setGrants] = useState<DBConnectionGrant[]>([]);
+  const grantLabel = useGrantLabels(grants);
+  const { grantScope, localOnly, alsoLocal } = shareScopeFor(connection);
+  const movedLocal = useRef(false);
   const [loading, setLoading] = useState(false);
 
   const [query, setQuery] = useState('');
@@ -48,13 +53,19 @@ export function DBShareDialog({ open, onOpenChange, connection }: DBShareDialogP
   const reload = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await dbConnectionAPI.listGrants(connection.id, connection.scope);
+      // Grants once saved on this computer's backend (invisible to the
+      // people they were for) move to the server the first time.
+      if (alsoLocal && !movedLocal.current) {
+        movedLocal.current = true;
+        await moveLocalGrants(grantMover(dbConnectionAPI, connection.id));
+      }
+      const res = await dbConnectionAPI.listGrants(connection.id, grantScope);
       setGrants((res.data as DBConnectionGrant[]) ?? []);
     } catch {
       setGrants([]);
     }
     setLoading(false);
-  }, [connection.id, connection.scope]);
+  }, [connection.id, grantScope, alsoLocal]);
 
   useEffect(() => {
     if (open) reload();
@@ -96,7 +107,7 @@ export function DBShareDialog({ open, onOpenChange, connection }: DBShareDialogP
     setAdding(true);
     setError('');
     try {
-      await dbConnectionAPI.addGrant(connection.id, { subjectKind: opt.kind, subjectId: opt.id, role }, connection.scope);
+      await dbConnectionAPI.addGrant(connection.id, { subjectKind: opt.kind, subjectId: opt.id, role }, grantScope);
       setQuery('');
       setResults([]);
       await reload();
@@ -108,7 +119,7 @@ export function DBShareDialog({ open, onOpenChange, connection }: DBShareDialogP
 
   const handleRemove = async (grantId: string) => {
     try {
-      await dbConnectionAPI.deleteGrant(connection.id, grantId, connection.scope);
+      await dbConnectionAPI.deleteGrant(connection.id, grantId, grantScope);
       setGrants((gs) => gs.filter((g) => g.id !== grantId));
     } catch {
       /* ignore */
@@ -126,6 +137,11 @@ export function DBShareDialog({ open, onOpenChange, connection }: DBShareDialogP
             <Trans t={t} i18nKey="share.description" components={{ strong: <strong /> }} />
           </DialogDescription>
         </DialogHeader>
+        {localOnly && (
+          <p className="rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-700 dark:text-amber-400">
+            {t('common:shareLocalOnly')}
+          </p>
+        )}
 
         <div className="space-y-3">
           {/* Role selector — governs the NEXT grant added. */}
@@ -149,7 +165,8 @@ export function DBShareDialog({ open, onOpenChange, connection }: DBShareDialogP
             <Input
               value={query}
               onChange={(e) => handleSearch(e.target.value)}
-              placeholder={t('share.searchPlaceholder')}
+              disabled={localOnly}
+                placeholder={t('share.searchPlaceholder')}
               className="h-8 text-xs pl-7"
             />
             {searching && (
@@ -191,7 +208,7 @@ export function DBShareDialog({ open, onOpenChange, connection }: DBShareDialogP
                     {g.subjectKind === 'team'
                       ? <Users2 className="h-3 w-3 text-muted-foreground shrink-0" />
                       : <UserCircle2 className="h-3 w-3 text-muted-foreground shrink-0" />}
-                    <span className="flex-1 truncate">{g.label || g.subjectId}</span>
+                    <span className="flex-1 truncate">{grantLabel(g)}</span>
                     <Badge
                       variant="secondary"
                       className={

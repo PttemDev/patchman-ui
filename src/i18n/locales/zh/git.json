@@ -84,7 +84,9 @@
     "fileCountOne": "{{n}} 个文件",
     "fileCountOther": "{{n}} 个文件",
     "selectFile": "选择一个文件以查看其 diff。",
-    "binary": "二进制文件 —— 没有文本 diff。"
+    "binary": "二进制文件 —— 没有文本 diff。",
+    "expand": "在大窗口中打开",
+    "resize": "拖动以调整大小"
   },
   "diff": {
     "loading": "正在加载 diff…"
@@ -785,5 +787,22 @@
     "goneHint": "此文件夹已被移动或删除。请从新位置重新打开。",
     "browseCheckout": "检出此分支以浏览其文件。",
     "section": "此电脑上的文件夹"
+  },
+  "link": {
+    "button": "关联到 GitLab 项目",
+    "hint": "将此文件夹用作某个 git 连接中项目的工作副本：显示 MR 和 CI，无需重新克隆。",
+    "title": "将文件夹关联到项目",
+    "desc": "选择此文件夹克隆自的项目。其 origin 必须位于该连接的主机上。",
+    "connection": "连接",
+    "search": "搜索项目…",
+    "noConnections": "此电脑上还没有 git 连接。请先在 Git 面板中添加。",
+    "loadFailed": "无法加载项目",
+    "failed": "无法关联文件夹",
+    "done": "已关联到 {{project}}"
+  },
+  "mdView": {
+    "preview": "预览",
+    "source": "源码",
+    "split": "分屏"
   }
 }

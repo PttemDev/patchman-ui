@@ -20,6 +20,8 @@ import {
 } from '@/components/ui/select';
 import { k8sConnectionAPI, teamsAPI, usersAPI } from '@/services/api';
 import type { K8sConnection, Team } from '@/types';
+import { useGrantLabels } from '@/components/common/useGrantLabels';
+import { grantMover, moveLocalGrants, shareScopeFor } from '@/components/common/shareScope';
 
 interface K8sShareDialogProps {
   open: boolean;
@@ -48,6 +50,9 @@ interface K8sGrant {
 export function K8sShareDialog({ open, onOpenChange, connection }: K8sShareDialogProps) {
   const { t } = useTranslation('k8s');
   const [grants, setGrants] = useState<K8sGrant[]>([]);
+  const grantLabel = useGrantLabels(grants);
+  const { grantScope, localOnly, alsoLocal } = shareScopeFor(connection);
+  const movedLocal = useRef(false);
   const [loading, setLoading] = useState(false);
 
   const [query, setQuery] = useState('');
@@ -61,13 +66,19 @@ export function K8sShareDialog({ open, onOpenChange, connection }: K8sShareDialo
   const reload = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await k8sConnectionAPI.listGrants(connection.id, connection.scope);
+      // Grants once saved on this computer's backend (invisible to the
+      // people they were for) move to the server the first time.
+      if (alsoLocal && !movedLocal.current) {
+        movedLocal.current = true;
+        await moveLocalGrants(grantMover(k8sConnectionAPI, connection.id));
+      }
+      const res = await k8sConnectionAPI.listGrants(connection.id, grantScope);
       setGrants((res.data as K8sGrant[]) ?? []);
     } catch {
       setGrants([]);
     }
     setLoading(false);
-  }, [connection.id, connection.scope]);
+  }, [connection.id, grantScope, alsoLocal]);
 
   useEffect(() => {
     if (open) reload();
@@ -112,7 +123,7 @@ export function K8sShareDialog({ open, onOpenChange, connection }: K8sShareDialo
       await k8sConnectionAPI.addGrant(
         connection.id,
         { subjectKind: opt.kind, subjectId: opt.id, role },
-        connection.scope,
+        grantScope,
       );
       setQuery('');
       setResults([]);
@@ -125,7 +136,7 @@ export function K8sShareDialog({ open, onOpenChange, connection }: K8sShareDialo
 
   const handleRemove = async (grantId: string) => {
     try {
-      await k8sConnectionAPI.deleteGrant(connection.id, grantId, connection.scope);
+      await k8sConnectionAPI.deleteGrant(connection.id, grantId, grantScope);
       setGrants((gs) => gs.filter((g) => g.id !== grantId));
     } catch {
       /* ignore */
@@ -143,6 +154,11 @@ export function K8sShareDialog({ open, onOpenChange, connection }: K8sShareDialo
             {t('share.description')}
           </DialogDescription>
         </DialogHeader>
+        {localOnly && (
+          <p className="rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-700 dark:text-amber-400">
+            {t('common:shareLocalOnly')}
+          </p>
+        )}
 
         <div className="space-y-3">
           <div className="flex items-center gap-2">
@@ -151,6 +167,7 @@ export function K8sShareDialog({ open, onOpenChange, connection }: K8sShareDialo
               <Input
                 value={query}
                 onChange={(e) => handleSearch(e.target.value)}
+                disabled={localOnly}
                 placeholder={t('share.searchPlaceholder')}
                 className="h-8 text-xs pl-7"
               />
@@ -203,7 +220,7 @@ export function K8sShareDialog({ open, onOpenChange, connection }: K8sShareDialo
                     {g.subjectKind === 'team'
                       ? <Users2 className="h-3 w-3 text-muted-foreground shrink-0" />
                       : <UserCircle2 className="h-3 w-3 text-muted-foreground shrink-0" />}
-                    <span className="flex-1 truncate">{g.label || g.subjectId}</span>
+                    <span className="flex-1 truncate">{grantLabel(g)}</span>
                     <Badge variant="secondary" className="text-[9px]">{t(g.role === 'write' ? 'roles.write' : 'roles.read')}</Badge>
                     <Button
                       size="icon"

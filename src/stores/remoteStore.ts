@@ -41,6 +41,9 @@ export interface CompatRecord {
   apiVersion?: number;
   reason?: IncompatReason;
   checkedAt: number;
+  /** false = the backend has no encryption key, so it stores no
+   *  connections (undefined on an older backend or before a check). */
+  connectionsEnabled?: boolean;
 }
 
 export const BUILTIN_REMOTE_ID = 'default';
@@ -94,6 +97,12 @@ export function normalizeRemoteUrl(input: string): string | null {
     return null;
   }
   if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') return null;
+  // A bare origin ("http://localhost:8085") means the PatchMan API under it:
+  // every backend serves at /api, and without it the probe hits the web root
+  // and the remote looks unreachable.
+  if (parsed.pathname === '/' || parsed.pathname === '') {
+    return `${parsed.origin}/api`;
+  }
   return trimTrailingSlash(s);
 }
 
@@ -214,7 +223,7 @@ export const useRemoteStore = create<RemoteState>((set, get) => ({
     cacheServerConfig(normalized, outcome.cfg);
     const id = crypto.randomUUID();
     const next = [...remotes, { id, label: label.trim() || outcome.cfg.name || '', url: normalized }];
-    const compatMap = { ...get().compatMap, [normalized]: { compat: 'ok' as RemoteCompat, apiVersion: outcome.cfg.apiVersion, checkedAt: Date.now() } };
+    const compatMap = { ...get().compatMap, [normalized]: { compat: 'ok' as RemoteCompat, apiVersion: outcome.cfg.apiVersion, checkedAt: Date.now(), connectionsEnabled: outcome.cfg.connectionsEnabled } };
     persist(next, get().activeId, compatMap);
     set({ remotes: next, compatMap });
     return 'ok';
@@ -266,6 +275,7 @@ export const useRemoteStore = create<RemoteState>((set, get) => ({
       apiVersion: outcome.cfg.apiVersion,
       reason: outcome.verdict === 'incompatible' ? outcome.reason : undefined,
       checkedAt: Date.now(),
+      connectionsEnabled: outcome.cfg.connectionsEnabled,
     });
     if (outcome.verdict === 'ok') cacheServerConfig(url, outcome.cfg);
     return outcome;
@@ -291,6 +301,8 @@ export interface RemoteConfig {
   /** FE web host the backend advertises, for building shareable public links
    *  that must open in a browser (not the desktop shell). */
   webOrigin?: string;
+  /** false = no GITLAB_TOKEN_ENC_KEY on the backend: connections are off. */
+  connectionsEnabled?: boolean;
 }
 
 /**
@@ -320,6 +332,7 @@ export async function fetchRemoteConfig(baseUrl: string, timeoutMs = 6000): Prom
       gitlabHostname: str(c.gitlabHostname),
       emailDomainPlaceholder: str(c.emailDomainPlaceholder),
       webOrigin: str(c.webOrigin),
+      connectionsEnabled: typeof c.connectionsEnabled === 'boolean' ? c.connectionsEnabled : undefined,
     };
   } catch {
     return null;

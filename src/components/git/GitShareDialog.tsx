@@ -22,6 +22,8 @@ import { gitAPI, teamsAPI, usersAPI } from '@/services/api';
 import { useGitConnectionStore } from '@/stores/gitConnectionStore';
 import { extractErr } from './util';
 import type { GitConnection, Team } from '@/types';
+import { useGrantLabels } from '@/components/common/useGrantLabels';
+import { moveLocalGrants, shareScopeFor } from '@/components/common/shareScope';
 
 interface GitShareDialogProps {
   open: boolean;
@@ -52,6 +54,9 @@ export function GitShareDialog({ open, onOpenChange, connection }: GitShareDialo
   const removeGrant = useGitConnectionStore((s) => s.removeGrant);
 
   const [grants, setGrants] = useState<GitGrant[]>([]);
+  const grantLabel = useGrantLabels(grants);
+  const { grantScope, localOnly, alsoLocal } = shareScopeFor(connection);
+  const movedLocal = useRef(false);
   const [loading, setLoading] = useState(false);
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<AddOption[]>([]);
@@ -64,13 +69,23 @@ export function GitShareDialog({ open, onOpenChange, connection }: GitShareDialo
   const reload = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await gitAPI.grants(connection.id, connection.scope);
+      // Grants once saved on this computer's backend (invisible to the
+      // people they were for) move to the server the first time.
+      if (alsoLocal && !movedLocal.current) {
+        movedLocal.current = true;
+        await moveLocalGrants({
+          list: async (sc) => ((await gitAPI.grants(connection.id, sc)).data as GitGrant[] | undefined)?.map((g) => ({ ...g, id: `${g.subjectKind}:${g.subjectId}` })) ?? [],
+          add: (g, sc) => gitAPI.addGrant(connection.id, { subjectKind: g.subjectKind, subjectId: g.subjectId, role: g.role }, sc),
+          remove: (g, sc) => gitAPI.deleteGrant(connection.id, { subjectKind: g.subjectKind, subjectId: g.subjectId }, sc),
+        });
+      }
+      const res = await gitAPI.grants(connection.id, grantScope);
       setGrants((res.data as GitGrant[]) ?? []);
     } catch {
       setGrants([]);
     }
     setLoading(false);
-  }, [connection.id, connection.scope]);
+  }, [connection.id, grantScope, alsoLocal]);
 
   useEffect(() => {
     if (open) reload();
@@ -115,7 +130,7 @@ export function GitShareDialog({ open, onOpenChange, connection }: GitShareDialo
       await addGrant(
         connection.id,
         { subjectKind: opt.kind, subjectId: opt.id, role },
-        connection.scope,
+        grantScope,
       );
       setQuery('');
       setResults([]);
@@ -133,7 +148,7 @@ export function GitShareDialog({ open, onOpenChange, connection }: GitShareDialo
       await removeGrant(
         connection.id,
         { subjectKind: g.subjectKind, subjectId: g.subjectId },
-        connection.scope,
+        grantScope,
       );
     } catch {
       reload();
@@ -149,6 +164,11 @@ export function GitShareDialog({ open, onOpenChange, connection }: GitShareDialo
             {t('shareDialog.description')}
           </DialogDescription>
         </DialogHeader>
+        {localOnly && (
+          <p className="rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-700 dark:text-amber-400">
+            {t('common:shareLocalOnly')}
+          </p>
+        )}
 
         <div className="space-y-3">
           <div className="flex items-center gap-2">
@@ -157,6 +177,7 @@ export function GitShareDialog({ open, onOpenChange, connection }: GitShareDialo
               <Input
                 value={query}
                 onChange={(e) => handleSearch(e.target.value)}
+                disabled={localOnly}
                 placeholder={t('shareDialog.searchPlaceholder')}
                 className="h-8 text-xs pl-7"
               />
@@ -210,7 +231,7 @@ export function GitShareDialog({ open, onOpenChange, connection }: GitShareDialo
                     {g.subjectKind === 'team'
                       ? <Users2 className="h-3 w-3 text-muted-foreground shrink-0" />
                       : <UserCircle2 className="h-3 w-3 text-muted-foreground shrink-0" />}
-                    <span className="flex-1 truncate">{g.label || g.subjectId}</span>
+                    <span className="flex-1 truncate">{grantLabel(g)}</span>
                     <Badge variant="secondary" className="text-[9px]">{g.role === 'write' ? t('role.write') : t('role.read')}</Badge>
                     <Button
                       size="icon"

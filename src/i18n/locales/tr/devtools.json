@@ -102,7 +102,22 @@
     "neitherValid": "Hiçbir taraf geçerli JSON değil",
     "leftInvalid": "Sol taraf geçerli JSON değil",
     "rightInvalid": "Sağ taraf geçerli JSON değil",
-    "diffingAsText": "— düz metin olarak karşılaştırılıyor."
+    "diffingAsText": "— düz metin olarak karşılaştırılıyor.",
+    "split": "Yan yana",
+    "unified": "Birleşik",
+    "layout": "Görünüm",
+    "hideUnchanged": "Değişmeyen satırları gizle",
+    "wrap": "Satırları kaydır",
+    "removals_one": "{{count}} silme",
+    "removals_other": "{{count}} silme",
+    "additions_one": "{{count}} ekleme",
+    "additions_other": "{{count}} ekleme",
+    "lines_one": "{{count}} satır",
+    "lines_other": "{{count}} satır",
+    "copy": "Kopyala",
+    "identical": "İki metin aynı",
+    "prevChange": "Önceki değişiklik",
+    "nextChange": "Sonraki değişiklik"
   },
   "url": {
     "component": "Bileşen",

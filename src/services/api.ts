@@ -1995,6 +1995,10 @@ export const environmentSharingAPI = {
 // Users
 export const usersAPI = {
   search: (q: string) => api.get('/users/search', { params: { q } }),
+  /** Names for user ids from the account backend (remote): a share list kept
+   *  on the desktop's local backend only knows the local user. */
+  lookup: (ids: string[]) =>
+    api.get('/users/lookup', { params: { ids: ids.join(',') }, _executionPin: 'remote' }),
 };
 
 // Defects (Bug Tracking)
@@ -2564,6 +2568,9 @@ export const gitAPI = {
   listRepos: () => api.get('/git/repos', { _executionPin: 'local' }),
   openFolder: (body: { repoId: string; path: string }) =>
     api.post('/git/repos/open', body, { _executionPin: 'local' }),
+  /** Tie a folder opened from disk to a connection's project (MRs / CI). */
+  linkRepo: (repoId: string, body: { connectionId: string; projectRef: string; projectName: string }) =>
+    api.post(`/git/repos/${repoId}/link`, body, { _executionPin: 'local' }),
   status: (repoId: string) => api.get(`/git/repos/${repoId}/status`, { _executionPin: 'local' }),
   log: (repoId: string, params?: { ref?: string; limit?: number }) =>
     api.get(`/git/repos/${repoId}/log`, { params, _executionPin: 'local' }),

@@ -28,5 +28,6 @@
   "actions": "Actions",
   "settings": "Settings",
   "language": "Language",
-  "noResults": "No results"
+  "noResults": "No results",
+  "shareLocalOnly": "This connection is saved only on this computer, so nobody else can reach it. Only connections that are also on the server can be shared: create it again while signed in with sync on (it is then saved to both), and share that one."
 }

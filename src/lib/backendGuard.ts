@@ -54,7 +54,7 @@ export async function runBackendGuard(): Promise<void> {
 
   if (outcome.verdict === 'ok') {
     cacheServerConfig(probeUrl, outcome.cfg);
-    store.recordCompat(probeUrl, { compat: 'ok', apiVersion: outcome.cfg.apiVersion, checkedAt: Date.now() });
+    store.recordCompat(probeUrl, { compat: 'ok', apiVersion: outcome.cfg.apiVersion, checkedAt: Date.now(), connectionsEnabled: outcome.cfg.connectionsEnabled });
   } else if (outcome.verdict === 'incompatible') {
     store.recordCompat(probeUrl, { compat: 'incompatible', apiVersion: outcome.cfg.apiVersion, reason: outcome.reason, checkedAt: Date.now() });
   }

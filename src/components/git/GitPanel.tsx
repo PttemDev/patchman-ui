@@ -18,6 +18,7 @@ import {
   ArrowDownToLine,
   ArrowUpFromLine,
   Check,
+  Maximize2,
 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { gitAPI, type DBScope } from '@/services/api';
@@ -47,12 +48,15 @@ import { GitBrowseTreePane, GitBrowseContent } from './GitBrowseTree';
 import { GitChangesPanel } from './GitChangesPanel';
 import { GitCIPanel } from './GitCIPanel';
 import { GitDiffViewer } from './GitDiffViewer';
+import { SplitHandle } from './SplitHandle';
+import { usePersistedWidth } from './usePersistedWidth';
 import { decodeGitContent, extractErr, timeAgo } from './util';
 import { GitBranchPopup, GitOperationBanner } from './GitBranchPopup';
 import { GitNamePrompt, GitRemotesDialog, GitUpdateDialog, type NamePromptState, type PullStrategy } from './GitVcsDialogs';
 import { useGitRepoOps } from './useGitRepoOps';
 import { GitCommitDialog, GitPushDialog } from './GitCommitPushDialogs';
 import { GitMRPanel } from './GitMRPanel';
+import { GitLinkProjectDialog } from './GitLinkProjectDialog';
 import { GitLocalTree } from './GitLocalTree';
 import { GitWorkspaceEditor, type RevealTarget } from './GitWorkspaceEditor';
 import { GitFindInFiles, GitSearchEverywhere } from './GitSearchDialogs';
@@ -78,6 +82,14 @@ interface GitLocalRepo {
   cloneKind?: string;
   /** The folder no longer exists on disk (set by the list endpoint). */
   missing?: boolean;
+}
+
+// A local work tree belongs to a remote project when it was cloned for it
+// (projectRef = the project's id) or it is a folder opened from disk whose
+// origin matched the same connection (projectRef = the project's path).
+function isProjectRepo(lr: GitLocalRepo, ref: string, path: string, connId: string): boolean {
+  if (lr.missing) return false;
+  return lr.projectRef === ref || (!!path && !!connId && lr.connectionId === connId && lr.projectRef === path);
 }
 
 // GitPanel is the Git tab body — a three-pane git client rendered as a WIDE
@@ -138,15 +150,16 @@ export function GitPanel({ tab }: { tab: Tab }) {
   // Prefer the tab's own clone id: a project can have both a managed clone and
   // a folder opened from disk.
   const localRepo = useMemo(
-    () => localRepos.find((r) => r.id === tab.gitRepoId && (r.projectRef === project || project === `local:${r.id}`))
-      ?? localRepos.find((r) => r.projectRef === project) ?? null,
-    [localRepos, project, tab.gitRepoId],
+    () => localRepos.find((r) => r.id === tab.gitRepoId && (isProjectRepo(r, project, tab.gitRepoName ?? '', connId) || project === `local:${r.id}`))
+      ?? localRepos.find((r) => isProjectRepo(r, project, tab.gitRepoName ?? '', connId)) ?? null,
+    [localRepos, project, tab.gitRepoId, tab.gitRepoName, connId],
   );
   const useLocal = desktop && !!localRepo;
   // A folder opened from disk with no matching git connection: only the
   // local views (History / Browse / Changes) apply — there is no GitLab
   // project behind it for MRs / CI.
   const folderMode = project.startsWith('local:');
+  const [linkOpen, setLinkOpen] = useState(false);
   // GitHub connections: pull requests (phase 3) and Actions (phase 4) aren't
   // wired yet — their views are hidden rather than failing.
   const isGitHubConn = conn?.provider === 'github';
@@ -508,7 +521,7 @@ export function GitPanel({ tab }: { tab: Tab }) {
 
   const handleSelectRepo = useCallback(async (r: GitRepoSummary) => {
     if (!(await confirmDiscard())) return;
-    const localId = localRepos.find((lr) => lr.projectRef === String(r.id))?.id ?? '';
+    const localId = localRepos.find((lr) => isProjectRepo(lr, String(r.id), r.fullPath || '', connId))?.id ?? '';
     setPinnedRepo(r);
     updateTab(tab.id, {
       gitRepoRef: String(r.id),
@@ -517,7 +530,7 @@ export function GitPanel({ tab }: { tab: Tab }) {
       gitRef: '', // re-seeded from the new repo's branches
     });
     setRepoPickerOpen(false);
-  }, [localRepos, tab.id, updateTab, confirmDiscard]);
+  }, [localRepos, tab.id, updateTab, confirmDiscard, connId]);
 
   // ── clone ───────────────────────────────────────────────────────────
   const touchRecent = useGitRecentFoldersStore((s) => s.touch);
@@ -540,7 +553,9 @@ export function GitPanel({ tab }: { tab: Tab }) {
       const row = (cloned.data as { repo?: GitLocalRepo } | undefined)?.repo;
       if (row?.localPath) touchRecent({ repoId: row.id, path: row.localPath, name: row.projectName || row.localPath });
       await loadLocalRepos();
-      updateTab(tab.id, { gitRepoId: repoId, gitView: 'changes' });
+      // The BE answers an existing tree of this project instead of cloning
+      // again — open that one.
+      updateTab(tab.id, { gitRepoId: row?.id || repoId, gitView: 'changes' });
     } catch (err) {
       toast({ title: t('clone.failedTitle'), description: extractErr(err, t('errors.clone')), variant: 'destructive' });
     }
@@ -658,7 +673,7 @@ export function GitPanel({ tab }: { tab: Tab }) {
                   </div>
                 ) : (
                   repos.map((r) => {
-                    const cloned = localRepos.some((lr) => lr.projectRef === String(r.id));
+                    const cloned = localRepos.some((lr) => isProjectRepo(lr, String(r.id), r.fullPath || '', connId));
                     return (
                       <button
                         key={String(r.id)}
@@ -854,6 +869,26 @@ export function GitPanel({ tab }: { tab: Tab }) {
           />
           <GitRemotesDialog repoId={localRepo.id} open={remotesOpen} onOpenChange={setRemotesOpen} onChanged={afterOp} />
           <GitNamePrompt state={namePrompt} onClose={() => setNamePrompt(null)} />
+          {localRepo && folderMode && (
+            <GitLinkProjectDialog
+              open={linkOpen}
+              onOpenChange={setLinkOpen}
+              repoId={localRepo.id}
+              origin={localRepo.remoteUrl}
+              onLinked={async (r) => {
+                await loadLocalRepos();
+                updateTab(tab.id, {
+                  gitConnectionId: r.connectionId,
+                  gitScope: 'local',
+                  gitRepoRef: r.projectRef,
+                  gitRepoName: r.projectName || r.localPath,
+                  gitRepoId: r.id,
+                  gitRef: '',
+                });
+                toast({ title: t('link.done', { project: r.projectName }) });
+              }}
+            />
+          )}
           <GitFindInFiles repoId={localRepo.id} open={findOpen} onOpenChange={setFindOpen} initial={findInitial} onOpenHit={openFile} />
           <GitSearchEverywhere
             repoId={localRepo.id}
@@ -973,6 +1008,16 @@ export function GitPanel({ tab }: { tab: Tab }) {
               <ModeButton icon={FolderTree} label={t('mode.browse')} active={mode === 'browse'} onClick={async () => { if (await confirmDiscard()) updateTab(tab.id, { gitView: 'browse' }); }} />
               {useLocal && (
                 <ModeButton icon={FileDiff} label={t('mode.changes')} active={mode === 'changes'} onClick={async () => { if (await confirmDiscard()) updateTab(tab.id, { gitView: 'changes' }); }} />
+              )}
+              {folderMode && localRepo && desktop && (
+                <button
+                  type="button"
+                  onClick={() => setLinkOpen(true)}
+                  className="mt-1 w-full rounded-md border border-dashed px-2 py-1.5 text-left text-[11px] text-muted-foreground hover:border-primary hover:text-foreground"
+                  title={t('link.hint')}
+                >
+                  <span className="flex items-center gap-1.5"><Workflow className="h-3 w-3" />{t('link.button')}</span>
+                </button>
               )}
               {!folderMode && (
                 <>
@@ -1137,6 +1182,15 @@ function HistoryView({
   const [nextPage, setNextPage] = useState<number | null>(null);
   const [loadingMore, setLoadingMore] = useState(false);
   const [selected, setSelected] = useState<GitCommit | null>(null);
+  // The commit detail opened in a large modal (the pane can be cramped);
+  // path is the file that was open in the pane, reopened there.
+  const [expanded, setExpanded] = useState<{ path?: string } | null>(null);
+  // Commit list ↔ detail split, as the list's share of the width (%).
+  const splitRef = useRef<HTMLDivElement>(null);
+  const [listPct, setListPct] = usePersistedWidth('patchman_git_history_split', 46, 20, 80);
+  const dragFrom = useRef(46);
+  const listPctRef = useRef(listPct);
+  listPctRef.current = listPct;
 
   // Only the latest load may write state: a slower, superseded request (e.g.
   // the remote read fired before the local clone list arrived) must not
@@ -1188,8 +1242,8 @@ function HistoryView({
   }, [connId, project, gitRef, nextPage, t]);
 
   return (
-    <div className="flex-1 min-h-0 flex overflow-hidden">
-      <div className={cn('min-h-0 overflow-auto', selected ? 'w-[46%] border-r' : 'flex-1')}>
+    <div ref={splitRef} className="flex-1 min-h-0 flex overflow-hidden">
+      <div className={cn('min-h-0 overflow-auto', selected ? 'shrink-0' : 'flex-1')} style={selected ? { width: `${listPct}%` } : undefined}>
         {loading ? (
           <div className="flex items-center justify-center gap-2 py-10 text-xs text-muted-foreground">
             <Loader2 className="h-4 w-4 animate-spin" /> {t('history.loading')}
@@ -1212,7 +1266,19 @@ function HistoryView({
         )}
       </div>
       {selected && (
-        <div className="flex-1 min-h-0">
+        <SplitHandle
+          label={t('commitDetail.resize')}
+          onDragStart={() => { dragFrom.current = listPct; }}
+          onDrag={(dx) => {
+            const w = splitRef.current?.getBoundingClientRect().width || 1;
+            setListPct(dragFrom.current + (dx / w) * 100, false);
+          }}
+          onDragEnd={() => setListPct(listPctRef.current)}
+          onStep={(d) => setListPct(listPct + d * 2)}
+        />
+      )}
+      {selected && (
+        <div className="flex-1 min-w-0 min-h-0">
           <CommitDetail
             connId={connId}
             project={project}
@@ -1220,8 +1286,28 @@ function HistoryView({
             useLocal={useLocal}
             localRepoId={localRepoId}
             onClose={() => setSelected(null)}
+            onExpand={(path) => setExpanded({ path })}
           />
         </div>
+      )}
+      {selected && (
+        <Dialog open={!!expanded} onOpenChange={(o) => { if (!o) setExpanded(null); }}>
+          <DialogContent className="flex h-[90vh] w-[96vw] max-w-[1600px] flex-col gap-0 overflow-hidden p-0">
+            <DialogTitle className="sr-only">{selected.title || selected.message}</DialogTitle>
+            {expanded && (
+              <CommitDetail
+                connId={connId}
+                project={project}
+                commit={selected}
+                useLocal={useLocal}
+                localRepoId={localRepoId}
+                initialPath={expanded.path}
+                inModal
+                onClose={() => setExpanded(null)}
+              />
+            )}
+          </DialogContent>
+        </Dialog>
       )}
     </div>
   );
@@ -1230,7 +1316,7 @@ function HistoryView({
 // CommitDetail lists the commit's changed files and shows the selected file's
 // Monaco diff (base = parent content, modified = this commit's content).
 function CommitDetail({
-  connId, project, commit, useLocal, localRepoId, onClose,
+  connId, project, commit, useLocal, localRepoId, onClose, onExpand, initialPath, inModal,
 }: {
   connId: string;
   project: string;
@@ -1238,6 +1324,12 @@ function CommitDetail({
   useLocal: boolean;
   localRepoId: string;
   onClose: () => void;
+  /** Opens this commit in the large modal, with the active file's path. */
+  onExpand?: (path?: string) => void;
+  /** File to open once the file list loads (the modal reopens the pane's). */
+  initialPath?: string;
+  /** Rendered inside the modal: the dialog's own × closes it. */
+  inModal?: boolean;
 }) {
   const { t } = useTranslation('git');
   const [files, setFiles] = useState<GitFileDiff[]>([]);
@@ -1247,6 +1339,10 @@ function CommitDetail({
   const [content, setContent] = useState<{ original: string; modified: string } | null>(null);
   const [contentLoading, setContentLoading] = useState(false);
   const [contentError, setContentError] = useState('');
+  const [filesW, setFilesW] = usePersistedWidth('patchman_git_commit_files_w', 224, 140, 520);
+  const filesFrom = useRef(224);
+  const filesWRef = useRef(filesW);
+  filesWRef.current = filesW;
 
   useEffect(() => {
     setActive(null);
@@ -1295,9 +1391,17 @@ function CommitDetail({
     setContentLoading(false);
   }, [connId, project, commit.sha, parent, useLocal, localRepoId, t]);
 
+  const initialOpened = useRef(false);
+  useEffect(() => {
+    if (initialOpened.current || !initialPath || files.length === 0) return;
+    const f = files.find((x) => (x.newPath || x.oldPath) === initialPath);
+    initialOpened.current = true;
+    if (f) openFile(f);
+  }, [files, initialPath, openFile]);
+
   return (
     <div className="flex flex-col h-full min-h-0">
-      <div className="shrink-0 border-b px-3 py-2">
+      <div className={cn('shrink-0 border-b px-3 py-2', inModal && 'pr-12')}>
         <div className="flex items-start gap-2">
           <div className="min-w-0 flex-1">
             <p className="text-xs font-medium truncate">{commit.title || commit.message}</p>
@@ -1313,11 +1417,22 @@ function CommitDetail({
               <ExternalLink className="h-3.5 w-3.5" />
             </a>
           )}
-          <Button size="icon" variant="ghost" className="h-6 w-6 shrink-0 -mr-1" onClick={onClose}>×</Button>
+          {onExpand && (
+            <Button
+              size="icon" variant="ghost" className="h-6 w-6 shrink-0"
+              title={t('commitDetail.expand')} aria-label={t('commitDetail.expand')}
+              onClick={() => onExpand(active ? active.newPath || active.oldPath : undefined)}
+            >
+              <Maximize2 className="h-3.5 w-3.5" />
+            </Button>
+          )}
+          {!inModal && (
+            <Button size="icon" variant="ghost" className="h-6 w-6 shrink-0 -mr-1" onClick={onClose}>×</Button>
+          )}
         </div>
       </div>
       <div className="flex-1 min-h-0 flex overflow-hidden">
-        <div className="w-56 shrink-0 border-r overflow-auto">
+        <div className="shrink-0 overflow-auto" style={{ width: filesW }}>
           {loading ? (
             <div className="flex items-center justify-center gap-2 py-6 text-xs text-muted-foreground">
               <Loader2 className="h-4 w-4 animate-spin" /> {t('common:loading')}
@@ -1362,7 +1477,14 @@ function CommitDetail({
             </div>
           )}
         </div>
-        <div className="flex-1 min-h-0">
+        <SplitHandle
+          label={t('commitDetail.resize')}
+          onDragStart={() => { filesFrom.current = filesW; }}
+          onDrag={(dx) => setFilesW(filesFrom.current + dx, false)}
+          onDragEnd={() => setFilesW(filesWRef.current)}
+          onStep={(d) => setFilesW(filesW + d * 16)}
+        />
+        <div className="flex-1 min-w-0 min-h-0">
           {!active ? (
             <div className="flex items-center justify-center h-full text-xs text-muted-foreground">
               {t('commitDetail.selectFile')}

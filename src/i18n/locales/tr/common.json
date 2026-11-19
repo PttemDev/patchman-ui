@@ -28,5 +28,6 @@
   "actions": "İşlemler",
   "settings": "Ayarlar",
   "language": "Dil",
-  "noResults": "Sonuç yok"
+  "noResults": "Sonuç yok",
+  "shareLocalOnly": "Bu connection yalnız bu bilgisayarda kayıtlı, bu yüzden başkası ona erişemez. Yalnız sunucuda da olan connection'lar paylaşılabilir: senkron açıkken oturum açmışken yeniden oluşturun (ikisine birden kaydedilir) ve onu paylaşın."
 }

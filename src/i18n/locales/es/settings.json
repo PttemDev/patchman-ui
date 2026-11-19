@@ -310,7 +310,9 @@
     "unreachable": "No se pudo conectar con ese servidor. Comprueba la URL e inténtalo de nuevo.",
     "notPatchman": "Esa URL no es un servidor de PatchMan.",
     "incompatible": "La versión de ese servidor no es compatible con esta app.",
-    "stillUnreachable": "{{name}} sigue sin estar accesible."
+    "stillUnreachable": "{{name}} sigue sin estar accesible.",
+    "noConnections": "Conexiones desactivadas",
+    "noConnectionsHint": "Este backend no tiene GITLAB_TOKEN_ENC_KEY, así que no puede guardar conexiones (BD, ES, Git, proveedores de IA…). Las nuevas conexiones se quedan solo en este equipo. Configura la clave en el servidor y reinícialo."
   },
   "appearance": {
     "heading": "Apariencia",

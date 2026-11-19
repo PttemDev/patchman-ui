@@ -7,7 +7,7 @@ import { useCollectionStore } from '@/stores/collectionStore';
 import { Trash2, MoreHorizontal, Pencil, ExternalLink, Edit3, GripVertical, Copy, Archive } from 'lucide-react';
 import { useSavedResponsesUI } from '@/stores/savedResponsesUIStore';
 import { useSortable } from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
+import { REQ_PREFIX, useDropZone } from './collectionDnd';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -61,9 +61,12 @@ interface RequestItemProps {
   request: SavedRequest;
   collectionName: string;
   baseUrl?: string;
+  /** May reorder / move it (needs editor access; also false outside the
+   *  Private tree's drag context, e.g. the Public section). */
+  canEdit?: boolean;
 }
 
-export function RequestItem({ request, collectionName, baseUrl }: RequestItemProps) {
+export function RequestItem({ request, collectionName, baseUrl, canEdit = false }: RequestItemProps) {
   const { t } = useTranslation('collections');
   const showSavedResponses = useSavedResponsesUI((s) => s.show);
   const { addTab } = useRequestStore();
@@ -74,23 +77,20 @@ export function RequestItem({ request, collectionName, baseUrl }: RequestItemPro
   const [editMethod, setEditMethod] = useState('');
   const [editUrl, setEditUrl] = useState('');
 
+  const sortableId = `${REQ_PREFIX}${request.id}`;
   const {
     attributes,
     listeners,
     setNodeRef,
-    transform,
-    transition,
     isDragging,
   } = useSortable({
-    id: `req:${request.id}`,
+    id: sortableId,
     data: { type: 'request', parentId: request.collectionId },
+    disabled: !canEdit,
   });
+  const zone = useDropZone(sortableId);
 
-  const sortableStyle = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.4 : 1,
-  };
+  const sortableStyle = { opacity: isDragging ? 0.4 : 1 };
 
   const buildTabData = () => {
     const parseJSON = <T,>(val: unknown, fallback: T): T => {
@@ -227,20 +227,28 @@ export function RequestItem({ request, collectionName, baseUrl }: RequestItemPro
         ref={setNodeRef}
         style={sortableStyle}
         className={cn(
-          "flex items-center group px-2 py-1.5 rounded-md hover:bg-accent transition-colors duration-200 cursor-pointer",
+          "relative flex items-center group px-2 py-1.5 rounded-md hover:bg-accent transition-colors duration-200 cursor-pointer",
         )}
         onClick={handleOpen}
         {...attributes}
       >
-        <button
-          type="button"
-          className="shrink-0 p-0.5 -ml-1 mr-1 text-muted-foreground opacity-0 group-hover:opacity-60 hover:!opacity-100 cursor-grab active:cursor-grabbing touch-none"
-          aria-label={t('tree.dragToReorder')}
-          onClick={(e) => e.stopPropagation()}
-          {...listeners}
-        >
-          <GripVertical className="h-3.5 w-3.5" />
-        </button>
+        {zone && zone !== 'inside' && (
+          <span className={cn('pointer-events-none absolute left-2 right-1 h-0.5 rounded bg-primary', zone === 'above' ? '-top-px' : '-bottom-px')} />
+        )}
+        {canEdit ? (
+          <button
+            type="button"
+            className="shrink-0 p-0.5 -ml-1 mr-1 text-muted-foreground opacity-25 group-hover:opacity-70 hover:!opacity-100 cursor-grab active:cursor-grabbing touch-none"
+            aria-label={t('tree.dragToReorder')}
+            title={t('tree.dragToReorder')}
+            onClick={(e) => e.stopPropagation()}
+            {...listeners}
+          >
+            <GripVertical className="h-3.5 w-3.5" />
+          </button>
+        ) : (
+          <span className="w-[22px] shrink-0 -ml-1" />
+        )}
         <div className="flex items-center gap-2 flex-1 min-w-0">
           <span
             className={cn(

@@ -84,7 +84,9 @@
     "fileCountOne": "{{n}} archivo",
     "fileCountOther": "{{n}} archivos",
     "selectFile": "Selecciona un archivo para ver su diff.",
-    "binary": "Archivo binario — sin diff textual."
+    "binary": "Archivo binario — sin diff textual.",
+    "expand": "Abrir en ventana grande",
+    "resize": "Arrastra para cambiar el tamaño"
   },
   "diff": {
     "loading": "Cargando diff…"
@@ -785,5 +787,22 @@
     "goneHint": "Esta carpeta se movió o se eliminó. Ábrela de nuevo desde su nueva ubicación.",
     "browseCheckout": "Cambia a esta rama (checkout) para explorar sus archivos.",
     "section": "Carpetas de este equipo"
+  },
+  "link": {
+    "button": "Vincular a un proyecto de GitLab",
+    "hint": "Usa esta carpeta como copia de trabajo de un proyecto de una de tus conexiones git: aparecen los MR y la CI, sin volver a clonar.",
+    "title": "Vincular carpeta a un proyecto",
+    "desc": "Elige el proyecto del que esta carpeta es un clon. Su origin debe estar en el host de la conexión.",
+    "connection": "Conexión",
+    "search": "Buscar proyectos…",
+    "noConnections": "Aún no hay conexiones git en este equipo. Añade una en el panel Git primero.",
+    "loadFailed": "No se pudieron cargar los proyectos",
+    "failed": "No se pudo vincular la carpeta",
+    "done": "Vinculada a {{project}}"
+  },
+  "mdView": {
+    "preview": "Vista previa",
+    "source": "Código",
+    "split": "Dividido"
   }
 }

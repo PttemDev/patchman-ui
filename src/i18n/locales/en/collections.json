@@ -344,5 +344,12 @@
     "templateNote": "The request as it was edited, with variables unresolved — this is what opens in a new tab.",
     "auth": "Auth",
     "descriptionRequest": "Responses saved from this request. Open one in a new tab to send it again with the same parameters."
+  },
+  "dnd": {
+    "failedTitle": "Couldn't move it",
+    "failedDesc": "The change wasn't saved; the list shows the server's order again.",
+    "noPermission": "You can only view this collection — moving items needs editor access.",
+    "invalidMove": "That move isn't allowed (a folder can't go inside itself).",
+    "dropRoot": "Drop here to move to the top level"
   }
 }

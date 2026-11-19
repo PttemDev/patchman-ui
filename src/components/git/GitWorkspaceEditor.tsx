@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type * as Monaco from 'monaco-editor';
-import { Circle, FileCode2, Loader2, Save, UserRound, X } from 'lucide-react';
+import { BookOpen, Circle, Columns2, FileCode2, Loader2, Pencil, Save, UserRound, X } from 'lucide-react';
 import { CodeEditor } from '@/components/ui/CodeEditor';
 import { Button } from '@/components/ui/button';
 import { useThemeStore } from '@/stores/themeStore';
@@ -14,6 +14,41 @@ import { decodeGitContent, extractErr, languageForPath, timeAgo } from './util';
 import { diffHunks, type ChangeHunk } from './lineDiff';
 import { matchesAction, shortcutHint } from '@/lib/keymap';
 import { AUTO_SAVE_DELAY_MS, useEditorPrefsStore } from '@/stores/editorPrefsStore';
+import { MarkdownView } from '@/components/notes/MarkdownView';
+
+// Markdown files get the Notes-style Read / Edit / Split switch; the choice
+// is remembered across files and sessions.
+type MdMode = 'read' | 'edit' | 'split';
+const MD_MODE_KEY = 'patchman_git_md_mode';
+function loadMdMode(): MdMode {
+  try {
+    const v = localStorage.getItem(MD_MODE_KEY);
+    return v === 'read' || v === 'split' ? v : 'edit';
+  } catch { return 'edit'; }
+}
+
+// Tab labels: the file name, plus the shortest parent path that tells apart
+// tabs sharing that name (README.md · fe vs README.md · be).
+function tabLabels(paths: string[]): Record<string, { name: string; dir: string }> {
+  const out: Record<string, { name: string; dir: string }> = {};
+  const byName: Record<string, string[]> = {};
+  for (const p of paths) {
+    const name = p.split('/').pop() || p;
+    (byName[name] ??= []).push(p);
+  }
+  for (const [name, group] of Object.entries(byName)) {
+    if (group.length === 1) { out[group[0]] = { name, dir: '' }; continue; }
+    const dirs = group.map((p) => p.split('/').slice(0, -1));
+    for (let i = 0; i < group.length; i++) {
+      let n = 1;
+      const others = dirs.filter((_, j) => j !== i);
+      const tail = (d: string[], k: number) => d.slice(Math.max(0, d.length - k)).join('/');
+      while (n < dirs[i].length && others.some((o) => tail(o, n) === tail(dirs[i], n))) n++;
+      out[group[i]] = { name, dir: tail(dirs[i], n) || '/' };
+    }
+  }
+  return out;
+}
 
 // IDE-style editing of the local clone (GIT_IDE_PLAN §H): file tabs that keep
 // their unsaved buffers, ⌘S to save, gutter markers for lines changed since
@@ -87,6 +122,12 @@ export function GitWorkspaceEditor({ repoId, files, active, onActivate, onClose,
   const autoSave = useEditorPrefsStore((s) => s.autoSave);
   const { theme } = useThemeStore();
   const codeTheme = useCodeTheme(theme === 'dark', languageForPath(active));
+  const [mdModePref, setMdModePref] = useState<MdMode>(loadMdMode);
+  const setMdMode = (m: MdMode) => {
+    setMdModePref(m);
+    try { localStorage.setItem(MD_MODE_KEY, m); } catch { /* private mode */ }
+  };
+  const labels = useMemo(() => tabLabels(files), [files]);
   const { toast } = useToast();
   const [bufs, setBufs] = useState<Record<string, Buffer>>({});
   const [blame, setBlame] = useState<Record<string, BlameLine[] | null>>({});
@@ -114,6 +155,8 @@ export function GitWorkspaceEditor({ repoId, files, active, onActivate, onClose,
   useEffect(() => () => onDirtyChange?.(false), [onDirtyChange]);
 
   const buf = active ? bufs[active] : undefined;
+  const isMd = !!active && languageForPath(active) === 'markdown' && !buf?.binary;
+  const mdMode: MdMode = isMd ? mdModePref : 'edit';
 
   // Latest buffers for async savers (auto save timers, blur, unmount).
   const bufsRef = useRef(bufs);
@@ -372,10 +415,14 @@ export function GitWorkspaceEditor({ repoId, files, active, onActivate, onClose,
         <div className="flex min-w-0 flex-1 overflow-x-auto">
           {files.map((p) => {
             const dirty = dirtyPaths.includes(p);
+            const label = labels[p];
             return (
               <div key={p} className={cn('group flex shrink-0 items-center gap-1.5 border-r px-3 py-1.5 text-xs', p === active ? 'bg-background text-foreground' : 'text-muted-foreground hover:bg-accent/40')}
                 title={p} onMouseDown={(e) => { if (e.button === 1) { e.preventDefault(); void close(p); } }}>
-                <button type="button" onClick={() => onActivate(p)} className="max-w-[180px] truncate">{p.split('/').pop()}</button>
+                <button type="button" onClick={() => onActivate(p)} className="flex max-w-[260px] items-baseline gap-1.5 truncate">
+                  <span className="truncate">{label?.name ?? p}</span>
+                  {label?.dir && <span className="truncate text-[10px] text-muted-foreground/80">{label.dir}</span>}
+                </button>
                 <button type="button" onClick={() => void close(p)} aria-label={t('workspace.closeTab')} className="rounded p-0.5 hover:bg-accent">
                   {dirty ? <Circle className="h-2 w-2 fill-amber-500 text-amber-500 group-hover:hidden" /> : null}
                   <X className={cn('h-3 w-3', dirty && 'hidden group-hover:block')} />
@@ -385,6 +432,23 @@ export function GitWorkspaceEditor({ repoId, files, active, onActivate, onClose,
           })}
         </div>
         <div className="flex shrink-0 items-center gap-1 px-2">
+          {isMd && (
+            <div className="mr-1 flex items-center rounded-md border p-0.5">
+              {([['read', BookOpen], ['edit', Pencil], ['split', Columns2]] as const).map(([m, Icon]) => (
+                <button
+                  key={m}
+                  type="button"
+                  onClick={() => setMdMode(m)}
+                  className={cn('flex h-5 items-center gap-1 rounded px-1.5 text-[11px]', mdMode === m ? 'bg-accent text-foreground' : 'text-muted-foreground hover:text-foreground')}
+                  title={t(`notes:mode.${m}`)}
+                  aria-pressed={mdMode === m}
+                >
+                  <Icon className="h-3 w-3" />
+                  <span className="hidden xl:inline">{t(`notes:mode.${m}`)}</span>
+                </button>
+              ))}
+            </div>
+          )}
           <Button size="sm" variant={blameLines ? 'secondary' : 'ghost'} className="h-6 gap-1 text-[11px]" disabled={!active || buf?.head === null} onClick={() => void toggleBlame()} title={t('workspace.annotateHint')}>
             <UserRound className="h-3 w-3" /> {t('workspace.annotate')}
           </Button>
@@ -393,7 +457,8 @@ export function GitWorkspaceEditor({ repoId, files, active, onActivate, onClose,
           </Button>
         </div>
       </div>
-      <div className="min-h-0 flex-1">
+      <div className="flex min-h-0 flex-1">
+        <div className={cn('min-h-0 min-w-0', mdMode === 'read' ? 'hidden' : mdMode === 'split' ? 'w-1/2 border-r' : 'flex-1')}>
         {!buf || buf.loading ? (
           <div className="flex h-full items-center justify-center"><Loader2 className="h-4 w-4 animate-spin text-muted-foreground" /></div>
         ) : buf.error ? (
@@ -420,6 +485,12 @@ export function GitWorkspaceEditor({ repoId, files, active, onActivate, onClose,
               lineDecorationsWidth: 10,
             }}
           />
+        )}
+        </div>
+        {mdMode !== 'edit' && buf && !buf.loading && !buf.error && (
+          <div className={cn('min-h-0 min-w-0 overflow-y-auto', mdMode === 'split' ? 'w-1/2' : 'flex-1')}>
+            <div className="mx-auto max-w-4xl px-6 py-5"><MarkdownView markdown={buf.content} /></div>
+          </div>
         )}
       </div>
     </div>

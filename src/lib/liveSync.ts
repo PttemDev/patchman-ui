@@ -237,6 +237,23 @@ function buildWsUrl(token: string): string | null {
 
 let notesRefreshTimer: number | undefined;
 
+// Collections refreshes from other clients are coalesced (a burst of row
+// updates = one fetch) and held back while the user is dragging in the
+// sidebar: a refresh mid-drag replaced the tree under the drag and undid the
+// optimistic reorder.
+let collectionsRefreshTimer: number | undefined;
+let collectionsDragging = false;
+export function setCollectionsDragging(dragging: boolean) {
+  collectionsDragging = dragging;
+}
+function scheduleCollectionsRefresh() {
+  window.clearTimeout(collectionsRefreshTimer);
+  collectionsRefreshTimer = window.setTimeout(() => {
+    if (collectionsDragging) { scheduleCollectionsRefresh(); return; }
+    void useCollectionStore.getState().refreshLists();
+  }, 300);
+}
+
 function dispatch(ev: RealtimeEvent) {
   if (!ev || typeof ev.type !== 'string') return;
   // Self-echo: our own mutation has already triggered refreshLists in
@@ -252,7 +269,7 @@ function dispatch(ev: RealtimeEvent) {
     ev.type.startsWith('collection.') ||
     ev.type.startsWith('request.')
   ) {
-    void useCollectionStore.getState().refreshLists();
+    scheduleCollectionsRefresh();
     return;
   }
   if (ev.type.startsWith('environment.')) {

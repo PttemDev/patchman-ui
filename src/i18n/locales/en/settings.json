@@ -310,7 +310,9 @@
     "unreachable": "Couldn’t reach that backend. Check the URL and try again.",
     "notPatchman": "That URL isn’t a PatchMan backend.",
     "incompatible": "That backend’s version isn’t compatible with this app.",
-    "stillUnreachable": "{{name}} is still unreachable."
+    "stillUnreachable": "{{name}} is still unreachable.",
+    "noConnections": "Connections off",
+    "noConnectionsHint": "This backend has no GITLAB_TOKEN_ENC_KEY, so it can't store connections (DB, ES, Git, AI providers…). New connections stay on this computer only. Set the key on the server and restart it."
   },
   "appearance": {
     "heading": "Appearance",

@@ -102,7 +102,22 @@
     "neitherValid": "Neither side is valid JSON",
     "leftInvalid": "Left side is not valid JSON",
     "rightInvalid": "Right side is not valid JSON",
-    "diffingAsText": "— diffing as plain text."
+    "diffingAsText": "— diffing as plain text.",
+    "split": "Split",
+    "unified": "Unified",
+    "layout": "Layout",
+    "hideUnchanged": "Hide unchanged lines",
+    "wrap": "Wrap lines",
+    "removals_one": "{{count}} removal",
+    "removals_other": "{{count}} removals",
+    "additions_one": "{{count}} addition",
+    "additions_other": "{{count}} additions",
+    "lines_one": "{{count}} line",
+    "lines_other": "{{count}} lines",
+    "copy": "Copy",
+    "identical": "The two texts are identical",
+    "prevChange": "Previous change",
+    "nextChange": "Next change"
   },
   "url": {
     "component": "Component",

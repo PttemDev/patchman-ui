@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import {
@@ -17,7 +17,6 @@ import {
   FolderInput,
   Copy,
   Users,
-  UserPlus,
   RefreshCw,
   GripVertical,
   Building2,
@@ -32,8 +31,10 @@ import {
   closestCenter,
   pointerWithin,
   rectIntersection,
+  useDroppable,
   type CollisionDetection,
   type DragEndEvent,
+  type DragMoveEvent,
   type DragStartEvent,
 } from '@dnd-kit/core';
 import {
@@ -42,8 +43,8 @@ import {
   useSortable,
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
 import { useCollectionStore } from '@/stores/collectionStore';
+import { setCollectionsDragging } from '@/lib/liveSync';
 import { useCollectionTreeUIStore } from '@/stores/collectionTreeUIStore';
 import { useAuthStore } from '@/stores/authStore';
 import { useWorkspaceStore, WORKSPACE_ALL } from '@/stores/workspaceStore';
@@ -90,10 +91,12 @@ import type { Collection } from '@/types';
 
 // Prefixes keep collection and request ids distinct inside the shared dnd-kit
 // id space, and the "real" id is reconstructed when reorder handlers fire.
-const COL_PREFIX = 'col:';
-const REQ_PREFIX = 'req:';
+import {
+  COL_PREFIX, REQ_PREFIX, ROOT_DROP_ID, DropTargetContext, useDropZone, zoneFor,
+  canEditCollection, findCollection, rootOf, isWithin, type DropTarget, type DropZone,
+} from './collectionDnd';
 
-function CollectionNode({ collection, depth = 0, rootBaseUrl }: { collection: Collection; depth?: number; rootBaseUrl?: string }) {
+function CollectionNode({ collection, depth = 0, rootBaseUrl, canEdit = canEditCollection(collection) }: { collection: Collection; depth?: number; rootBaseUrl?: string; canEdit?: boolean }) {
   const { t } = useTranslation('collections');
   const showSavedResponses = useSavedResponsesUI((s) => s.show);
   // Expansion lives in a Zustand store so external actions (drag-and-drop
@@ -129,23 +132,20 @@ function CollectionNode({ collection, depth = 0, rootBaseUrl }: { collection: Co
   // per-folder override the user typed in the Edit dialog.
   const effectiveBaseUrl = collection.baseUrl || rootBaseUrl || '';
 
+  // The row is the drop target and the drag source; rows don't shift while
+  // dragging — a line / highlight shows where the drop lands instead.
+  const sortableId = `${COL_PREFIX}${collection.id}`;
   const {
     attributes,
     listeners,
     setNodeRef,
-    transform,
-    transition,
     isDragging,
   } = useSortable({
-    id: `${COL_PREFIX}${collection.id}`,
+    id: sortableId,
     data: { type: 'collection', parentId: collection.parentId },
+    disabled: !canEdit,
   });
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.4 : 1,
-  };
+  const zone = useDropZone(sortableId);
 
   const childIds = (collection.children || []).map((c) => `${COL_PREFIX}${c.id}`);
   const requestIds = (collection.requests || []).map((r) => `${REQ_PREFIX}${r.id}`);
@@ -274,22 +274,35 @@ function CollectionNode({ collection, depth = 0, rootBaseUrl }: { collection: Co
   };
 
   return (
-    <div ref={setNodeRef} style={style}>
+    <div style={{ opacity: isDragging ? 0.4 : 1 }}>
       <div
+        ref={setNodeRef}
         className={cn(
-          "flex items-center gap-1 px-2 py-1 hover:bg-accent rounded-md transition-colors duration-200 group cursor-pointer",
+          "relative flex items-center gap-1 px-2 py-1 hover:bg-accent rounded-md transition-colors duration-200 group cursor-pointer",
+          zone === 'inside' && 'bg-primary/15 ring-1 ring-primary/60',
         )}
         style={{ paddingLeft: `${depth * 12 + 8}px` }}
         {...attributes}
       >
-        <button
-          type="button"
-          className="shrink-0 p-0.5 -ml-1 text-muted-foreground opacity-0 group-hover:opacity-60 hover:!opacity-100 cursor-grab active:cursor-grabbing touch-none"
-          aria-label={t('tree.dragToReorder')}
-          {...listeners}
-        >
-          <GripVertical className="h-3.5 w-3.5" />
-        </button>
+        {(zone === 'above' || zone === 'below') && (
+          <span
+            className={cn('pointer-events-none absolute right-1 h-0.5 rounded bg-primary', zone === 'above' ? '-top-px' : '-bottom-px')}
+            style={{ left: `${depth * 12 + 8}px` }}
+          />
+        )}
+        {canEdit ? (
+          <button
+            type="button"
+            className="shrink-0 p-0.5 -ml-1 text-muted-foreground opacity-25 group-hover:opacity-70 hover:!opacity-100 cursor-grab active:cursor-grabbing touch-none"
+            aria-label={t('tree.dragToReorder')}
+            title={t('tree.dragToReorder')}
+            {...listeners}
+          >
+            <GripVertical className="h-3.5 w-3.5" />
+          </button>
+        ) : (
+          <span className="w-[18px] shrink-0 -ml-1" />
+        )}
         <button
           onClick={() => setExpanded(!expanded)}
           className="shrink-0 cursor-pointer"
@@ -562,7 +575,7 @@ function CollectionNode({ collection, depth = 0, rootBaseUrl }: { collection: Co
           {childIds.length > 0 && (
             <SortableContext items={childIds} strategy={verticalListSortingStrategy}>
               {collection.children!.map((child) => (
-                <CollectionNode key={child.id} collection={child} depth={depth + 1} rootBaseUrl={effectiveBaseUrl} />
+                <CollectionNode key={child.id} collection={child} depth={depth + 1} rootBaseUrl={effectiveBaseUrl} canEdit={canEdit} />
               ))}
             </SortableContext>
           )}
@@ -570,7 +583,7 @@ function CollectionNode({ collection, depth = 0, rootBaseUrl }: { collection: Co
             <SortableContext items={requestIds} strategy={verticalListSortingStrategy}>
               {collection.requests!.map((req) => (
                 <div key={req.id} style={{ paddingLeft: `${(depth + 1) * 12 + 8}px` }}>
-                  <RequestItem request={req} collectionName={collection.name} baseUrl={effectiveBaseUrl} />
+                  <RequestItem request={req} collectionName={collection.name} baseUrl={effectiveBaseUrl} canEdit={canEdit} />
                 </div>
               ))}
             </SortableContext>
@@ -708,6 +721,25 @@ function countRequests(col: Collection): number {
   return n;
 }
 
+// Shown while a nested folder is dragged: dropping here moves it to the top
+// level (a top-level row's middle would nest it instead).
+function RootDropStrip() {
+  const { t } = useTranslation('collections');
+  const { setNodeRef } = useDroppable({ id: ROOT_DROP_ID });
+  const active = useDropZone(ROOT_DROP_ID) !== null;
+  return (
+    <div
+      ref={setNodeRef}
+      className={cn(
+        'mt-2 rounded-md border border-dashed px-2 py-2 text-center text-[11px] text-muted-foreground transition-colors',
+        active ? 'border-primary bg-primary/10 text-foreground' : 'border-border',
+      )}
+    >
+      {t('dnd.dropRoot')}
+    </div>
+  );
+}
+
 function findCollectionById(cols: Collection[], id: string): Collection | undefined {
   for (const col of cols) {
     if (col.id === id) return col;
@@ -812,12 +844,8 @@ export function CollectionTree() {
     return () => window.removeEventListener('patchman:collections-action', handler);
   }, [fetchCollections, isLocal, treeToast]);
 
-  // Collision strategy: try pointer-within first (forgiving — catches the
-  // moment the cursor enters a folder/collection row even if its centre is
-  // not the closest hit), and fall back to closest-centre when the cursor
-  // is in the gap between rows. closestCenter alone makes cross-parent
-  // drops feel finicky because it always picks the geometrically nearest
-  // sortable, which is usually the row the cursor *just left*.
+  // Collision strategy: pointer-within first (the row under the cursor),
+  // then the nearest row when the cursor is in a gap between rows.
   const collisionStrategy: CollisionDetection = (args) => {
     const pointerCollisions = pointerWithin(args);
     if (pointerCollisions.length > 0) return pointerCollisions;
@@ -826,11 +854,62 @@ export function CollectionTree() {
     return closestCenter(args);
   };
 
+  // Where the current drag would land (shown by the rows) — computed from
+  // the pointer's Y inside the row under it. null = nowhere valid.
+  const [dropTarget, setDropTarget] = useState<DropTarget | null>(null);
+  const [draggingNested, setDraggingNested] = useState(false);
+  const pointerY = useRef(0);
+  // A keyboard drag (space + arrows) has no pointer: the zone then comes
+  // from the list order, as before the zones existed.
+  const keyboardDrag = useRef(false);
+  // Never leave live refreshes on hold if the tree unmounts mid-drag.
+  useEffect(() => () => setCollectionsDragging(false), []);
+  useEffect(() => {
+    if (!activeDragLabel) return;
+    const onMove = (e: PointerEvent) => { pointerY.current = e.clientY; };
+    window.addEventListener('pointermove', onMove);
+    return () => window.removeEventListener('pointermove', onMove);
+  }, [activeDragLabel]);
+
+  const resolveTarget = (event: DragMoveEvent | DragEndEvent): DropTarget | null => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return null;
+    const activeId = String(active.id);
+    const overId = String(over.id);
+    if (overId === ROOT_DROP_ID) {
+      return activeId.startsWith(COL_PREFIX) ? { id: ROOT_DROP_ID, zone: 'inside' } : null;
+    }
+    const overIsCol = overId.startsWith(COL_PREFIX);
+    let zone: DropZone;
+    if (keyboardDrag.current) {
+      const activeIdx = (active.data.current?.sortable as { index?: number } | undefined)?.index ?? -1;
+      const overIdx = (over.data.current?.sortable as { index?: number } | undefined)?.index ?? -1;
+      zone = activeIdx > overIdx ? 'above' : 'below';
+    } else {
+      zone = zoneFor(overIsCol ? 'collection' : 'request', over.rect.top, over.rect.height, pointerY.current);
+    }
+    // A request can only go INTO a folder (requests list under the folders).
+    if (activeId.startsWith(REQ_PREFIX) && overIsCol) zone = 'inside';
+    // The folder the drop changes must be one the user can edit.
+    const targetCollectionId = overIsCol
+      ? (zone === 'inside' ? overId.slice(COL_PREFIX.length) : (over.data.current?.parentId as string | null) ?? null)
+      : (over.data.current?.parentId as string | null) ?? null;
+    if (targetCollectionId && !canEditCollection(rootOf(collections, targetCollectionId))) return null;
+    // A folder can't move into itself or one of its sub-folders.
+    if (activeId.startsWith(COL_PREFIX) && targetCollectionId && isWithin(collections, activeId.slice(COL_PREFIX.length), targetCollectionId)) return null;
+    return { id: overId, zone };
+  };
+
   function handleDragStart(event: DragStartEvent) {
+    setCollectionsDragging(true);
     const id = String(event.active.id);
+    const ae = event.activatorEvent as PointerEvent | KeyboardEvent | undefined;
+    keyboardDrag.current = typeof KeyboardEvent !== 'undefined' && ae instanceof KeyboardEvent;
+    if (ae && 'clientY' in ae && typeof ae.clientY === 'number') pointerY.current = ae.clientY;
     if (id.startsWith(COL_PREFIX)) {
       const col = findCollectionById(collections, id.slice(COL_PREFIX.length));
       setActiveDragLabel(col?.name ?? null);
+      setDraggingNested(!!col?.parentId);
     } else if (id.startsWith(REQ_PREFIX)) {
       const parent = findRequestParent(collections, id.slice(REQ_PREFIX.length));
       const req = parent?.requests?.find((r) => r.id === id.slice(REQ_PREFIX.length));
@@ -838,92 +917,74 @@ export function CollectionTree() {
     }
   }
 
-  function handleDragEnd(event: DragEndEvent) {
+  function handleDragMove(event: DragMoveEvent) {
+    const next = resolveTarget(event);
+    setDropTarget((prev) => (prev?.id === next?.id && prev?.zone === next?.zone ? prev : next));
+  }
+
+  function endDrag() {
+    setCollectionsDragging(false);
     setActiveDragLabel(null);
-    const { active, over } = event;
-    if (!over || active.id === over.id) return;
+    setDropTarget(null);
+    setDraggingNested(false);
+  }
 
-    const activeId = String(active.id);
-    const overId = String(over.id);
-    const activeData = active.data.current as { type?: string; parentId?: string | null } | undefined;
-    const overData = over.data.current as { type?: string; parentId?: string | null } | undefined;
-    if (!activeData || !overData) return;
+  function handleDragEnd(event: DragEndEvent) {
+    const target = resolveTarget(event);
+    endDrag();
+    if (!target) return;
+    const activeId = String(event.active.id);
+    const over = event.over!;
+    const overParent = (over.data.current?.parentId ?? null) as string | null;
+    const position = target.zone === 'above' ? 'above' : 'below';
 
-    const activeIdx = (active.data.current?.sortable as { index?: number } | undefined)?.index ?? -1;
-    const overIdx = (over.data.current?.sortable as { index?: number } | undefined)?.index ?? -1;
-    const position: 'above' | 'below' = activeIdx > overIdx ? 'above' : 'below';
-
-    // ── Cross-type drops ────────────────────────────────────────────
-    // Dropping a request onto a collection/folder ROW means "drop INSIDE
-    // this collection". The container's children area itself isn't a
-    // separate droppable, so we treat the row as the parent target.
-    if (activeData.type === 'request' && overData.type === 'collection') {
-      const draggedReal = activeId.slice(REQ_PREFIX.length);
-      const targetParentId = overId.slice(COL_PREFIX.length);
-      if (activeData.parentId === targetParentId) return;
-      // Open the target folder so the user actually sees the dropped
-      // request land. Without this a drop into a collapsed folder looks
-      // like the row vanished.
-      expandNode(targetParentId);
-      moveRequest(draggedReal, targetParentId);
-      return;
-    }
-    // Dropping a folder onto another collection ROW (different parent) —
-    // nest the folder inside that collection.
-    if (activeData.type === 'collection' && overData.type === 'collection') {
-      const draggedReal = activeId.slice(COL_PREFIX.length);
-      const overReal = overId.slice(COL_PREFIX.length);
-      if (activeData.parentId === overData.parentId) {
-        // Same parent — straight reorder, keeps the existing optimistic UI.
-        reorderCollections(draggedReal, overReal, position);
+    if (activeId.startsWith(COL_PREFIX)) {
+      const dragged = findCollection(collections, activeId.slice(COL_PREFIX.length));
+      if (!dragged) return;
+      const draggedParent = dragged.parentId ?? null;
+      if (target.id === ROOT_DROP_ID) {
+        if (draggedParent) moveCollection(dragged.id, null);
         return;
       }
-      // Different parent. Nest under `over` rather than reordering at
-      // its level — that's the more useful gesture (drop folder INTO
-      // collection). If the user wants peer ordering across parents we
-      // can revisit, but treating "drop on row" as nesting matches the
-      // "drop on row" semantics for requests above and avoids surprising
-      // sibling moves into other folder hierarchies.
-      expandNode(overReal);
-      moveCollection(draggedReal, overReal);
-      return;
-    }
-
-    // ── Same-type drops ─────────────────────────────────────────────
-    if (activeData.type !== overData.type) return;
-
-    if (activeData.type === 'collection') {
-      const draggedReal = activeId.slice(COL_PREFIX.length);
-      const targetReal = overId.slice(COL_PREFIX.length);
-      if (activeData.parentId === overData.parentId) {
-        reorderCollections(draggedReal, targetReal, position);
+      if (target.id.startsWith(REQ_PREFIX)) {
+        // Over a request row: into that request's folder.
+        if (overParent && overParent !== draggedParent) moveCollection(dragged.id, overParent);
+        return;
+      }
+      const targetId = target.id.slice(COL_PREFIX.length);
+      if (target.zone === 'inside') {
+        if (draggedParent === targetId) return;
+        expandNode(targetId);
+        moveCollection(dragged.id, targetId);
+        return;
+      }
+      if (draggedParent === overParent) {
+        reorderCollections(dragged.id, targetId, position);
       } else {
-        // Reorder *across* parents — insert before/after the target as a
-        // sibling under the target's parent.
-        const beforeOrAfter = position === 'above'
-          ? { beforeCollectionId: targetReal }
-          : { afterCollectionId: targetReal };
-        const newParent = (overData.parentId ?? null) as string | null;
-        if (newParent) expandNode(newParent);
-        moveCollection(draggedReal, newParent, beforeOrAfter);
+        if (overParent) expandNode(overParent);
+        moveCollection(dragged.id, overParent, position === 'above' ? { beforeCollectionId: targetId } : { afterCollectionId: targetId });
       }
       return;
     }
 
-    if (activeData.type === 'request') {
-      const draggedReal = activeId.slice(REQ_PREFIX.length);
-      const targetReal = overId.slice(REQ_PREFIX.length);
-      if (activeData.parentId === overData.parentId) {
-        reorderRequests(draggedReal, targetReal, activeData.parentId as string, position);
-      } else {
-        const beforeOrAfter = position === 'above'
-          ? { beforeRequestId: targetReal }
-          : { afterRequestId: targetReal };
-        const newParent = overData.parentId as string;
-        expandNode(newParent);
-        moveRequest(draggedReal, newParent, beforeOrAfter);
+    if (activeId.startsWith(REQ_PREFIX)) {
+      const draggedId = activeId.slice(REQ_PREFIX.length);
+      const draggedParent = (event.active.data.current?.parentId ?? null) as string | null;
+      if (target.id.startsWith(COL_PREFIX)) {
+        const targetId = target.id.slice(COL_PREFIX.length);
+        if (draggedParent === targetId) return;
+        expandNode(targetId);
+        moveRequest(draggedId, targetId);
+        return;
       }
-      return;
+      const targetId = target.id.slice(REQ_PREFIX.length);
+      if (!overParent) return;
+      if (draggedParent === overParent) {
+        reorderRequests(draggedId, targetId, overParent, position);
+      } else {
+        expandNode(overParent);
+        moveRequest(draggedId, overParent, position === 'above' ? { beforeRequestId: targetId } : { afterRequestId: targetId });
+      }
     }
   }
 
@@ -1013,16 +1074,20 @@ export function CollectionTree() {
           sensors={sensors}
           collisionDetection={collisionStrategy}
           onDragStart={handleDragStart}
+          onDragMove={handleDragMove}
           onDragEnd={handleDragEnd}
-          onDragCancel={() => setActiveDragLabel(null)}
+          onDragCancel={endDrag}
         >
-          <SortableContext items={topLevelIds} strategy={verticalListSortingStrategy}>
-            <div className="space-y-0.5">
-              {collections.map((collection) => (
-                <CollectionNode key={collection.id} collection={collection} />
-              ))}
-            </div>
-          </SortableContext>
+          <DropTargetContext.Provider value={dropTarget}>
+            <SortableContext items={topLevelIds} strategy={verticalListSortingStrategy}>
+              <div className="space-y-0.5">
+                {collections.map((collection) => (
+                  <CollectionNode key={collection.id} collection={collection} />
+                ))}
+              </div>
+            </SortableContext>
+            {draggingNested && <RootDropStrip />}
+          </DropTargetContext.Provider>
           <DragOverlay>
             {activeDragLabel ? (
               <div className="px-2 py-1 rounded-md bg-accent border shadow-lg text-sm whitespace-nowrap max-w-[280px] truncate">

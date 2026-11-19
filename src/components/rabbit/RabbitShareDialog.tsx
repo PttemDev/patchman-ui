@@ -20,6 +20,8 @@ import {
 } from '@/components/ui/select';
 import { rabbitConnectionAPI, teamsAPI, usersAPI } from '@/services/api';
 import type { RabbitConnection, Team } from '@/types';
+import { useGrantLabels } from '@/components/common/useGrantLabels';
+import { grantMover, moveLocalGrants, shareScopeFor } from '@/components/common/shareScope';
 
 interface RabbitShareDialogProps {
   open: boolean;
@@ -48,6 +50,9 @@ interface RabbitGrant {
 export function RabbitShareDialog({ open, onOpenChange, connection }: RabbitShareDialogProps) {
   const { t } = useTranslation('rabbit');
   const [grants, setGrants] = useState<RabbitGrant[]>([]);
+  const grantLabel = useGrantLabels(grants);
+  const { grantScope, localOnly, alsoLocal } = shareScopeFor(connection);
+  const movedLocal = useRef(false);
   const [loading, setLoading] = useState(false);
 
   const [query, setQuery] = useState('');
@@ -61,13 +66,19 @@ export function RabbitShareDialog({ open, onOpenChange, connection }: RabbitShar
   const reload = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await rabbitConnectionAPI.listGrants(connection.id, connection.scope);
+      // Grants once saved on this computer's backend (invisible to the
+      // people they were for) move to the server the first time.
+      if (alsoLocal && !movedLocal.current) {
+        movedLocal.current = true;
+        await moveLocalGrants(grantMover(rabbitConnectionAPI, connection.id));
+      }
+      const res = await rabbitConnectionAPI.listGrants(connection.id, grantScope);
       setGrants((res.data as RabbitGrant[]) ?? []);
     } catch {
       setGrants([]);
     }
     setLoading(false);
-  }, [connection.id, connection.scope]);
+  }, [connection.id, grantScope, alsoLocal]);
 
   useEffect(() => {
     if (open) reload();
@@ -112,7 +123,7 @@ export function RabbitShareDialog({ open, onOpenChange, connection }: RabbitShar
       await rabbitConnectionAPI.addGrant(
         connection.id,
         { subjectKind: opt.kind, subjectId: opt.id, role },
-        connection.scope,
+        grantScope,
       );
       setQuery('');
       setResults([]);
@@ -125,7 +136,7 @@ export function RabbitShareDialog({ open, onOpenChange, connection }: RabbitShar
 
   const handleRemove = async (grantId: string) => {
     try {
-      await rabbitConnectionAPI.deleteGrant(connection.id, grantId, connection.scope);
+      await rabbitConnectionAPI.deleteGrant(connection.id, grantId, grantScope);
       setGrants((gs) => gs.filter((g) => g.id !== grantId));
     } catch {
       /* ignore */
@@ -146,6 +157,11 @@ export function RabbitShareDialog({ open, onOpenChange, connection }: RabbitShar
             {t('share.identityWarning')}
           </p>
         </DialogHeader>
+        {localOnly && (
+          <p className="rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-700 dark:text-amber-400">
+            {t('common:shareLocalOnly')}
+          </p>
+        )}
 
         <div className="space-y-3">
           <div className="flex items-center gap-2">
@@ -154,6 +170,7 @@ export function RabbitShareDialog({ open, onOpenChange, connection }: RabbitShar
               <Input
                 value={query}
                 onChange={(e) => handleSearch(e.target.value)}
+                disabled={localOnly}
                 placeholder={t('share.searchPlaceholder')}
                 className="h-8 text-xs pl-7"
               />
@@ -206,7 +223,7 @@ export function RabbitShareDialog({ open, onOpenChange, connection }: RabbitShar
                     {g.subjectKind === 'team'
                       ? <Users2 className="h-3 w-3 text-muted-foreground shrink-0" />
                       : <UserCircle2 className="h-3 w-3 text-muted-foreground shrink-0" />}
-                    <span className="flex-1 truncate">{g.label || g.subjectId}</span>
+                    <span className="flex-1 truncate">{grantLabel(g)}</span>
                     <Badge variant="secondary" className="text-[9px]">{t(g.role === 'write' ? 'share.roleWrite' : 'share.roleRead')}</Badge>
                     <Button
                       size="icon"

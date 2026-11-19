@@ -310,7 +310,9 @@
     "unreachable": "无法连接到该后端。请检查地址后重试。",
     "notPatchman": "该地址不是 PatchMan 后端。",
     "incompatible": "该后端的版本与此应用不兼容。",
-    "stillUnreachable": "{{name}} 仍然无法访问。"
+    "stillUnreachable": "{{name}} 仍然无法访问。",
+    "noConnections": "连接已关闭",
+    "noConnectionsHint": "此后端未设置 GITLAB_TOKEN_ENC_KEY，因此无法保存连接（数据库、ES、Git、AI 提供商…）。新连接只保存在本机。请在服务器上设置该密钥并重启。"
   },
   "appearance": {
     "heading": "外观",

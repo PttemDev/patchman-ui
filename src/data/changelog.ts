@@ -7,6 +7,40 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '1.68.2',
+    date: '2026-11-19',
+    title: 'Sharing connections from the desktop works',
+    changes: [
+      'Sharing (all connection types): in the desktop app, a share could be saved only on your computer, and then the person you shared with never saw the connection, with read or write access. Shares now always go to the server. Shares that were stuck on your computer move there the first time you open the Share dialog.',
+      'Sharing: the share list shows people’s and teams’ names instead of long ids.',
+      'Sharing: a connection saved only on this computer says that it can’t be shared and how to share it, instead of accepting a share nobody receives.',
+    ],
+  },
+  {
+    version: '1.68.1',
+    date: '2026-11-19',
+    title: 'Markdown preview when browsing a repository',
+    changes: [
+      'Git: Markdown files you browse in a repository (without a local copy) open rendered. Preview / Source / Split are next to the file path, and the choice is remembered.',
+    ],
+  },
+  {
+    version: '1.68.0',
+    date: '2026-11-19',
+    title: 'Easier drag-and-drop in Collections, a better diff tool, local folders linked to GitLab',
+    changes: [
+      'Collections: drag-and-drop is easier. The handle is always visible. While you drag, a line shows where the item will go, and a highlight shows when it will go inside a folder (drop on the middle of a folder’s row). Dragging a sub-folder shows a strip that moves it to the top level. Moves happen at once, with no jump back to the old place.',
+      'Collections: a new order is kept after a refresh. Before, it could fall apart when items had never been sorted. If a move isn’t allowed you now see why, for example "you can only view this collection", instead of the item silently jumping back. People who can only view a collection don’t get a drag handle.',
+      'JSON Diff: Split or Unified layout, the number of removed and added lines, line counts and a Copy button for each side, previous / next change, hide unchanged lines, line wrap on or off, and a notice when the two texts are identical.',
+      'Git: "Open locally" opens the copy you already have, a clone or a folder you opened, instead of cloning the project again. A folder opened from disk is linked to its GitLab project automatically once a matching connection exists, and a new "Link to a GitLab project" button links it by hand. MRs and CI/CD then work on your own working copy.',
+      'Git: Markdown files open with Read / Edit / Split views, like Notes. Tabs with the same file name show the folder that tells them apart. A commit’s changes can open in a large window, and the commit list, file list and diff panes can be resized by dragging.',
+      'Kubernetes: following pod logs releases the log stream as soon as you close it.',
+      'Settings → Remote: a backend that can’t store connections (no encryption key set) is marked "Connections off". New connections then stay on this computer only, with no error on every save. A backend address entered without /api gets it added.',
+      'AI agents (MCP): when a connection isn’t found on the hosted server, the error says to use the desktop app’s MCP server (patchman-local) if the connection is saved only on this computer.',
+      'Self-hosting: the backend Docker image no longer includes the repository’s environment files, and the server log warns when GITLAB_TOKEN_ENC_KEY is missing.',
+    ],
+  },
+  {
     version: '1.67.1',
     date: '2026-11-18',
     title: 'Memory saves code notes',

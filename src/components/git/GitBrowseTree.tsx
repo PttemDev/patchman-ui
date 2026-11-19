@@ -14,7 +14,11 @@ import {
   Save,
   Undo2,
   Circle,
+  BookOpen,
+  Code2,
+  Columns2,
 } from 'lucide-react';
+import { MarkdownView } from '@/components/notes/MarkdownView';
 import { gitAPI } from '@/services/api';
 import { useThemeStore } from '@/stores/themeStore';
 import { useCodeTheme } from '@/lib/monacoShiki';
@@ -174,6 +178,15 @@ export function GitBrowseTreePane({ connId, project, gitRef, selectedPath, onSel
 //    tree file itself is shown and can be edited + saved (see GitFileEditor).
 // `editHint` carries the one-line reason editing is off when a clone exists but
 // the branch doesn't match, so the user knows how to enable it.
+type MdBrowseMode = 'preview' | 'source' | 'split';
+const MD_BROWSE_KEY = 'patchman_git_md_browse_mode';
+function loadMdBrowseMode(): MdBrowseMode {
+  try {
+    const v = localStorage.getItem(MD_BROWSE_KEY);
+    return v === 'source' || v === 'split' ? v : 'preview';
+  } catch { return 'preview'; }
+}
+
 export function GitBrowseContent({
   connId, project, gitRef, path, editable, localRepoId, editHint, onDirtyChange, onSaved,
 }: {
@@ -191,6 +204,13 @@ export function GitBrowseContent({
   const { theme } = useThemeStore();
   const [file, setFile] = useState<FileState | null>(null);
   const codeTheme = useCodeTheme(theme === 'dark', languageForPath(path));
+  // Markdown opens rendered (Preview), with Source and Split one click away;
+  // the choice is remembered.
+  const [mdMode, setMdModeState] = useState<MdBrowseMode>(loadMdBrowseMode);
+  const setMdMode = (m: MdBrowseMode) => {
+    setMdModeState(m);
+    try { localStorage.setItem(MD_BROWSE_KEY, m); } catch { /* private mode */ }
+  };
 
   const useEditor = !!editable && !!localRepoId && !!path;
 
@@ -256,8 +276,32 @@ export function GitBrowseContent({
                 {editHint}
               </span>
             )}
+            {languageForPath(file.path) === 'markdown' && (
+              <div className="flex shrink-0 items-center rounded-md border p-0.5" role="group">
+                {([['preview', BookOpen], ['source', Code2], ['split', Columns2]] as const).map(([m, Icon]) => (
+                  <button
+                    key={m}
+                    type="button"
+                    onClick={() => setMdMode(m)}
+                    aria-pressed={mdMode === m}
+                    title={t(`mdView.${m}`)}
+                    className={cn('flex h-5 items-center gap-1 rounded px-1.5 text-[11px]', mdMode === m ? 'bg-accent text-foreground' : 'text-muted-foreground hover:text-foreground')}
+                  >
+                    <Icon className="h-3 w-3" />
+                    <span className="hidden xl:inline">{t(`mdView.${m}`)}</span>
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
-          <div className="flex-1 min-h-0">
+          <div className="flex flex-1 min-h-0">
+          {(() => {
+            const isMd = languageForPath(file.path) === 'markdown';
+            const mode: MdBrowseMode = isMd ? mdMode : 'source';
+            return (
+              <>
+                {mode !== 'preview' && (
+          <div className={cn('min-h-0 min-w-0', mode === 'split' ? 'w-1/2 border-r' : 'flex-1')}>
             <CodeEditor
               height="100%"
               language={languageForPath(file.path)}
@@ -269,10 +313,20 @@ export function GitBrowseContent({
                 fontSize: 12,
                 scrollBeyondLastLine: false,
                 automaticLayout: true,
-                wordWrap: 'off',
+                wordWrap: isMd ? 'on' : 'off',
                 padding: { top: 8 },
               }}
             />
+          </div>
+                )}
+                {mode !== 'source' && (
+                  <div className={cn('min-h-0 min-w-0 overflow-y-auto', mode === 'split' ? 'w-1/2' : 'flex-1')}>
+                    <div className="mx-auto max-w-4xl px-6 py-5"><MarkdownView markdown={file.content} /></div>
+                  </div>
+                )}
+              </>
+            );
+          })()}
           </div>
         </>
       )}

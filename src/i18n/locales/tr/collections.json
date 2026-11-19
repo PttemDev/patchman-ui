@@ -344,5 +344,12 @@
     "templateNote": "Request'in düzenlendiği hali, değişkenler çözülmeden — yeni sekmede bu açılır.",
     "auth": "Kimlik doğrulama",
     "descriptionRequest": "Bu request'ten kaydedilen response'lar. Birini aynı parametrelerle yeniden göndermek için yeni sekmede aç."
+  },
+  "dnd": {
+    "failedTitle": "Taşınamadı",
+    "failedDesc": "Değişiklik kaydedilmedi; liste sunucudaki sıraya döndü.",
+    "noPermission": "Bu collection'ı yalnız görüntüleyebiliyorsunuz — taşımak için editor yetkisi gerekiyor.",
+    "invalidMove": "Bu taşıma yapılamaz (bir klasör kendi içine taşınamaz).",
+    "dropRoot": "En üst seviyeye taşımak için buraya bırakın"
   }
 }

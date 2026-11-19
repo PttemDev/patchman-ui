@@ -102,7 +102,22 @@
     "neitherValid": "两侧都不是有效的 JSON",
     "leftInvalid": "左侧不是有效的 JSON",
     "rightInvalid": "右侧不是有效的 JSON",
-    "diffingAsText": "— 按纯文本比较。"
+    "diffingAsText": "— 按纯文本比较。",
+    "split": "并排",
+    "unified": "合并",
+    "layout": "布局",
+    "hideUnchanged": "隐藏未更改的行",
+    "wrap": "自动换行",
+    "removals_one": "{{count}} 处删除",
+    "removals_other": "{{count}} 处删除",
+    "additions_one": "{{count}} 处新增",
+    "additions_other": "{{count}} 处新增",
+    "lines_one": "{{count}} 行",
+    "lines_other": "{{count}} 行",
+    "copy": "复制",
+    "identical": "两段文本完全相同",
+    "prevChange": "上一处更改",
+    "nextChange": "下一处更改"
   },
   "url": {
     "component": "组件",

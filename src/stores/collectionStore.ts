@@ -2,6 +2,72 @@ import { create } from 'zustand';
 import type { Collection, SavedRequest } from '@/types';
 import { getRepo } from '@/data';
 import { useWorkspaceStore, resolveWorkspaceFilter } from '@/stores/workspaceStore';
+import i18n from '@/i18n';
+import { toast } from '@/components/ui/use-toast';
+
+// A drag-and-drop write failed: say so (it used to revert silently) — a 403
+// means the user may only view this collection.
+function dndFailed(err: unknown) {
+  const status = (err as { response?: { status?: number } })?.response?.status;
+  toast({
+    title: i18n.t('collections:dnd.failedTitle'),
+    description: status === 403 ? i18n.t('collections:dnd.noPermission')
+      : status === 400 ? i18n.t('collections:dnd.invalidMove')
+      : i18n.t('collections:dnd.failedDesc'),
+    variant: 'destructive',
+  });
+}
+
+// Runs every write (null = nothing to write) to the end — one failing row
+// (e.g. a viewer-only sibling) must not abandon the others half-way — and
+// returns the first error, if any.
+async function settleAll(writes: Array<Promise<unknown> | null>): Promise<unknown> {
+  const results = await Promise.allSettled(writes.filter((w): w is Promise<unknown> => w !== null));
+  const bad = results.find((r): r is PromiseRejectedResult => r.status === 'rejected');
+  return bad ? (bad.reason ?? new Error('write failed')) : null;
+}
+
+function findCol(list: Collection[], id: string): Collection | undefined {
+  for (const c of list) {
+    if (c.id === id) return c;
+    const f = c.children ? findCol(c.children, id) : undefined;
+    if (f) return f;
+  }
+  return undefined;
+}
+
+function findRequestHolder(list: Collection[], requestId: string): Collection | undefined {
+  for (const c of list) {
+    if (c.requests?.some((r) => r.id === requestId)) return c;
+    const f = c.children ? findRequestHolder(c.children, requestId) : undefined;
+    if (f) return f;
+  }
+  return undefined;
+}
+
+function mapTree(list: Collection[], fn: (c: Collection) => Collection): Collection[] {
+  return list.map((c) => {
+    const n = fn(c);
+    return n.children ? { ...n, children: mapTree(n.children, fn) } : n;
+  });
+}
+
+function removeCol(list: Collection[], id: string): Collection[] {
+  return list
+    .filter((c) => c.id !== id)
+    .map((c) => (c.children ? { ...c, children: removeCol(c.children, id) } : c));
+}
+
+function insertIndex<T extends { id: string }>(list: T[], beforeId?: string, afterId?: string): number {
+  if (beforeId) {
+    const i = list.findIndex((x) => x.id === beforeId);
+    if (i >= 0) return i;
+  } else if (afterId) {
+    const i = list.findIndex((x) => x.id === afterId);
+    if (i >= 0) return i + 1;
+  }
+  return list.length;
+}
 
 interface CollectionState {
   collections: Collection[];
@@ -233,13 +299,18 @@ export const useCollectionStore = create<CollectionState>((set, get) => ({
     // jump" flicker the user reported.
     set({ collections: nextCollections });
 
-    const originalIdx = new Map(siblings.map((s, i) => [s.id, i] as const));
-    try {
-      const repo = getRepo();
-      await Promise.all(reordered.map((col, i) =>
-        originalIdx.get(col.id) !== i ? repo.collections.update(col.id, { sortOrder: i }) : Promise.resolve()
-      ));
-    } catch {
+    // Write every row whose STORED sortOrder differs from its new slot: rows
+    // that never got one (default 0) must be stamped too, or the server keeps
+    // them tied at 0 and the order falls apart on the next refresh.
+    const storedOrder = new Map(siblings.map((s) => [s.id, s.sortOrder ?? -1] as const));
+    const repo = getRepo();
+    // A view-only sibling (a team collection shown via the workspace) can't be
+    // re-stamped — writing it would 403 and report a failed move the user
+    // didn't make; it keeps its stored order.
+    const failed = await settleAll(reordered.map((col, i) =>
+      storedOrder.get(col.id) !== i && col.myRole !== 'viewer' ? repo.collections.update(col.id, { sortOrder: i }) : null));
+    if (failed) {
+      dndFailed(failed);
       set({ error: 'Failed to reorder collections' });
       // Reconcile with server state on failure so the UI reflects truth.
       await get().refreshLists();
@@ -282,123 +353,78 @@ export const useCollectionStore = create<CollectionState>((set, get) => ({
     // Optimistic update — same rationale as reorderCollections.
     set({ collections: rebuild(cols) });
 
-    const originalIdx = new Map(requests.map((r, i) => [r.id, i] as const));
-    try {
-      const repo = getRepo();
-      await Promise.all(reordered.map((req, i) =>
-        originalIdx.get(req.id) !== i ? repo.requests.update(req.id, { sortOrder: i }) : Promise.resolve()
-      ));
-    } catch {
+    const storedOrder = new Map(requests.map((r) => [r.id, r.sortOrder ?? -1] as const));
+    const repo = getRepo();
+    const failed = await settleAll(reordered.map((req, i) =>
+      storedOrder.get(req.id) !== i ? repo.requests.update(req.id, { sortOrder: i }) : null));
+    if (failed) {
+      dndFailed(failed);
       set({ error: 'Failed to reorder requests' });
       await get().refreshLists();
     }
   },
 
   moveRequest: async (draggedId, targetParentId, opts) => {
+    const cols = get().collections;
+    const from = findRequestHolder(cols, draggedId);
+    const target = findCol(cols, targetParentId);
+    const dragged = from?.requests?.find((r) => r.id === draggedId);
+    if (!from || !target || !dragged) return;
+    const without = (target.requests ?? []).filter((r) => r.id !== draggedId);
+    const insertAt = insertIndex(without, opts?.beforeRequestId, opts?.afterRequestId);
+    const moved = { ...dragged, collectionId: targetParentId };
+    const nextReqs = [...without.slice(0, insertAt), moved, ...without.slice(insertAt)];
+    // Optimistic: the request lands where it was dropped right away — no
+    // snap back to its old folder while the writes are in flight.
+    set({
+      collections: mapTree(cols, (c) => {
+        if (c.id === targetParentId) return { ...c, requests: nextReqs.map((r, i) => ({ ...r, sortOrder: i })) };
+        if (c.id === from.id) return { ...c, requests: (c.requests ?? []).filter((r) => r.id !== draggedId) };
+        return c;
+      }),
+    });
     const repo = getRepo();
-    try {
-      // Move the request itself first so it shows up under the new parent.
-      await repo.requests.update(draggedId, {
-        collectionId: targetParentId,
-        sortOrder: 0,
-      });
-      // Then re-stamp sortOrder across the target parent's children. We
-      // pull a fresh tree to avoid recomputing from a stale store snapshot
-      // (the just-moved row may not be in the cached state yet).
-      await get().refreshLists();
-      const next = get().collections;
-      const findColAnywhere = (list: Collection[]): Collection | undefined => {
-        for (const c of list) {
-          if (c.id === targetParentId) return c;
-          if (c.children) {
-            const f = findColAnywhere(c.children);
-            if (f) return f;
-          }
-        }
-        return undefined;
-      };
-      const target = findColAnywhere(next);
-      const siblings = (target?.requests ?? []).slice();
-      // Remove the dragged item from wherever it currently is in the list,
-      // then splice it back in at the requested position.
-      const without = siblings.filter((r) => r.id !== draggedId);
-      const dragged = siblings.find((r) => r.id === draggedId);
-      if (!dragged) return;
-      let insertAt = without.length;
-      if (opts?.beforeRequestId) {
-        const i = without.findIndex((r) => r.id === opts.beforeRequestId);
-        if (i >= 0) insertAt = i;
-      } else if (opts?.afterRequestId) {
-        const i = without.findIndex((r) => r.id === opts.afterRequestId);
-        if (i >= 0) insertAt = i + 1;
-      }
-      const reordered = [...without.slice(0, insertAt), dragged, ...without.slice(insertAt)];
-      await Promise.all(
-        reordered.map((r, i) =>
-          (r.sortOrder ?? -1) !== i
-            ? repo.requests.update(r.id, { sortOrder: i })
-            : Promise.resolve(),
-        ),
-      );
-      await get().refreshLists();
-    } catch {
+    const stored = new Map((target.requests ?? []).map((r) => [r.id, r.sortOrder ?? -1] as const));
+    const failed = await settleAll([
+      repo.requests.update(draggedId, { collectionId: targetParentId, sortOrder: insertAt }),
+      ...nextReqs.map((r, i) => (r.id !== draggedId && stored.get(r.id) !== i ? repo.requests.update(r.id, { sortOrder: i }) : null)),
+    ]);
+    if (failed) {
+      dndFailed(failed);
       set({ error: 'Failed to move request' });
-      await get().refreshLists();
     }
+    await get().refreshLists();
   },
 
   moveCollection: async (draggedId, targetParentId, opts) => {
+    const cols = get().collections;
+    const dragged = findCol(cols, draggedId);
+    if (!dragged) return;
+    const siblingsOf = (list: Collection[]) => (targetParentId === null ? list : findCol(list, targetParentId)?.children ?? []);
+    // Take it out of its old place first: the new siblings come from the
+    // pruned tree, so it never shows twice (old + new) for a moment.
+    const pruned = removeCol(cols, draggedId);
+    const without = siblingsOf(pruned);
+    const insertAt = insertIndex(without, opts?.beforeCollectionId, opts?.afterCollectionId);
+    const moved: Collection = { ...dragged, parentId: targetParentId };
+    const nextSiblings = [...without.slice(0, insertAt), moved, ...without.slice(insertAt)].map((c, i) => ({ ...c, sortOrder: i }));
+    // Optimistic: splice it into the new place.
+    set({
+      collections: targetParentId === null
+        ? nextSiblings
+        : mapTree(pruned, (c) => (c.id === targetParentId ? { ...c, children: nextSiblings } : c)),
+    });
     const repo = getRepo();
-    try {
-      // "" sentinel == clear parent (move to root). null also signals root,
-      // but the BE API takes string. Translate explicitly.
-      const parentForApi = targetParentId === null ? '' : targetParentId;
-      await repo.collections.update(draggedId, {
-        parentId: parentForApi,
-        sortOrder: 0,
-      });
-      await get().refreshLists();
-      const next = get().collections;
-      // Pull the new sibling list. `null` parent == top level.
-      const siblings: Collection[] = (() => {
-        if (targetParentId === null) {
-          return next;
-        }
-        const find = (list: Collection[]): Collection | undefined => {
-          for (const c of list) {
-            if (c.id === targetParentId) return c;
-            if (c.children) {
-              const f = find(c.children);
-              if (f) return f;
-            }
-          }
-          return undefined;
-        };
-        return find(next)?.children ?? [];
-      })();
-      const without = siblings.filter((c) => c.id !== draggedId);
-      const dragged = siblings.find((c) => c.id === draggedId);
-      if (!dragged) return;
-      let insertAt = without.length;
-      if (opts?.beforeCollectionId) {
-        const i = without.findIndex((c) => c.id === opts.beforeCollectionId);
-        if (i >= 0) insertAt = i;
-      } else if (opts?.afterCollectionId) {
-        const i = without.findIndex((c) => c.id === opts.afterCollectionId);
-        if (i >= 0) insertAt = i + 1;
-      }
-      const reordered = [...without.slice(0, insertAt), dragged, ...without.slice(insertAt)];
-      await Promise.all(
-        reordered.map((c, i) =>
-          (c.sortOrder ?? -1) !== i
-            ? repo.collections.update(c.id, { sortOrder: i })
-            : Promise.resolve(),
-        ),
-      );
-      await get().refreshLists();
-    } catch {
+    const stored = new Map(siblingsOf(cols).map((c) => [c.id, c.sortOrder ?? -1] as const));
+    const failed = await settleAll([
+      // "" clears the parent (top level) on the BE.
+      repo.collections.update(draggedId, { parentId: targetParentId === null ? '' : targetParentId, sortOrder: insertAt }),
+      ...nextSiblings.map((c, i) => (c.id !== draggedId && stored.get(c.id) !== i && c.myRole !== 'viewer' ? repo.collections.update(c.id, { sortOrder: i }) : null)),
+    ]);
+    if (failed) {
+      dndFailed(failed);
       set({ error: 'Failed to move collection' });
-      await get().refreshLists();
     }
+    await get().refreshLists();
   },
 }));

@@ -203,7 +203,7 @@ export function GitCommitGraph({
 
       {/* Commit rows */}
       <div>
-        {commits.map((c, i) => {
+        {commits.map((c) => {
           const refs = refsBySha?.[c.sha] ?? [];
           return (
             <button

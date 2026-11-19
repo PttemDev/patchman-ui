@@ -344,5 +344,12 @@
     "templateNote": "La petición tal como se editó, con las variables sin resolver — es lo que se abre en una pestaña nueva.",
     "auth": "Autenticación",
     "descriptionRequest": "Respuestas guardadas desde esta petición. Abre una en una pestaña nueva para enviarla otra vez con los mismos parámetros."
+  },
+  "dnd": {
+    "failedTitle": "No se pudo mover",
+    "failedDesc": "El cambio no se guardó; la lista vuelve a mostrar el orden del servidor.",
+    "noPermission": "Solo puedes ver esta colección: moverla requiere acceso de editor.",
+    "invalidMove": "Ese movimiento no está permitido (una carpeta no puede ir dentro de sí misma).",
+    "dropRoot": "Suelta aquí para mover al nivel superior"
   }
 }

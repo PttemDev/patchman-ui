@@ -91,7 +91,7 @@ All screenshots use demo data.
 - A WebSocket client.
 
 ### Collections and environments
-- Nested collections and folders with drag and drop and a base URL per collection.
+- Nested collections and folders with drag and drop (reorder and move requests and folders between collections) and a base URL per collection.
 - Environments with secret variables that are masked for viewers. Share environments with people and teams.
 
 ### Data and infrastructure tools
@@ -118,7 +118,7 @@ Every connection uses the same model: credentials are stored encrypted, and the 
 - Repositories, branches, history, commits and files, comparisons and code search.
 - Merge requests and pull requests: list, read the conversation, review the changes with line comments, reply to and resolve threads, approve, mark as draft or ready, close or reopen, and update the branch.
 - CI/CD: GitLab pipelines and jobs (including trigger jobs and downstream pipelines) and GitHub Actions workflow runs, with job logs, retry, run again, schedules shown in plain words, and variables. Values are revealed one at a time, and each reveal is audited.
-- A Git workspace that works like an IDE: open any git folder on your computer (desktop) without a connection, edit files with syntax highlighting and auto save, stage, commit, pull, push, and the full JetBrains-style branch menu (checkout, new branch, update a branch you are not on, merge, rebase, compare, rename, delete). Saves are hash-guarded, so a file changed elsewhere is not overwritten.
+- A Git workspace that works like an IDE: open any git folder on your computer (desktop) without a connection, edit files with syntax highlighting and auto save, stage, commit, pull, push, and the full JetBrains-style branch menu (checkout, new branch, update a branch you are not on, merge, rebase, compare, rename, delete). Saves are hash-guarded, so a file changed elsewhere is not overwritten. Local folders can be linked to a GitLab project, existing clones on disk are reused, and Markdown files render as a preview while browsing a repository.
 
 ### QA and performance
 - Test cases with request, check (status, body, JSON path, header, response time), extract and wait steps.
@@ -429,6 +429,8 @@ Checks run on this repository before the initial public release (November 2026):
 - [ ] `npm audit` still reports 13 moderate/low advisories that need major upgrades or have no upstream fix yet (`react-router-dom` 6 → 7, `katex` via `mermaid`, `@excalidraw/*`, and the `typescript-eslint` / `minimatch` dev tooling). See [SECURITY.md](SECURITY.md).
 
 Re-checked for 1.67.1 (November 2026): `npm run build`, `npm run check:i18n` and `cargo check` (desktop shell) pass; the source tree was scanned again for secrets, internal hostnames and personal names; `npm audit` shows the same 13 moderate/low advisories listed above and nothing critical or high.
+
+Re-checked for 1.68.2 (November 2026): `npm run build`, `npm run check:i18n` and `cargo check` (desktop shell) pass; the changes since 1.67.1 were scanned for secrets, internal hostnames and personal names; `npm audit` shows the same 13 moderate/low advisories.
 
 Dependency notes: `xlsx` is installed from the SheetJS CDN (`0.20.3`) because newer releases are not published to npm, and `package.json` uses `overrides` to pin patched versions of `lodash-es`, `dompurify` and `nanoid`.
 

@@ -235,7 +235,17 @@ export function RemoteSection() {
                   )}
                 </div>
                 <div className="truncate font-mono text-xs text-muted-foreground">{displayUrl(r.url)}</div>
-                <div className="mt-1"><CompatBadge compat={rec?.compat} /></div>
+                <div className="mt-1 flex flex-wrap items-center gap-1.5">
+                  <CompatBadge compat={rec?.compat} />
+                  {rec?.connectionsEnabled === false && (
+                    <span
+                      className="rounded bg-amber-500/15 px-1.5 py-0.5 text-[10px] font-medium text-amber-700 dark:text-amber-400"
+                      title={t('remote.noConnectionsHint')}
+                    >
+                      {t('remote.noConnections')}
+                    </span>
+                  )}
+                </div>
               </div>
 
               {canRefresh && (

@@ -84,7 +84,9 @@
     "fileCountOne": "{{n}} file",
     "fileCountOther": "{{n}} files",
     "selectFile": "Select a file to view its diff.",
-    "binary": "Binary file — no textual diff."
+    "binary": "Binary file — no textual diff.",
+    "expand": "Open in large window",
+    "resize": "Drag to resize"
   },
   "diff": {
     "loading": "Loading diff…"
@@ -785,5 +787,22 @@
     "goneHint": "This folder was moved or deleted. Open it again from its new location.",
     "browseCheckout": "Check out this branch to browse its files.",
     "section": "Folders on this computer"
+  },
+  "link": {
+    "button": "Link to a GitLab project",
+    "hint": "Use this folder as the working copy of a project on one of your git connections: MRs and CI show up, nothing is cloned again.",
+    "title": "Link folder to a project",
+    "desc": "Pick the project this folder is a clone of. Its origin must be on the connection's host.",
+    "connection": "Connection",
+    "search": "Search projects…",
+    "noConnections": "No git connection on this computer yet. Add one in the Git panel first.",
+    "loadFailed": "Couldn't load projects",
+    "failed": "Couldn't link the folder",
+    "done": "Linked to {{project}}"
+  },
+  "mdView": {
+    "preview": "Preview",
+    "source": "Source",
+    "split": "Split"
   }
 }

@@ -28,5 +28,6 @@
   "actions": "Acciones",
   "settings": "Ajustes",
   "language": "Idioma",
-  "noResults": "Sin resultados"
+  "noResults": "Sin resultados",
+  "shareLocalOnly": "Esta conexión solo está guardada en este equipo, así que nadie más puede usarla. Solo se pueden compartir conexiones que también están en el servidor: créala de nuevo con la sesión iniciada y la sincronización activada (se guarda en ambos) y comparte esa."
 }

@@ -310,7 +310,9 @@
     "unreachable": "Bu sunucuya ulaşılamadı. Adresi kontrol edip tekrar deneyin.",
     "notPatchman": "Bu adres bir PatchMan sunucusu değil.",
     "incompatible": "Bu sunucunun sürümü bu uygulamayla uyumlu değil.",
-    "stillUnreachable": "{{name}} hâlâ erişilemiyor."
+    "stillUnreachable": "{{name}} hâlâ erişilemiyor.",
+    "noConnections": "Connection'lar kapalı",
+    "noConnectionsHint": "Bu backend'de GITLAB_TOKEN_ENC_KEY yok, bu yüzden connection (DB, ES, Git, AI sağlayıcıları…) saklayamıyor. Yeni connection'lar yalnız bu bilgisayarda kalır. Sunucuda anahtarı tanımlayıp yeniden başlatın."
   },
   "appearance": {
     "heading": "Görünüm",

@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { dbConnectionAPI, type DBScope } from '@/services/api';
 import { isDesktop } from '@/lib/platform';
+import { useRemoteStore, getRemoteBaseUrl, resolveBackendUrl } from '@/stores/remoteStore';
 import type { DBConnection, DBSchema } from '@/types';
 
 // dbConnectionStore is the FE-side cache of the user's reachable
@@ -38,9 +39,24 @@ function readsEmbedded(): boolean {
   return localStorage.getItem('patchman_data_source') === 'local';
 }
 
+// remoteTakesConnections: false when the last check of the active remote
+// found it can't hold connections — an incompatible version, or no
+// encryption key (connectionsEnabled: false). Writing there would only 404
+// and show a partial-write error on every save. Unknown (never checked, an
+// older backend, or currently unreachable — keep-last) counts as usable.
+function remoteTakesConnections(): boolean {
+  try {
+    const rec = useRemoteStore.getState().compatMap[resolveBackendUrl(getRemoteBaseUrl())];
+    return !(rec && (rec.compat === 'incompatible' || rec.connectionsEnabled === false));
+  } catch {
+    return true;
+  }
+}
+
 export function availableDBScopes(): DBScope[] {
   if (!isDesktop()) return ['remote'];
   if (readsEmbedded()) return ['local'];
+  if (!remoteTakesConnections()) return ['local'];
   return ['local', 'remote'];
 }
 

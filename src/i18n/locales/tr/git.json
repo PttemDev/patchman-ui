@@ -84,7 +84,9 @@
     "fileCountOne": "{{n}} dosya",
     "fileCountOther": "{{n}} dosya",
     "selectFile": "Diff'ini görüntülemek için bir dosya seç.",
-    "binary": "İkili dosya — metinsel diff yok."
+    "binary": "İkili dosya — metinsel diff yok.",
+    "expand": "Büyük pencerede aç",
+    "resize": "Boyutlandırmak için sürükleyin"
   },
   "diff": {
     "loading": "Diff yükleniyor…"
@@ -785,5 +787,22 @@
     "goneHint": "Bu klasör taşınmış ya da silinmiş. Yeni yerinden yeniden açın.",
     "browseCheckout": "Dosyalarını gezmek için bu branch'e geçin (checkout).",
     "section": "Bu bilgisayardaki klasörler"
+  },
+  "link": {
+    "button": "GitLab projesine bağla",
+    "hint": "Bu klasörü git connection'larınızdan birindeki projenin çalışma kopyası olarak kullanın: MR ve CI görünür, yeniden clone edilmez.",
+    "title": "Klasörü projeye bağla",
+    "desc": "Bu klasörün clone'u olduğu projeyi seçin. Origin adresi connection'ın host'unda olmalı.",
+    "connection": "Connection",
+    "search": "Proje ara…",
+    "noConnections": "Bu bilgisayarda henüz git connection yok. Önce Git panelinden ekleyin.",
+    "loadFailed": "Projeler yüklenemedi",
+    "failed": "Klasör bağlanamadı",
+    "done": "{{project}} projesine bağlandı"
+  },
+  "mdView": {
+    "preview": "Önizleme",
+    "source": "Kaynak",
+    "split": "Böl"
   }
 }
