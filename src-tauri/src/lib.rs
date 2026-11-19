@@ -261,7 +261,7 @@ fn boot(app: &tauri::App, sidecar: &SidecarHandle) -> Result<(), BootError> {
     let cipher_key = if skip_keychain {
         String::new()
     } else {
-        security::cipher_key_from_keychain(&db_path).unwrap_or_default()
+        security::cipher_key_from_keychain(&db_path, &app.config().identifier).unwrap_or_default()
     };
     let db_path_str = db_path
         .to_str()

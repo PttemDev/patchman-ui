@@ -435,17 +435,33 @@ mod screen {
 // is installed the key file can be deleted safely; until it is, L5 adds no
 // protection on its own.
 
+// Keychain account of the embedded cipher key. Builds with another bundle
+// identifier (e.g. the open-source build) keep their own data dir, so they
+// must not read or adopt this build's key: each identifier gets its own
+// account. The original identifier keeps the original account name so
+// existing installs find their item.
+const LEGACY_APP_ID: &str = "com.pttem.patchman";
+
+#[cfg_attr(not(target_os = "macos"), allow(dead_code))]
+fn keychain_account(app_id: &str) -> String {
+    if app_id.is_empty() || app_id == LEGACY_APP_ID {
+        "embedded-cipher-key".to_string()
+    } else {
+        format!("embedded-cipher-key:{app_id}")
+    }
+}
+
 #[cfg(target_os = "macos")]
-pub fn cipher_key_from_keychain(db_path: &std::path::Path) -> Option<String> {
+pub fn cipher_key_from_keychain(db_path: &std::path::Path, app_id: &str) -> Option<String> {
     use security_framework::passwords::{get_generic_password, set_generic_password};
     const SERVICE: &str = "PatchMan";
-    const ACCOUNT: &str = "embedded-cipher-key";
     const ERR_SEC_ITEM_NOT_FOUND: i32 = -25300;
+    let account = keychain_account(app_id);
 
     let file = PathBuf::from(format!("{}.cipher.key", db_path.display()));
     let read_file = |p: &PathBuf| std::fs::read_to_string(p).ok().map(|s| s.trim().to_string()).filter(|s| !s.is_empty());
 
-    match get_generic_password(SERVICE, ACCOUNT) {
+    match get_generic_password(SERVICE, &account) {
         Ok(bytes) => {
             let kc = String::from_utf8(bytes).ok()?.trim().to_string();
             if kc.is_empty() {
@@ -486,8 +502,8 @@ pub fn cipher_key_from_keychain(db_path: &std::path::Path) -> Option<String> {
             base64_std(&raw)
         }
     };
-    set_generic_password(SERVICE, ACCOUNT, key.as_bytes()).ok()?;
-    let back = get_generic_password(SERVICE, ACCOUNT).ok()?;
+    set_generic_password(SERVICE, &account, key.as_bytes()).ok()?;
+    let back = get_generic_password(SERVICE, &account).ok()?;
     if back != key.as_bytes() {
         return None;
     }
@@ -495,7 +511,7 @@ pub fn cipher_key_from_keychain(db_path: &std::path::Path) -> Option<String> {
 }
 
 #[cfg(not(target_os = "macos"))]
-pub fn cipher_key_from_keychain(_db_path: &std::path::Path) -> Option<String> {
+pub fn cipher_key_from_keychain(_db_path: &std::path::Path, _app_id: &str) -> Option<String> {
     None
 }
 
@@ -571,6 +587,16 @@ pub async fn security_update(window: tauri::WebviewWindow, app: AppHandle, setti
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn keychain_account_per_identifier() {
+        assert_eq!(keychain_account("com.pttem.patchman"), "embedded-cipher-key");
+        assert_eq!(keychain_account(""), "embedded-cipher-key");
+        assert_eq!(
+            keychain_account("io.github.pttemdev.patchman"),
+            "embedded-cipher-key:io.github.pttemdev.patchman"
+        );
+    }
 
     #[test]
     fn weakening_detection() {

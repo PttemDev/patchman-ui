@@ -7,6 +7,16 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '1.70.1',
+    date: '2026-11-19',
+    title: 'Fix for a crash right after opening the desktop app',
+    changes: [
+      'Fixed: the desktop app could stop with "t.map is not a function" right after opening. This happened when a PatchMan build installed before it had signed in to a backend, and this build sent its requests to an address that answers with a web page instead of API data.',
+      'Desktop: you can switch between PatchMan builds on the same computer and keep working. A build installed over another one keeps its settings, local data and session, and the open-source build uses the backend the previous build signed in to. On a fresh install it still asks for a backend URL.',
+      'An answer that is a web page instead of API data now shows an error saying the backend URL is wrong, and the workspace list stays empty instead of crashing.',
+    ],
+  },
+  {
     version: '1.70.0',
     date: '2026-11-19',
     title: 'Windows and Linux builds, updates from GitHub Releases',

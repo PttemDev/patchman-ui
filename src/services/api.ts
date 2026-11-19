@@ -1,4 +1,4 @@
-import axios, { type InternalAxiosRequestConfig } from 'axios';
+import axios, { type AxiosResponse, type InternalAxiosRequestConfig } from 'axios';
 import { getLocalApiUrl, isDesktop } from '@/lib/platform';
 import { clientId } from '@/lib/clientId';
 import { getRemoteBaseUrl } from '@/stores/remoteStore';
@@ -225,9 +225,34 @@ function applyRefreshedToken(headers: unknown): void {
   window.dispatchEvent(new CustomEvent('patchman:token-refreshed', { detail: fresh }));
 }
 
+export class HtmlResponseError extends Error {
+  response: AxiosResponse;
+  constructor(response: AxiosResponse) {
+    const url = `${response.config?.baseURL ?? ''}${response.config?.url ?? ''}`;
+    super(`The server returned an HTML page instead of API data (${url}). Check the backend URL.`);
+    this.name = 'HtmlResponseError';
+    this.response = response;
+  }
+}
+
+function isHtmlResponse(response: AxiosResponse): boolean {
+  if (response.config?.responseType && response.config.responseType !== 'json') return false;
+  const ct = String(response.headers?.['content-type'] ?? '').toLowerCase();
+  if (ct.includes('text/html')) return true;
+  const d = response.data;
+  return typeof d === 'string' && /^\s*<(!doctype html|html)[\s>]/i.test(d);
+}
+
 api.interceptors.response.use(
   (response) => {
     applyRefreshedToken(response.headers);
+    // The API never answers with HTML. One that does is a wrong backend URL
+    // (e.g. a relative "/api" served by the desktop app's own page server or
+    // a web host's SPA fallback): fail loudly instead of handing a page of
+    // markup to callers that expect JSON.
+    if (isHtmlResponse(response)) {
+      return Promise.reject(new HtmlResponseError(response));
+    }
     // Backend wraps all responses in {"data": ...}, unwrap automatically
     if (response.data && typeof response.data === 'object' && 'data' in response.data && Object.keys(response.data).length === 1) {
       response.data = response.data.data;
