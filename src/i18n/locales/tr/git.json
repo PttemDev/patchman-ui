@@ -72,7 +72,9 @@
     "selectFileContents": "İçeriğini görüntülemek için bir dosya seç."
   },
   "history": {
-    "loading": "Geçmiş yükleniyor…"
+    "loading": "Geçmiş yükleniyor…",
+    "pathFilter": "Geçmişi:",
+    "clearPath": "Tümünü göster"
   },
   "graph": {
     "noCommits": "Bu ref üzerinde commit yok.",
@@ -109,7 +111,8 @@
     "unstaged": "Değişiklikler",
     "untracked": "Untracked",
     "selectFile": "İncelemek ve hunk'ları stage'lemek için değişen bir dosya seç.",
-    "noLineDiff": "Satır düzeyinde diff yok (yeni, ikili veya tüm dosya değişikliği). Yukarıdaki <b>{{action}}</b> öğesini kullan."
+    "noLineDiff": "Satır düzeyinde diff yok (yeni, ikili veya tüm dosya değişikliği). Yukarıdaki <b>{{action}}</b> öğesini kullan.",
+    "jumpToSource": "Kaynağa git"
   },
   "stage": {
     "stageFile": "Dosyayı stage'le",
@@ -748,7 +751,31 @@
       "renamed": "Yeniden adlandırıldı",
       "conflicted": "Çakışma",
       "deleted": "Silindi"
-    }
+    },
+    "open": "Aç",
+    "expand": "Genişlet",
+    "collapse": "Daralt",
+    "new": "Yeni",
+    "copyPathMenu": "Yolu / referansı kopyala",
+    "copyAbsolute": "Tam yol",
+    "copyRelative": "Depo köküne göre yol",
+    "copyName": "Dosya adı",
+    "findInFolder": "Klasörde bul…",
+    "findInProject": "Projede bul…",
+    "collapseAll": "Tümünü daralt",
+    "revealInFinder": "Finder'da göster",
+    "gitAdd": "Ekle (Add)",
+    "compareWithBranch": "Branch ile karşılaştır",
+    "compareTitle": "{{name}} şununla karşılaştırılsın",
+    "compareRef": "Branch, tag ya da commit",
+    "compare": "Karşılaştır",
+    "compareDiffTitle": "{{path}}: {{ref}} ↔ çalışma kopyası",
+    "showHistory": "Geçmişi göster",
+    "annotate": "Git Blame ile göster",
+    "addToGitignore": ".gitignore'a ekle",
+    "staged": "{{name}} eklendi",
+    "alreadyIgnored": "Zaten .gitignore'da",
+    "ignored": "{{line}} .gitignore'a eklendi"
   },
   "workspace": {
     "empty": "Proje ağacından bir dosya aç.",

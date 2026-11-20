@@ -72,7 +72,9 @@
     "selectFileContents": "Selecciona un archivo para ver su contenido."
   },
   "history": {
-    "loading": "Cargando historial…"
+    "loading": "Cargando historial…",
+    "pathFilter": "Historial de",
+    "clearPath": "Mostrar todo"
   },
   "graph": {
     "noCommits": "No hay commits en esta ref.",
@@ -109,7 +111,8 @@
     "unstaged": "Cambios",
     "untracked": "Untracked",
     "selectFile": "Selecciona un archivo cambiado para revisar y hacer stage de hunks.",
-    "noLineDiff": "Sin diff a nivel de línea (nuevo, binario o cambio de todo el archivo). Usa <b>{{action}}</b> arriba."
+    "noLineDiff": "Sin diff a nivel de línea (nuevo, binario o cambio de todo el archivo). Usa <b>{{action}}</b> arriba.",
+    "jumpToSource": "Ir al código"
   },
   "stage": {
     "stageFile": "Stage del archivo",
@@ -748,7 +751,31 @@
       "renamed": "Renombrado",
       "conflicted": "Conflicto",
       "deleted": "Eliminado"
-    }
+    },
+    "open": "Abrir",
+    "expand": "Expandir",
+    "collapse": "Contraer",
+    "new": "Nuevo",
+    "copyPathMenu": "Copiar ruta / referencia",
+    "copyAbsolute": "Ruta absoluta",
+    "copyRelative": "Ruta desde la raíz del repositorio",
+    "copyName": "Nombre del archivo",
+    "findInFolder": "Buscar en la carpeta…",
+    "findInProject": "Buscar en el proyecto…",
+    "collapseAll": "Contraer todo",
+    "revealInFinder": "Mostrar en Finder",
+    "gitAdd": "Añadir",
+    "compareWithBranch": "Comparar con rama",
+    "compareTitle": "Comparar {{name}} con",
+    "compareRef": "Rama, etiqueta o commit",
+    "compare": "Comparar",
+    "compareDiffTitle": "{{path}}: {{ref}} ↔ copia de trabajo",
+    "showHistory": "Mostrar historial",
+    "annotate": "Anotar con Git Blame",
+    "addToGitignore": "Añadir a .gitignore",
+    "staged": "{{name}} añadido",
+    "alreadyIgnored": "Ya está en .gitignore",
+    "ignored": "Se añadió {{line}} a .gitignore"
   },
   "workspace": {
     "empty": "Abre un archivo desde el árbol del proyecto.",

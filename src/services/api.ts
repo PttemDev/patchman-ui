@@ -2628,7 +2628,7 @@ export const gitAPI = {
   linkRepo: (repoId: string, body: { connectionId: string; projectRef: string; projectName: string }) =>
     api.post(`/git/repos/${repoId}/link`, body, { _executionPin: 'local' }),
   status: (repoId: string) => api.get(`/git/repos/${repoId}/status`, { _executionPin: 'local' }),
-  log: (repoId: string, params?: { ref?: string; limit?: number }) =>
+  log: (repoId: string, params?: { ref?: string; limit?: number; path?: string }) =>
     api.get(`/git/repos/${repoId}/log`, { params, _executionPin: 'local' }),
   localBranches: (repoId: string) =>
     api.get(`/git/repos/${repoId}/branches`, { _executionPin: 'local' }),

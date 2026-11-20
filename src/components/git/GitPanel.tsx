@@ -64,7 +64,7 @@ import { GitFindInFiles, GitSearchEverywhere } from './GitSearchDialogs';
 import { GitFolderMenu, RecentFolderList, openGitFolder, pickGitFolder } from './GitFolderMenu';
 import { useGitRecentFoldersStore } from '@/stores/gitRecentFoldersStore';
 import { GIT_KEYMAP, shortcutHint, useScopedKeymap } from '@/lib/keymap';
-import type { GitRefs } from '@/types';
+import type { GitRefs, GitStatus } from '@/types';
 import type { Tab, GitRepoSummary, GitBranch, GitCommit, GitFileDiff } from '@/types';
 
 type Mode = 'history' | 'browse' | 'changes' | 'mrs' | 'ci';
@@ -185,6 +185,10 @@ export function GitPanel({ tab }: { tab: Tab }) {
   // JetBrains-style VCS surface for a local clone (GIT_IDE_PLAN P1).
   const [refs, setRefs] = useState<GitRefs | null>(null);
   const [refsKey, setRefsKey] = useState(0);
+  // Git status per path for tab colours, and files with unsaved edits (the
+  // tree shows both). Re-read after every save / git action (refsKey).
+  const [vcsStatus, setVcsStatus] = useState<Record<string, string>>({});
+  const [unsavedPaths, setUnsavedPaths] = useState<string[]>([]);
   const [branchPopupOpen, setBranchPopupOpen] = useState(false);
   const [updateOpen, setUpdateOpen] = useState(false);
   const [remotesOpen, setRemotesOpen] = useState(false);
@@ -376,6 +380,22 @@ export function GitPanel({ tab }: { tab: Tab }) {
   const editorDirtyRef = useRef(false);
   const changesDirtyRef = useRef(false);
   const handleEditorDirty = useCallback((d: boolean) => { editorDirtyRef.current = d; }, []);
+  const localRepoIdForStatus = localRepo?.id;
+  useEffect(() => {
+    if (!localRepoIdForStatus) { setVcsStatus({}); return; }
+    let cancelled = false;
+    gitAPI.status(localRepoIdForStatus).then((res) => {
+      if (cancelled) return;
+      const st = res.data as GitStatus;
+      const m: Record<string, string> = {};
+      for (const e of st.staged ?? []) m[e.path] = e.status === 'untracked' ? 'added' : e.status;
+      for (const e of st.unstaged ?? []) if (!m[e.path] || e.status !== 'modified') m[e.path] = m[e.path] === 'added' ? 'added' : e.status;
+      for (const p of st.untracked ?? []) m[p] = 'untracked';
+      for (const p of st.conflicted ?? []) m[p] = 'conflicted';
+      setVcsStatus(m);
+    }).catch(() => { if (!cancelled) setVcsStatus({}); });
+    return () => { cancelled = true; };
+  }, [localRepoIdForStatus, refsKey, reloadKey]);
   const handleChangesDirty = useCallback((d: boolean) => { changesDirtyRef.current = d; }, []);
   // Auto save on: the workspace editor hands us a flush, so leaving the
   // editor saves instead of asking to discard (it still asks if a save fails).
@@ -492,7 +512,10 @@ export function GitPanel({ tab }: { tab: Tab }) {
   }, [localRepo, openFile, toast, t]);
 
   const [findOpen, setFindOpen] = useState(false);
-  const [findInitial, setFindInitial] = useState<{ q: string; word?: boolean; caseSensitive?: boolean } | undefined>();
+  const [findInitial, setFindInitial] = useState<{ q: string; word?: boolean; caseSensitive?: boolean; mask?: string } | undefined>();
+  // File tree → Git → Show History / Annotate.
+  const [historyPath, setHistoryPath] = useState('');
+  const [annotateReq, setAnnotateReq] = useState<{ path: string; seq: number } | undefined>();
   const [everywhere, setEverywhere] = useState<null | 'all' | 'files' | 'symbols' | 'actions'>(null);
   const findUsages = useCallback((word: string) => { setFindInitial({ q: word, word: true, caseSensitive: true }); setFindOpen(true); }, []);
   const closeFile = useCallback((p: string) => {
@@ -1105,6 +1128,11 @@ export function GitPanel({ tab }: { tab: Tab }) {
                   onOpen={openFile}
                   onPrompt={setNamePrompt}
                   onChanged={onTreeChanged}
+                  unsaved={unsavedPaths}
+                  compareRef={currentBranch?.upstream || refs?.local.find((b) => b.name === 'main' || b.name === 'master')?.name || 'HEAD'}
+                  onShowHistory={(path) => { setHistoryPath(path); updateTab(tab.id, { gitView: 'history' }); }}
+                  onAnnotate={(path) => { openFile(path); setAnnotateReq((r) => ({ path, seq: (r?.seq ?? 0) + 1 })); }}
+                  onFindInFolder={(dir) => { setFindInitial({ q: '', mask: dir ? `${dir}/**` : '' }); setFindOpen(true); }}
                   onReverted={(path) => {
                     // Reload an open file (or files under a folder) from disk:
                     // drop the tabs, then reopen them so their buffers re-read.
@@ -1116,7 +1144,7 @@ export function GitPanel({ tab }: { tab: Tab }) {
                     setTimeout(() => updateTab(tab.id, { gitOpenFiles: all, gitActiveFile: active }), 0);
                     setRefsKey((k) => k + 1);
                   }}
-                  reloadKey={reloadKey}
+                  reloadKey={reloadKey + refsKey}
                 />
               </div>
             )}
@@ -1149,12 +1177,37 @@ export function GitPanel({ tab }: { tab: Tab }) {
                 useLocal={useLocal}
                 localRepoId={localRepo?.id ?? ''}
                 refsBySha={refsBySha}
+                pathFilter={historyPath || undefined}
+                onClearPath={() => setHistoryPath('')}
               />
             )}
             {mode === 'browse' && editable && localRepo ? (
               <GitWorkspaceEditor
                 key={`ws-${localRepo.id}`}
                 reveal={reveal}
+                annotate={annotateReq}
+                vcsStatus={vcsStatus}
+                onDirtyPaths={setUnsavedPaths}
+                onShowHistory={(p) => { setHistoryPath(p); updateTab(tab.id, { gitView: 'history' }); }}
+                onRollback={async (p) => {
+                  const name = p.split('/').pop() ?? p;
+                  const isNew = vcsStatus[p] === 'untracked' || vcsStatus[p] === 'added';
+                  const ok = await confirmDialog({ title: t('tree.rollbackTitle', { name }), description: isNew ? t('tree.rollbackNewBody') : t('tree.rollbackBody'), destructive: true, confirmLabel: t('tree.rollback') });
+                  if (!ok || !localRepo) return;
+                  try {
+                    if (vcsStatus[p]) await gitAPI.fsOp(localRepo.id, { op: 'rollback', path: p });
+                    const all = tab.gitOpenFiles ?? [];
+                    if (isNew) { closeFile(p); } else {
+                      // Reopen so the buffer re-reads the file (dropping unsaved edits too).
+                      updateTab(tab.id, { gitOpenFiles: all.filter((f) => f !== p) });
+                      setTimeout(() => updateTab(tab.id, { gitOpenFiles: all, gitActiveFile: p }), 0);
+                    }
+                    setRefsKey((k) => k + 1);
+                    toast({ title: t('tree.rolledBack', { name }) });
+                  } catch (err) {
+                    toast({ title: t('tree.failed'), description: extractErr(err, t('tree.failed')), variant: 'destructive' });
+                  }
+                }}
                 onGotoDefinition={(w, p, l) => void gotoDefinition(w, p, l)}
                 onFindUsages={findUsages}
                 onCaret={(p, l) => { caretRef.current = { path: p, line: l }; }}
@@ -1213,7 +1266,8 @@ export function GitPanel({ tab }: { tab: Tab }) {
               <GitCIPanel provider={conn?.provider} connId={connId} project={project} gitRef={gitRef} canWrite={!!conn && (!conn.shared || conn.grantRole === 'write')} />
             )}
             {mode === 'changes' && useLocal && localRepo && (
-              <GitChangesPanel key={`changes-${localRepo.id}-${reloadKey}`} repoId={localRepo.id} connectionId={localRepo.connectionId} onChanged={() => { void loadLocalRepos(); setRefsKey((k) => k + 1); }} onDirtyChange={handleChangesDirty} />
+              <GitChangesPanel key={`changes-${localRepo.id}-${reloadKey}`} repoId={localRepo.id} connectionId={localRepo.connectionId} onChanged={() => { void loadLocalRepos(); setRefsKey((k) => k + 1); }} onDirtyChange={handleChangesDirty}
+                onOpenFile={(p) => { updateTab(tab.id, { gitView: 'browse' }); openFile(p); }} />
             )}
           </div>
         </div>
@@ -1249,7 +1303,7 @@ function ToolbarBtn({ icon: Icon, spin, label, count, countClass, title, disable
 
 // ── History (commit DAG + commit detail) ─────────────────────────────────────
 function HistoryView({
-  connId, project, gitRef, useLocal, localRepoId, refsBySha,
+  connId, project, gitRef, useLocal, localRepoId, refsBySha, pathFilter, onClearPath,
 }: {
   connId: string;
   project: string;
@@ -1257,6 +1311,9 @@ function HistoryView({
   useLocal: boolean;
   localRepoId: string;
   refsBySha: Record<string, GitRef[]>;
+  /** Only commits touching this file / folder (file tree → Show History). */
+  pathFilter?: string;
+  onClearPath?: () => void;
 }) {
   const { t } = useTranslation('git');
   const [commits, setCommits] = useState<GitCommit[]>([]);
@@ -1286,7 +1343,7 @@ function HistoryView({
     setSelected(null);
     try {
       if (useLocal && localRepoId) {
-        const res = await gitAPI.log(localRepoId, { ref: gitRef || undefined, limit: 200 });
+        const res = await gitAPI.log(localRepoId, { ref: gitRef || undefined, limit: 200, path: pathFilter || undefined });
         if (seq !== loadSeq.current) return;
         setCommits((res.data as GitCommit[]) ?? []);
         setNextPage(null);
@@ -1306,7 +1363,7 @@ function HistoryView({
       if (seq === loadSeq.current) setLoading(false);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [connId, project, gitRef, useLocal, localRepoId]);
+  }, [connId, project, gitRef, useLocal, localRepoId, pathFilter]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -1325,6 +1382,14 @@ function HistoryView({
   }, [connId, project, gitRef, nextPage, t]);
 
   return (
+    <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
+    {pathFilter && (
+      <div className="flex shrink-0 items-center gap-2 border-b bg-muted/30 px-3 py-1 text-xs">
+        <span className="text-muted-foreground">{t('history.pathFilter')}</span>
+        <span className="min-w-0 truncate font-mono">{pathFilter}</span>
+        <button type="button" className="ml-auto rounded px-1.5 text-muted-foreground hover:bg-accent hover:text-foreground" onClick={onClearPath}>{t('history.clearPath')}</button>
+      </div>
+    )}
     <div ref={splitRef} className="flex-1 min-h-0 flex overflow-hidden">
       <div className={cn('min-h-0 overflow-auto', selected ? 'shrink-0' : 'flex-1')} style={selected ? { width: `${listPct}%` } : undefined}>
         {loading ? (
@@ -1392,6 +1457,7 @@ function HistoryView({
           </DialogContent>
         </Dialog>
       )}
+    </div>
     </div>
   );
 }

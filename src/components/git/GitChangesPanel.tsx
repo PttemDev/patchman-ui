@@ -16,7 +16,14 @@ import {
   CheckCircle2,
   UploadCloud,
   GitMerge,
+  Copy,
+  EyeOff,
+  FileCode2,
+  Undo2,
 } from 'lucide-react';
+import {
+  ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator, ContextMenuTrigger,
+} from '@/components/ui/context-menu';
 import { gitAPI } from '@/services/api';
 import { confirmDialog } from '@/components/ui/confirm';
 import { Button } from '@/components/ui/button';
@@ -26,7 +33,7 @@ import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/components/ui/use-toast';
 import { cn } from '@/lib/utils';
-import { extractErr } from './util';
+import { decodeGitContent, extractErr } from './util';
 import { GitConflictResolver } from './GitConflictResolver';
 import type { GitStatus, GitStatusEntry } from '@/types';
 
@@ -38,6 +45,8 @@ interface GitChangesPanelProps {
   /** Bubbles the conflict resolver's unsaved-work flag so the parent (GitPanel)
    *  can guard mode / repo / connection switches, mirroring the editor guard. */
   onDirtyChange?: (dirty: boolean) => void;
+  /** Jump to Source: open the file in the editor (Browse). */
+  onOpenFile?: (path: string) => void;
 }
 
 // The JetBrains Push dialog lives in GitPanel (shared with ⌘⇧K and the
@@ -81,12 +90,14 @@ const STATUS_ICON = {
   untracked: FileQuestion,
 } as const;
 
+// Same colours as the file tree and editor tabs (JetBrains-like): modified
+// blue, added green, new/untracked red, deleted grey.
 const STATUS_TONE = {
-  added: 'text-emerald-500',
-  modified: 'text-amber-500',
-  deleted: 'text-red-500',
-  renamed: 'text-sky-500',
-  untracked: 'text-emerald-500',
+  added: 'text-emerald-600 dark:text-emerald-400',
+  modified: 'text-sky-600 dark:text-sky-400',
+  deleted: 'text-muted-foreground',
+  renamed: 'text-sky-600 dark:text-sky-400',
+  untracked: 'text-red-500 dark:text-red-400',
 } as const;
 
 type Selected = { path: string; staged: boolean } | null;
@@ -95,7 +106,7 @@ type Selected = { path: string; staged: boolean } | null;
 // grouped into staged / unstaged / untracked, per-file AND per-hunk Stage /
 // Unstage, a commit box (message + amend) and Commit / Commit & Push. The push
 // dialog defaults to branch + MR.
-export function GitChangesPanel({ repoId, onChanged, onDirtyChange }: GitChangesPanelProps) {
+export function GitChangesPanel({ repoId, onChanged, onDirtyChange, onOpenFile }: GitChangesPanelProps) {
   const { t } = useTranslation('git');
   const { toast } = useToast();
 
@@ -246,6 +257,50 @@ export function GitChangesPanel({ repoId, onChanged, onDirtyChange }: GitChanges
     setBusy(false);
   }, [repoId, selected, refreshAfterMutation, onChanged, toast, t]);
 
+  // Rollback (back to HEAD; a new file is removed), Add to .gitignore.
+  const rollbackFile = useCallback(async (e: GitStatusEntry) => {
+    const isNew = e.status === 'untracked' || e.status === 'added';
+    const name = e.path.split('/').pop() ?? e.path;
+    const ok = await confirmDialog({
+      title: t('tree.rollbackTitle', { name }),
+      description: isNew ? t('tree.rollbackNewBody') : t('tree.rollbackBody'),
+      destructive: true, confirmLabel: t('tree.rollback'),
+    });
+    if (!ok) return;
+    setBusy(true);
+    try {
+      await gitAPI.fsOp(repoId, { op: 'rollback', path: e.path });
+      if (selected?.path === e.path) setSelected(null);
+      await loadStatus();
+      onChanged?.();
+      toast({ title: t('tree.rolledBack', { name }) });
+    } catch (err) {
+      toast({ title: t('tree.failed'), description: extractErr(err, t('tree.failed')), variant: 'destructive' });
+    }
+    setBusy(false);
+  }, [repoId, selected, loadStatus, onChanged, toast, t]);
+  const ignoreFile = useCallback(async (path: string) => {
+    try {
+      let content = '';
+      try {
+        const res = await gitAPI.localFile(repoId, { path: '.gitignore' });
+        const d = (res.data ?? {}) as { content?: string; encoding?: string };
+        content = decodeGitContent(d.content, d.encoding);
+      } catch { /* no .gitignore yet */ }
+      const line = `/${path}`;
+      if (!content.split('\n').some((l) => l.trim() === line)) {
+        const next = (content && !content.endsWith('\n') ? content + '\n' : content) + line + '\n';
+        await gitAPI.writeFile(repoId, { path: '.gitignore', content: next });
+      }
+      await loadStatus();
+      onChanged?.();
+      toast({ title: t('tree.ignored', { line }) });
+    } catch (err) {
+      toast({ title: t('tree.failed'), description: extractErr(err, t('tree.failed')), variant: 'destructive' });
+    }
+  }, [repoId, loadStatus, onChanged, toast, t]);
+  const groupActions = { onRollback: rollbackFile, onIgnore: ignoreFile, onOpenFile };
+
   const stageHunk = useCallback(async (hunk: string, fileHeader: string, unstage: boolean) => {
     if (!selected) return;
     setBusy(true);
@@ -344,6 +399,7 @@ export function GitChangesPanel({ repoId, onChanged, onDirtyChange }: GitChanges
                 busy={busy}
                 onSelect={selectFile}
                 onToggle={(path) => stageFile(path, true)}
+                {...groupActions}
               />
               <FileGroup
                 title={t('changes.unstaged')}
@@ -353,6 +409,7 @@ export function GitChangesPanel({ repoId, onChanged, onDirtyChange }: GitChanges
                 busy={busy}
                 onSelect={selectFile}
                 onToggle={(path) => stageFile(path, false)}
+                {...groupActions}
               />
               <FileGroup
                 title={t('changes.untracked')}
@@ -362,6 +419,7 @@ export function GitChangesPanel({ repoId, onChanged, onDirtyChange }: GitChanges
                 busy={busy}
                 onSelect={selectFile}
                 onToggle={(path) => stageFile(path, false)}
+                {...groupActions}
               />
             </>
           ) : null}
@@ -500,7 +558,7 @@ export function GitChangesPanel({ repoId, onChanged, onDirtyChange }: GitChanges
 }
 
 function FileGroup({
-  title, entries, staged, selected, busy, onSelect, onToggle,
+  title, entries, staged, selected, busy, onSelect, onToggle, onRollback, onIgnore, onOpenFile,
 }: {
   title: string;
   entries: GitStatusEntry[];
@@ -509,11 +567,14 @@ function FileGroup({
   busy: boolean;
   onSelect: (path: string, staged: boolean) => void;
   onToggle: (path: string) => void;
+  onRollback?: (e: GitStatusEntry) => void;
+  onIgnore?: (path: string) => void;
+  onOpenFile?: (path: string) => void;
 }) {
   const { t } = useTranslation('git');
   if (entries.length === 0) return null;
   return (
-    <div className="py-1">
+    <div className="select-none py-1">
       <div className="px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
         {title}
         <Badge variant="secondary" className="text-[9px] px-1 py-0">{entries.length}</Badge>
@@ -521,31 +582,51 @@ function FileGroup({
       {entries.map((e) => {
         const Icon = STATUS_ICON[e.status] ?? FilePen;
         const active = selected?.path === e.path && selected?.staged === staged;
+        const slash = e.path.lastIndexOf('/');
+        const name = slash < 0 ? e.path : e.path.slice(slash + 1);
+        const dir = slash < 0 ? '' : e.path.slice(0, slash);
         return (
-          <div
-            key={`${staged ? 's' : 'u'}:${e.path}`}
-            className={cn('group flex items-center gap-1 pr-2 hover:bg-accent/40', active && 'bg-accent/60')}
-          >
-            <button
-              type="button"
-              onClick={() => onSelect(e.path, staged)}
-              className="flex-1 min-w-0 flex items-center gap-1.5 pl-3 py-1 text-left"
-              title={e.path}
-            >
-              <Icon className={cn('h-3.5 w-3.5 shrink-0', STATUS_TONE[e.status])} />
-              <span className="text-xs truncate">{e.path}</span>
-            </button>
-            <Button
-              size="icon"
-              variant="ghost"
-              className="h-5 w-5 shrink-0 opacity-0 group-hover:opacity-100"
-              disabled={busy}
-              title={staged ? t('stage.unstageFile') : t('stage.stageFile')}
-              onClick={() => onToggle(e.path)}
-            >
-              {staged ? <Minus className="h-3 w-3" /> : <Plus className="h-3 w-3" />}
-            </Button>
-          </div>
+          <ContextMenu key={`${staged ? 's' : 'u'}:${e.path}`}>
+            <ContextMenuTrigger asChild>
+              <div
+                className={cn('group flex items-center gap-1 pr-2 hover:bg-accent/40', active && 'bg-accent/60')}
+                onContextMenu={() => onSelect(e.path, staged)}
+                onDoubleClick={() => e.status !== 'deleted' && onOpenFile?.(e.path)}
+              >
+                <button
+                  type="button"
+                  onClick={() => onSelect(e.path, staged)}
+                  className="flex-1 min-w-0 flex items-center gap-1.5 pl-3 py-1 text-left"
+                  title={e.oldPath ? `${e.oldPath} → ${e.path}` : e.path}
+                >
+                  <Icon className={cn('h-3.5 w-3.5 shrink-0', STATUS_TONE[e.status])} />
+                  <span className={cn('text-xs truncate', STATUS_TONE[e.status], e.status === 'deleted' && 'line-through')}>{name}</span>
+                  {dir && <span className="truncate text-[10px] text-muted-foreground">{dir}</span>}
+                </button>
+                <span className={cn('shrink-0 text-[10px]', STATUS_TONE[e.status])}>{t(`tree.status.${e.status}`)}</span>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="h-5 w-5 shrink-0 opacity-0 group-hover:opacity-100"
+                  disabled={busy}
+                  title={staged ? t('stage.unstageFile') : t('stage.stageFile')}
+                  onClick={() => onToggle(e.path)}
+                >
+                  {staged ? <Minus className="h-3 w-3" /> : <Plus className="h-3 w-3" />}
+                </Button>
+              </div>
+            </ContextMenuTrigger>
+            <ContextMenuContent className="w-56">
+              {onOpenFile && e.status !== 'deleted' && <ContextMenuItem onClick={() => onOpenFile(e.path)}><FileCode2 className="mr-2 h-3.5 w-3.5" />{t('changes.jumpToSource')}</ContextMenuItem>}
+              <ContextMenuItem disabled={busy} onClick={() => onToggle(e.path)}>
+                {staged ? <Minus className="mr-2 h-3.5 w-3.5" /> : <Plus className="mr-2 h-3.5 w-3.5" />}{staged ? t('stage.unstageFile') : t('stage.stageFile')}
+              </ContextMenuItem>
+              {onRollback && <ContextMenuItem disabled={busy} onClick={() => onRollback(e)}><Undo2 className="mr-2 h-3.5 w-3.5" />{t('tree.rollback')}…</ContextMenuItem>}
+              {onIgnore && e.status === 'untracked' && <ContextMenuItem onClick={() => onIgnore(e.path)}><EyeOff className="mr-2 h-3.5 w-3.5" />{t('tree.addToGitignore')}</ContextMenuItem>}
+              <ContextMenuSeparator />
+              <ContextMenuItem onClick={() => void navigator.clipboard.writeText(e.path)}><Copy className="mr-2 h-3.5 w-3.5" />{t('tree.copyRelative')}</ContextMenuItem>
+            </ContextMenuContent>
+          </ContextMenu>
         );
       })}
     </div>

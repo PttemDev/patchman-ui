@@ -7,6 +7,19 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '1.74.0',
+    date: '2026-11-20',
+    title: 'JetBrains-style Git file tree, changes and tabs',
+    changes: [
+      'Git file tree: the right-click menu works like a JetBrains project view: Open, New, Copy Path (absolute, from the repository root, file name), Find in Folder, Rename, Delete, Reveal in Finder, and a Git submenu with Add, Show Diff, Compare with Branch, Show History, Annotate, Rollback and Add to .gitignore.',
+      'Git file tree: a file shows as modified right after you save it, and already while it has unsaved edits, and so do its folders. Colours work too when the opened folder is inside a larger repository.',
+      'Git: editor tabs and the Changes list use the same colours as the tree (blue modified, green added, red new, grey deleted), and the Changes list says what changed on each file.',
+      'Git Changes: right-click a file for Jump to Source, Stage / Unstage, Rollback, Add to .gitignore and Copy path; double-click opens it.',
+      'Git editor tabs: a Git submenu with Annotate, Show History and Rollback.',
+      'Git history: Show History on a file or folder lists only the commits that touched it, following renames; "Show all" clears it.',
+    ],
+  },
+  {
     version: '1.73.0',
     date: '2026-11-20',
     title: 'Git editor tabs and file tree, whitespace in diffs, Redis key counts',

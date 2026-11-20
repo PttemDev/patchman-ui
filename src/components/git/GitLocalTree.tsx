@@ -1,11 +1,13 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ChevronRight, Copy, File, FileDiff, FilePlus, Folder, FolderOpen, FolderPlus, Loader2, Pencil, RefreshCw, Trash2, Undo2 } from 'lucide-react';
+import { ChevronRight, Copy, EyeOff, File, FileDiff, FilePlus, FileSearch, Folder, FolderOpen, FolderPlus, GitBranch, GitCompare, History, Loader2, Pencil, Plus, RefreshCw, SquareArrowOutUpRight, Trash2, Undo2, UserRound } from 'lucide-react';
+import { isDesktop } from '@/lib/platform';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { GitDiffViewer } from './GitDiffViewer';
 import { gitAPI } from '@/services/api';
 import {
-  ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator, ContextMenuTrigger,
+  ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator, ContextMenuShortcut, ContextMenuSub, ContextMenuSubContent,
+  ContextMenuSubTrigger, ContextMenuTrigger,
 } from '@/components/ui/context-menu';
 import { confirmDialog } from '@/components/ui/confirm';
 import { useToast } from '@/components/ui/use-toast';
@@ -41,7 +43,7 @@ const STATUS_TONE: Record<string, string> = {
 
 // The clone's working tree (not the remote's tree at a ref): status colours
 // like an IDE project view, and a context menu for new / rename / delete.
-export function GitLocalTree({ repoId, selected, onOpen, onPrompt, onChanged, onReverted, reloadKey }: {
+export function GitLocalTree({ repoId, selected, onOpen, onPrompt, onChanged, onReverted, onShowHistory, onAnnotate, onFindInFolder, compareRef, unsaved, reloadKey }: {
   repoId: string;
   selected?: string;
   onOpen: (path: string) => void;
@@ -50,6 +52,16 @@ export function GitLocalTree({ repoId, selected, onOpen, onPrompt, onChanged, on
   onChanged?: (from?: string, to?: string) => void;
   /** a file went back to HEAD (its open editor must reload) */
   onReverted?: (path: string) => void;
+  /** Git → Show History (commits touching this file / folder). */
+  onShowHistory?: (path: string) => void;
+  /** Git → Annotate (open the file with blame on). */
+  onAnnotate?: (path: string) => void;
+  /** Find in Folder (find in files limited to this folder). */
+  onFindInFolder?: (dir: string) => void;
+  /** Default ref for Compare with Branch (upstream / main). */
+  compareRef?: string;
+  /** Open files with unsaved edits: shown as modified (and their folders). */
+  unsaved?: string[];
   reloadKey?: number;
 }) {
   const { t } = useTranslation('git');
@@ -130,14 +142,73 @@ export function GitLocalTree({ repoId, selected, onOpen, onPrompt, onChanged, on
     if (await op({ op: 'delete', path: e.path })) { refresh(); onChanged?.(e.path, undefined); }
   };
 
-  // Show diff: HEAD ↔ working tree for one file.
-  const [diff, setDiff] = useState<{ path: string; original: string; modified: string } | null>(null);
-  const showDiff = async (e: Entry) => {
-    const [original, modified] = await Promise.all([
-      e.status === 'untracked' || e.status === 'added' ? Promise.resolve('') : readAt(repoId, e.path, 'HEAD'),
-      readAt(repoId, e.path),
-    ]);
-    setDiff({ path: e.path, original, modified });
+  // Show diff: HEAD (or another ref) ↔ working tree for one file.
+  const [diff, setDiff] = useState<{ path: string; ref: string; original: string; modified: string } | null>(null);
+  const showDiff = async (e: Entry, ref = 'HEAD') => {
+    const isNew = ref === 'HEAD' && (e.status === 'untracked' || e.status === 'added');
+    const [original, modified] = await Promise.all([isNew ? Promise.resolve('') : readAt(repoId, e.path, ref), readAt(repoId, e.path)]);
+    setDiff({ path: e.path, ref, original, modified });
+  };
+  const compareWith = (e: Entry) => onPrompt({
+    title: t('tree.compareTitle', { name: e.name }),
+    label: t('tree.compareRef'),
+    initial: compareRef || 'HEAD',
+    submitLabel: t('tree.compare'),
+    onSubmit: async (ref) => { await showDiff(e, ref.trim()); return true; },
+  });
+
+  // Absolute path on disk (copy / reveal).
+  const absPath = async (rel: string) => {
+    const { data } = await gitAPI.localPath(repoId);
+    const root = String((data as { path: string }).path).replace(/\/+$/, '');
+    return rel ? `${root}/${rel}` : root;
+  };
+  const copy = async (text: string | Promise<string>) => {
+    try {
+      await navigator.clipboard.writeText(await text);
+      toast({ title: t('workspace.pathCopied') });
+    } catch (err) {
+      toast({ title: t('tree.failed'), description: extractErr(err, t('tree.failed')), variant: 'destructive' });
+    }
+  };
+  const reveal = async (rel: string) => {
+    try {
+      const { revealItemInDir } = await import('@tauri-apps/plugin-opener');
+      await revealItemInDir(await absPath(rel));
+    } catch (err) {
+      toast({ title: t('reveal.failedTitle'), description: extractErr(err, t('errors.reveal')), variant: 'destructive' });
+    }
+  };
+  // Git → Add (stage the file / folder).
+  const stage = async (e: Entry) => {
+    try {
+      await gitAPI.stage(repoId, { path: e.path });
+      refresh();
+      toast({ title: t('tree.staged', { name: e.name }) });
+    } catch (err) {
+      toast({ title: t('tree.failed'), description: extractErr(err, t('tree.failed')), variant: 'destructive' });
+    }
+  };
+  // Git → Add to .gitignore (appends "/path", a folder with a trailing "/").
+  const ignore = async (e: Entry) => {
+    try {
+      let content = '';
+      let sha: string | undefined;
+      try {
+        const res = await gitAPI.localFile(repoId, { path: '.gitignore' });
+        const d = (res.data ?? {}) as { content?: string; encoding?: string; sha256?: string };
+        content = decodeGitContent(d.content, d.encoding);
+        sha = d.sha256;
+      } catch { /* no .gitignore yet */ }
+      const line = `/${e.path}${e.type === 'dir' ? '/' : ''}`;
+      if (content.split('\n').some((l) => l.trim() === line)) { toast({ title: t('tree.alreadyIgnored') }); return; }
+      const next = (content && !content.endsWith('\n') ? content + '\n' : content) + line + '\n';
+      await gitAPI.writeFile(repoId, { path: '.gitignore', content: next, ...(sha ? { expectedSha256: sha } : {}) });
+      refresh();
+      toast({ title: t('tree.ignored', { line }) });
+    } catch (err) {
+      toast({ title: t('tree.failed'), description: extractErr(err, t('tree.failed')), variant: 'destructive' });
+    }
   };
   // Rollback: back to HEAD (a new file is removed).
   const rollback = async (e: Entry) => {
@@ -157,7 +228,11 @@ export function GitLocalTree({ repoId, selected, onOpen, onPrompt, onChanged, on
     }
   };
 
-  const row = (e: Entry, depth: number): React.ReactNode => {
+  const unsavedSet = new Set(unsaved ?? []);
+  const unsavedIn = (dir: string) => (unsaved ?? []).some((p) => p.startsWith(dir + '/'));
+  const row = (raw: Entry, depth: number): React.ReactNode => {
+    // An unsaved edit counts as modified before it reaches the disk.
+    const e = raw.status ? raw : (raw.type === 'dir' ? unsavedIn(raw.path) : unsavedSet.has(raw.path)) ? { ...raw, status: 'modified' } : raw;
     const isDir = e.type === 'dir';
     const isOpen = open.has(e.path);
     return (
@@ -184,21 +259,59 @@ export function GitLocalTree({ repoId, selected, onOpen, onPrompt, onChanged, on
                 )}
             </button>
           </ContextMenuTrigger>
-          <ContextMenuContent className="w-52">
-            <ContextMenuItem onClick={() => create(isDir ? e.path : parentOf(e.path), 'create')}><FilePlus className="mr-2 h-3.5 w-3.5" />{t('tree.newFile')}</ContextMenuItem>
-            <ContextMenuItem onClick={() => create(isDir ? e.path : parentOf(e.path), 'mkdir')}><FolderPlus className="mr-2 h-3.5 w-3.5" />{t('tree.newFolder')}</ContextMenuItem>
-            {e.status && e.status !== 'deleted' && (
-              <>
-                <ContextMenuSeparator />
-                {!isDir && <ContextMenuItem onClick={() => void showDiff(e)}><FileDiff className="mr-2 h-3.5 w-3.5" />{t('tree.showDiff')}</ContextMenuItem>}
-                <ContextMenuItem onClick={() => void rollback(e)}><Undo2 className="mr-2 h-3.5 w-3.5" />{t('tree.rollback')}…</ContextMenuItem>
-              </>
+          <ContextMenuContent className="w-60">
+            {!isDir && <ContextMenuItem onClick={() => onOpen(e.path)}><File className="mr-2 h-3.5 w-3.5" />{t('tree.open')}</ContextMenuItem>}
+            {isDir && <ContextMenuItem onClick={() => toggle(e.path)}>{isOpen ? <FolderOpen className="mr-2 h-3.5 w-3.5" /> : <Folder className="mr-2 h-3.5 w-3.5" />}{isOpen ? t('tree.collapse') : t('tree.expand')}</ContextMenuItem>}
+            <ContextMenuSub>
+              <ContextMenuSubTrigger><Plus className="mr-2 h-3.5 w-3.5" />{t('tree.new')}</ContextMenuSubTrigger>
+              <ContextMenuSubContent className="w-44">
+                <ContextMenuItem onClick={() => create(isDir ? e.path : parentOf(e.path), 'create')}><FilePlus className="mr-2 h-3.5 w-3.5" />{t('tree.newFile')}</ContextMenuItem>
+                <ContextMenuItem onClick={() => create(isDir ? e.path : parentOf(e.path), 'mkdir')}><FolderPlus className="mr-2 h-3.5 w-3.5" />{t('tree.newFolder')}</ContextMenuItem>
+              </ContextMenuSubContent>
+            </ContextMenuSub>
+            <ContextMenuSeparator />
+            <ContextMenuSub>
+              <ContextMenuSubTrigger><Copy className="mr-2 h-3.5 w-3.5" />{t('tree.copyPathMenu')}</ContextMenuSubTrigger>
+              <ContextMenuSubContent className="w-56">
+                <ContextMenuItem onClick={() => void copy(absPath(e.path))}>{t('tree.copyAbsolute')}</ContextMenuItem>
+                <ContextMenuItem onClick={() => void copy(e.path)}>{t('tree.copyRelative')}</ContextMenuItem>
+                <ContextMenuItem onClick={() => void copy(e.name)}>{t('tree.copyName')}</ContextMenuItem>
+              </ContextMenuSubContent>
+            </ContextMenuSub>
+            {onFindInFolder && (
+              <ContextMenuItem onClick={() => onFindInFolder(isDir ? e.path : parentOf(e.path))}><FileSearch className="mr-2 h-3.5 w-3.5" />{t('tree.findInFolder')}<ContextMenuShortcut>⇧⌘F</ContextMenuShortcut></ContextMenuItem>
             )}
-            <ContextMenuSeparator />
             <ContextMenuItem onClick={() => rename(e)}><Pencil className="mr-2 h-3.5 w-3.5" />{t('vcs.rename')}…</ContextMenuItem>
-            <ContextMenuItem onClick={() => { void navigator.clipboard.writeText(e.path); toast({ title: t('workspace.pathCopied') }); }}><Copy className="mr-2 h-3.5 w-3.5" />{t('tree.copyPath')}</ContextMenuItem>
+            <ContextMenuItem className="text-destructive" onClick={() => void remove(e)}><Trash2 className="mr-2 h-3.5 w-3.5" />{t('vcs.delete')}…</ContextMenuItem>
             <ContextMenuSeparator />
-            <ContextMenuItem className="text-destructive" onClick={() => void remove(e)}><Trash2 className="mr-2 h-3.5 w-3.5" />{t('vcs.delete')}</ContextMenuItem>
+            <ContextMenuSub>
+              <ContextMenuSubTrigger><GitBranch className="mr-2 h-3.5 w-3.5" />Git</ContextMenuSubTrigger>
+              <ContextMenuSubContent className="w-56">
+                {(e.status === 'untracked' || e.status === 'modified' || e.status === 'conflicted') && (
+                  <ContextMenuItem onClick={() => void stage(e)}><Plus className="mr-2 h-3.5 w-3.5" />{t('tree.gitAdd')}</ContextMenuItem>
+                )}
+                {!isDir && (
+                  <ContextMenuItem disabled={!e.status || e.status === 'deleted'} onClick={() => void showDiff(e)}><FileDiff className="mr-2 h-3.5 w-3.5" />{t('tree.showDiff')}</ContextMenuItem>
+                )}
+                {!isDir && e.status !== 'untracked' && (
+                  <ContextMenuItem onClick={() => compareWith(e)}><GitCompare className="mr-2 h-3.5 w-3.5" />{t('tree.compareWithBranch')}…</ContextMenuItem>
+                )}
+                {onShowHistory && e.status !== 'untracked' && (
+                  <ContextMenuItem onClick={() => onShowHistory(e.path)}><History className="mr-2 h-3.5 w-3.5" />{t('tree.showHistory')}</ContextMenuItem>
+                )}
+                {onAnnotate && !isDir && e.status !== 'untracked' && e.status !== 'added' && (
+                  <ContextMenuItem onClick={() => onAnnotate(e.path)}><UserRound className="mr-2 h-3.5 w-3.5" />{t('tree.annotate')}</ContextMenuItem>
+                )}
+                <ContextMenuSeparator />
+                <ContextMenuItem disabled={!e.status || e.status === 'deleted'} onClick={() => void rollback(e)}><Undo2 className="mr-2 h-3.5 w-3.5" />{t('tree.rollback')}…</ContextMenuItem>
+                {e.status === 'untracked' && (
+                  <ContextMenuItem onClick={() => void ignore(e)}><EyeOff className="mr-2 h-3.5 w-3.5" />{t('tree.addToGitignore')}</ContextMenuItem>
+                )}
+              </ContextMenuSubContent>
+            </ContextMenuSub>
+            {isDesktop() && (
+              <ContextMenuItem onClick={() => void reveal(e.path)}><SquareArrowOutUpRight className="mr-2 h-3.5 w-3.5" />{t('tree.revealInFinder')}</ContextMenuItem>
+            )}
           </ContextMenuContent>
         </ContextMenu>
         {isDir && isOpen && (kids[e.path] ?? []).map((c) => row(c, depth + 1))}
@@ -226,12 +339,15 @@ export function GitLocalTree({ repoId, selected, onOpen, onPrompt, onChanged, on
           <ContextMenuItem onClick={() => create('', 'create')}><FilePlus className="mr-2 h-3.5 w-3.5" />{t('tree.newFile')}</ContextMenuItem>
           <ContextMenuItem onClick={() => create('', 'mkdir')}><FolderPlus className="mr-2 h-3.5 w-3.5" />{t('tree.newFolder')}</ContextMenuItem>
           <ContextMenuSeparator />
+          {onFindInFolder && <ContextMenuItem onClick={() => onFindInFolder('')}><FileSearch className="mr-2 h-3.5 w-3.5" />{t('tree.findInProject')}</ContextMenuItem>}
+          <ContextMenuItem onClick={() => setOpen(new Set())}><Folder className="mr-2 h-3.5 w-3.5" />{t('tree.collapseAll')}</ContextMenuItem>
+          {isDesktop() && <ContextMenuItem onClick={() => void reveal('')}><SquareArrowOutUpRight className="mr-2 h-3.5 w-3.5" />{t('tree.revealInFinder')}</ContextMenuItem>}
           <ContextMenuItem onClick={refresh}><RefreshCw className="mr-2 h-3.5 w-3.5" />{t('mr.refresh')}</ContextMenuItem>
         </ContextMenuContent>
       </ContextMenu>
       <Dialog open={!!diff} onOpenChange={(o) => { if (!o) setDiff(null); }}>
         <DialogContent className="flex h-[80vh] w-[92vw] max-w-[1300px] flex-col gap-2 overflow-hidden p-3">
-          <DialogTitle className="text-sm">{t('tree.diffTitle', { path: diff?.path ?? '' })}</DialogTitle>
+          <DialogTitle className="text-sm">{diff && diff.ref !== 'HEAD' ? t('tree.compareDiffTitle', { path: diff.path, ref: diff.ref }) : t('tree.diffTitle', { path: diff?.path ?? '' })}</DialogTitle>
           {diff && <div className="min-h-0 flex-1 rounded border"><GitDiffViewer original={diff.original} modified={diff.modified} path={diff.path} /></div>}
         </DialogContent>
       </Dialog>

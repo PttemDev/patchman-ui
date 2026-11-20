@@ -2773,7 +2773,7 @@ dependencies = [
 
 [[package]]
 name = "patchman-desktop"
-version = "1.73.0"
+version = "1.74.0"
 dependencies = [
  "block2",
  "core-foundation",

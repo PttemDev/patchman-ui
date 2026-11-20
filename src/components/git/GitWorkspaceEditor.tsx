@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type * as Monaco from 'monaco-editor';
-import { ArrowLeftFromLine, ArrowRightFromLine, BookOpen, Circle, Columns2, Copy, FileCode2, Loader2, Pencil, Save, UserRound, X, XCircle } from 'lucide-react';
-import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator, ContextMenuTrigger } from '@/components/ui/context-menu';
+import { ArrowLeftFromLine, ArrowRightFromLine, GitBranch, History, Undo2, BookOpen, Circle, Columns2, Copy, FileCode2, Loader2, Pencil, Save, UserRound, X, XCircle } from 'lucide-react';
+import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator, ContextMenuSub, ContextMenuSubContent, ContextMenuSubTrigger, ContextMenuTrigger } from '@/components/ui/context-menu';
 import { CodeEditor } from '@/components/ui/CodeEditor';
 import { Button } from '@/components/ui/button';
 import { useThemeStore } from '@/stores/themeStore';
@@ -30,6 +30,15 @@ function loadMdMode(): MdMode {
 
 // Tab labels: the file name, plus the shortest parent path that tells apart
 // tabs sharing that name (README.md · fe vs README.md · be).
+// Tab name colours by git status (same as the file tree).
+const TAB_TONE: Record<string, string> = {
+  modified: 'text-sky-600 dark:text-sky-400',
+  renamed: 'text-sky-600 dark:text-sky-400',
+  added: 'text-emerald-600 dark:text-emerald-400',
+  untracked: 'text-red-500 dark:text-red-400',
+  conflicted: 'text-red-600 font-semibold',
+};
+
 function tabLabels(paths: string[]): Record<string, { name: string; dir: string }> {
   const out: Record<string, { name: string; dir: string }> = {};
   const byName: Record<string, string[]> = {};
@@ -98,7 +107,7 @@ const read = async (repoId: string, path: string, ref?: string) => (await readFi
 
 export interface RevealTarget { path: string; line: number; nonce: number }
 
-export function GitWorkspaceEditor({ repoId, files, active, onActivate, onClose, onCloseMany, onReorder, onDirtyChange, onSaved, registerFlush, reveal, onGotoDefinition, onFindUsages, onCaret }: {
+export function GitWorkspaceEditor({ repoId, files, active, onActivate, onClose, onCloseMany, onReorder, onDirtyChange, onDirtyPaths, vcsStatus, onShowHistory, onRollback, onSaved, registerFlush, reveal, onGotoDefinition, onFindUsages, onCaret, annotate }: {
   /** Jump here once the file is open (search results, navigation). */
   reveal?: RevealTarget;
   /** ⌘B / F12 / ⌘+click on an identifier. */
@@ -116,6 +125,16 @@ export function GitWorkspaceEditor({ repoId, files, active, onActivate, onClose,
   onCloseMany?: (paths: string[]) => void;
   /** New tab order after a drag. */
   onReorder?: (files: string[]) => void;
+  /** Turn Annotate (blame) on for this file once it is the active one
+   *  (file tree → Git → Annotate); seq makes a repeat request count. */
+  annotate?: { path: string; seq: number };
+  /** Files with unsaved edits (the tree shows them as modified). */
+  onDirtyPaths?: (paths: string[]) => void;
+  /** Git status per path, to colour the tabs like the tree. */
+  vcsStatus?: Record<string, string>;
+  /** Tab menu → Git → Show History / Rollback (handled by the panel). */
+  onShowHistory?: (path: string) => void;
+  onRollback?: (path: string) => void;
   onDirtyChange?: (dirty: boolean) => void;
   /** auto = an auto save (the panel refreshes lightly). */
   onSaved?: (opts?: { auto?: boolean }) => void;
@@ -157,6 +176,8 @@ export function GitWorkspaceEditor({ repoId, files, active, onActivate, onClose,
 
   const dirtyPaths = useMemo(() => files.filter((p) => bufs[p] && bufs[p].content !== bufs[p].baseline), [files, bufs]);
   useEffect(() => { onDirtyChange?.(dirtyPaths.length > 0); }, [dirtyPaths.length, onDirtyChange]);
+  const dirtyKey = dirtyPaths.join('\n');
+  useEffect(() => { onDirtyPaths?.(dirtyKey ? dirtyKey.split('\n') : []); }, [dirtyKey, onDirtyPaths]);
   useEffect(() => () => onDirtyChange?.(false), [onDirtyChange]);
 
   const buf = active ? bufs[active] : undefined;
@@ -450,6 +471,19 @@ export function GitWorkspaceEditor({ repoId, files, active, onActivate, onClose,
       toast({ title: t('workspace.blameFailed'), description: extractErr(e, t('workspace.blameFailed')), variant: 'destructive' });
     }
   };
+  // Tab menu → Annotate on a tab that wasn't active: blame once it is.
+  const annotateNext = useRef('');
+  useEffect(() => {
+    if (!annotateNext.current || annotateNext.current !== active || !buf || buf.loading) return;
+    annotateNext.current = '';
+    if (!blameLines) void toggleBlame();
+  }, [active, buf?.loading]); // eslint-disable-line react-hooks/exhaustive-deps
+  const annotateDone = useRef(0);
+  useEffect(() => {
+    if (!annotate || annotate.seq === annotateDone.current || annotate.path !== active || !buf || buf.loading) return;
+    annotateDone.current = annotate.seq;
+    if (!blameLines) void toggleBlame();
+  }, [annotate, active, buf?.loading]); // eslint-disable-line react-hooks/exhaustive-deps
   const lineNumbers = useMemo(() => {
     if (!blameLines) return 'on' as const;
     return (n: number) => {
@@ -500,7 +534,7 @@ export function GitWorkspaceEditor({ repoId, files, active, onActivate, onClose,
                     onMouseDown={(e) => { if (e.button === 1) { e.preventDefault(); void close(p); } }}
                     onContextMenu={() => onActivate(p)}>
                     <button type="button" onClick={() => onActivate(p)} className="flex max-w-[260px] items-baseline gap-1.5 truncate">
-                      <span className="truncate">{label?.name ?? p}</span>
+                      <span className={cn('truncate', TAB_TONE[dirty && !vcsStatus?.[p] ? 'modified' : vcsStatus?.[p] ?? ''])}>{label?.name ?? p}</span>
                       {label?.dir && <span className="truncate text-[10px] text-muted-foreground/80">{label.dir}</span>}
                     </button>
                     <button type="button" onClick={() => void close(p)} aria-label={t('workspace.closeTab')} className="rounded p-0.5 hover:bg-accent">
@@ -517,6 +551,16 @@ export function GitWorkspaceEditor({ repoId, files, active, onActivate, onClose,
                   <ContextMenuItem disabled={saved.length === 0} onSelect={() => void closeMany(saved)}><XCircle className="mr-2 h-3.5 w-3.5" />{t('workspace.tabCloseSaved')}</ContextMenuItem>
                   <ContextMenuItem onSelect={() => void closeMany([...files])}><X className="mr-2 h-3.5 w-3.5" />{t('workspace.tabCloseAll')}</ContextMenuItem>
                   <ContextMenuSeparator />
+                  <ContextMenuSub>
+                    <ContextMenuSubTrigger><GitBranch className="mr-2 h-3.5 w-3.5" />Git</ContextMenuSubTrigger>
+                    <ContextMenuSubContent className="w-56">
+                      {vcsStatus?.[p] !== 'untracked' && vcsStatus?.[p] !== 'added' && (
+                        <ContextMenuItem onSelect={() => { onActivate(p); if (p === active && !blameLines) void toggleBlame(); else if (p !== active) annotateNext.current = p; }}><UserRound className="mr-2 h-3.5 w-3.5" />{t('tree.annotate')}</ContextMenuItem>
+                      )}
+                      {onShowHistory && vcsStatus?.[p] !== 'untracked' && <ContextMenuItem onSelect={() => onShowHistory(p)}><History className="mr-2 h-3.5 w-3.5" />{t('tree.showHistory')}</ContextMenuItem>}
+                      {onRollback && <ContextMenuItem disabled={!vcsStatus?.[p] && !dirty} onSelect={() => onRollback(p)}><Undo2 className="mr-2 h-3.5 w-3.5" />{t('tree.rollback')}…</ContextMenuItem>}
+                    </ContextMenuSubContent>
+                  </ContextMenuSub>
                   <ContextMenuItem onSelect={() => { void navigator.clipboard.writeText(p); toast({ title: t('workspace.pathCopied') }); }}><Copy className="mr-2 h-3.5 w-3.5" />{t('workspace.tabCopyPath')}</ContextMenuItem>
                 </ContextMenuContent>
               </ContextMenu>

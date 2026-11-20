@@ -72,7 +72,9 @@
     "selectFileContents": "Select a file to view its contents."
   },
   "history": {
-    "loading": "Loading history…"
+    "loading": "Loading history…",
+    "pathFilter": "History of",
+    "clearPath": "Show all"
   },
   "graph": {
     "noCommits": "No commits on this ref.",
@@ -109,7 +111,8 @@
     "unstaged": "Changes",
     "untracked": "Untracked",
     "selectFile": "Select a changed file to review and stage hunks.",
-    "noLineDiff": "No line-level diff (new, binary or whole-file change). Use <b>{{action}}</b> above."
+    "noLineDiff": "No line-level diff (new, binary or whole-file change). Use <b>{{action}}</b> above.",
+    "jumpToSource": "Jump to Source"
   },
   "stage": {
     "stageFile": "Stage file",
@@ -748,7 +751,31 @@
       "renamed": "Renamed",
       "conflicted": "Conflict",
       "deleted": "Deleted"
-    }
+    },
+    "open": "Open",
+    "expand": "Expand",
+    "collapse": "Collapse",
+    "new": "New",
+    "copyPathMenu": "Copy Path / Reference",
+    "copyAbsolute": "Absolute path",
+    "copyRelative": "Path from repository root",
+    "copyName": "File name",
+    "findInFolder": "Find in Folder…",
+    "findInProject": "Find in Project…",
+    "collapseAll": "Collapse all",
+    "revealInFinder": "Reveal in Finder",
+    "gitAdd": "Add",
+    "compareWithBranch": "Compare with Branch",
+    "compareTitle": "Compare {{name}} with",
+    "compareRef": "Branch, tag or commit",
+    "compare": "Compare",
+    "compareDiffTitle": "{{path}}: {{ref}} ↔ working tree",
+    "showHistory": "Show History",
+    "annotate": "Annotate with Git Blame",
+    "addToGitignore": "Add to .gitignore",
+    "staged": "{{name}} added",
+    "alreadyIgnored": "Already in .gitignore",
+    "ignored": "Added {{line}} to .gitignore"
   },
   "workspace": {
     "empty": "Open a file from the project tree.",

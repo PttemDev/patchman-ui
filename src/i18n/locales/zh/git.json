@@ -72,7 +72,9 @@
     "selectFileContents": "选择一个文件以查看其内容。"
   },
   "history": {
-    "loading": "正在加载历史…"
+    "loading": "正在加载历史…",
+    "pathFilter": "历史：",
+    "clearPath": "显示全部"
   },
   "graph": {
     "noCommits": "此 ref 上没有 commit。",
@@ -109,7 +111,8 @@
     "unstaged": "更改",
     "untracked": "Untracked",
     "selectFile": "选择一个已更改的文件以审阅并 stage hunk。",
-    "noLineDiff": "没有行级 diff（新增、二进制或整个文件更改）。请使用上方的 <b>{{action}}</b>。"
+    "noLineDiff": "没有行级 diff（新增、二进制或整个文件更改）。请使用上方的 <b>{{action}}</b>。",
+    "jumpToSource": "跳转到源代码"
   },
   "stage": {
     "stageFile": "Stage 文件",
@@ -748,7 +751,31 @@
       "renamed": "已重命名",
       "conflicted": "冲突",
       "deleted": "已删除"
-    }
+    },
+    "open": "打开",
+    "expand": "展开",
+    "collapse": "折叠",
+    "new": "新建",
+    "copyPathMenu": "复制路径/引用",
+    "copyAbsolute": "绝对路径",
+    "copyRelative": "相对仓库根目录的路径",
+    "copyName": "文件名",
+    "findInFolder": "在文件夹中查找…",
+    "findInProject": "在项目中查找…",
+    "collapseAll": "全部折叠",
+    "revealInFinder": "在访达中显示",
+    "gitAdd": "添加",
+    "compareWithBranch": "与分支比较",
+    "compareTitle": "将 {{name}} 与以下比较",
+    "compareRef": "分支、标签或提交",
+    "compare": "比较",
+    "compareDiffTitle": "{{path}}：{{ref}} ↔ 工作区",
+    "showHistory": "显示历史",
+    "annotate": "使用 Git Blame 注释",
+    "addToGitignore": "添加到 .gitignore",
+    "staged": "已添加 {{name}}",
+    "alreadyIgnored": "已在 .gitignore 中",
+    "ignored": "已将 {{line}} 添加到 .gitignore"
   },
   "workspace": {
     "empty": "从项目树中打开一个文件。",
