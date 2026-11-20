@@ -95,7 +95,11 @@
     "switchInline": "Cambiar a diff en línea",
     "switchSideBySide": "Cambiar a diff lado a lado",
     "inline": "En línea",
-    "sideBySide": "Lado a lado"
+    "sideBySide": "Lado a lado",
+    "whitespace": "Espacios",
+    "showWhitespaceHint": "Los cambios de espacios están ocultos — haz clic para mostrarlos",
+    "ignoreWhitespaceHint": "Los cambios de espacios se muestran — haz clic para ocultarlos",
+    "noTextChange": "Sin cambios de texto (solo permisos o finales de línea)"
   },
   "changes": {
     "refreshStatus": "Actualizar estado",
@@ -728,7 +732,23 @@
     "copyPath": "Copiar ruta",
     "deleteTitle": "¿Eliminar {{name}}?",
     "deleteFolderBody": "La carpeta y todo su contenido se eliminan del árbol de trabajo (los archivos versionados aparecen como eliminados en Cambios).",
-    "deleteFileBody": "El archivo se elimina del árbol de trabajo (uno versionado aparece como eliminado en Cambios)."
+    "deleteFileBody": "El archivo se elimina del árbol de trabajo (uno versionado aparece como eliminado en Cambios).",
+    "showDiff": "Mostrar diferencias",
+    "rollback": "Revertir",
+    "rollbackTitle": "¿Revertir {{name}}?",
+    "rollbackBody": "Se descartan sus cambios y vuelve al último commit (HEAD).",
+    "rollbackFolderBody": "Se descartan los cambios de sus archivos con commit. Los archivos nuevos se quedan.",
+    "rollbackNewBody": "Este archivo no está en el último commit, así que se elimina.",
+    "rolledBack": "{{name}} revertido",
+    "diffTitle": "Cambios en {{path}}",
+    "status": {
+      "modified": "Modificado",
+      "added": "Añadido",
+      "untracked": "Nuevo (sin seguimiento)",
+      "renamed": "Renombrado",
+      "conflicted": "Conflicto",
+      "deleted": "Eliminado"
+    }
   },
   "workspace": {
     "empty": "Abre un archivo desde el árbol del proyecto.",
@@ -747,7 +767,16 @@
     "changedOnDiskTitle": "{{name}} cambió en el disco",
     "autoSavePaused": "El guardado automático se pausó para este archivo para no perder el otro cambio. Pulsa ⌘S para sobrescribirlo, o cierra y vuelve a abrir el archivo para cargar la versión del disco.",
     "overwriteBody": "Otro programa cambió este archivo después de que lo abrieras. Sobrescribir reemplaza ese cambio con tu versión.",
-    "overwrite": "Sobrescribir"
+    "overwrite": "Sobrescribir",
+    "tabClose": "Cerrar",
+    "tabCloseOthers": "Cerrar las demás pestañas",
+    "tabCloseLeft": "Cerrar las pestañas de la izquierda",
+    "tabCloseRight": "Cerrar las pestañas de la derecha",
+    "tabCloseSaved": "Cerrar las pestañas guardadas",
+    "tabCloseAll": "Cerrar todas las pestañas",
+    "tabCopyPath": "Copiar ruta",
+    "pathCopied": "Ruta copiada",
+    "closeManyDirtyTitle": "{{count}} archivos tienen cambios sin guardar. ¿Descartarlos y cerrar?"
   },
   "search": {
     "findInFiles": "Buscar en archivos",

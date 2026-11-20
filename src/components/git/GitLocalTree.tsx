@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ChevronRight, File, FilePlus, Folder, FolderOpen, FolderPlus, Loader2, RefreshCw } from 'lucide-react';
+import { ChevronRight, Copy, File, FileDiff, FilePlus, Folder, FolderOpen, FolderPlus, Loader2, Pencil, RefreshCw, Trash2, Undo2 } from 'lucide-react';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
+import { GitDiffViewer } from './GitDiffViewer';
 import { gitAPI } from '@/services/api';
 import {
   ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator, ContextMenuTrigger,
@@ -9,9 +11,24 @@ import { confirmDialog } from '@/components/ui/confirm';
 import { useToast } from '@/components/ui/use-toast';
 import { cn } from '@/lib/utils';
 import type { NamePromptState } from './GitVcsDialogs';
-import { extractErr } from './util';
+import { decodeGitContent, extractErr } from './util';
 
 interface Entry { name: string; path: string; type: 'dir' | 'file' | 'symlink'; status?: string; ignored?: boolean }
+
+// One-letter badge like an IDE's project view (M modified, A added, …).
+const STATUS_LETTER: Record<string, string> = {
+  modified: 'M', added: 'A', untracked: 'U', renamed: 'R', conflicted: 'C', deleted: 'D',
+};
+
+async function readAt(repoId: string, path: string, ref?: string): Promise<string> {
+  try {
+    const res = await gitAPI.localFile(repoId, ref ? { path, ref } : { path });
+    const d = (res.data ?? {}) as { content?: string; encoding?: string };
+    return decodeGitContent(d.content, d.encoding);
+  } catch {
+    return '';
+  }
+}
 
 const STATUS_TONE: Record<string, string> = {
   modified: 'text-sky-600 dark:text-sky-400',
@@ -24,13 +41,15 @@ const STATUS_TONE: Record<string, string> = {
 
 // The clone's working tree (not the remote's tree at a ref): status colours
 // like an IDE project view, and a context menu for new / rename / delete.
-export function GitLocalTree({ repoId, selected, onOpen, onPrompt, onChanged, reloadKey }: {
+export function GitLocalTree({ repoId, selected, onOpen, onPrompt, onChanged, onReverted, reloadKey }: {
   repoId: string;
   selected?: string;
   onOpen: (path: string) => void;
   onPrompt: (p: NamePromptState) => void;
   /** a path was renamed (from → to) or deleted (to undefined) */
   onChanged?: (from?: string, to?: string) => void;
+  /** a file went back to HEAD (its open editor must reload) */
+  onReverted?: (path: string) => void;
   reloadKey?: number;
 }) {
   const { t } = useTranslation('git');
@@ -111,6 +130,33 @@ export function GitLocalTree({ repoId, selected, onOpen, onPrompt, onChanged, re
     if (await op({ op: 'delete', path: e.path })) { refresh(); onChanged?.(e.path, undefined); }
   };
 
+  // Show diff: HEAD ↔ working tree for one file.
+  const [diff, setDiff] = useState<{ path: string; original: string; modified: string } | null>(null);
+  const showDiff = async (e: Entry) => {
+    const [original, modified] = await Promise.all([
+      e.status === 'untracked' || e.status === 'added' ? Promise.resolve('') : readAt(repoId, e.path, 'HEAD'),
+      readAt(repoId, e.path),
+    ]);
+    setDiff({ path: e.path, original, modified });
+  };
+  // Rollback: back to HEAD (a new file is removed).
+  const rollback = async (e: Entry) => {
+    const isNew = e.status === 'untracked' || e.status === 'added';
+    const ok = await confirmDialog({
+      title: t('tree.rollbackTitle', { name: e.name }),
+      description: isNew ? t('tree.rollbackNewBody') : e.type === 'dir' ? t('tree.rollbackFolderBody') : t('tree.rollbackBody'),
+      destructive: true,
+      confirmLabel: t('tree.rollback'),
+    });
+    if (!ok) return;
+    if (await op({ op: 'rollback', path: e.path })) {
+      refresh();
+      if (isNew && e.type !== 'dir') onChanged?.(e.path, undefined);
+      else onReverted?.(e.path);
+      toast({ title: t('tree.rolledBack', { name: e.name }) });
+    }
+  };
+
   const row = (e: Entry, depth: number): React.ReactNode => {
     const isDir = e.type === 'dir';
     const isOpen = open.has(e.path);
@@ -130,17 +176,29 @@ export function GitLocalTree({ repoId, selected, onOpen, onPrompt, onChanged, re
               {isDir ? (isOpen ? <FolderOpen className="h-3.5 w-3.5 shrink-0 text-amber-500" /> : <Folder className="h-3.5 w-3.5 shrink-0 text-amber-500" />)
                 : <File className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />}
               <span className={cn('truncate', e.status && STATUS_TONE[e.status])}>{e.name}</span>
-              {loading.has(e.path) && <Loader2 className="ml-auto h-3 w-3 animate-spin text-muted-foreground" />}
+              {loading.has(e.path) ? <Loader2 className="ml-auto h-3 w-3 animate-spin text-muted-foreground" />
+                : e.status && STATUS_LETTER[e.status] && (
+                  isDir
+                    ? <span className={cn('ml-auto h-1.5 w-1.5 shrink-0 rounded-full bg-current', STATUS_TONE[e.status])} title={t(`tree.status.${e.status}`)} />
+                    : <span className={cn('ml-auto shrink-0 font-mono text-[10px] font-semibold', STATUS_TONE[e.status])} title={t(`tree.status.${e.status}`)}>{STATUS_LETTER[e.status]}</span>
+                )}
             </button>
           </ContextMenuTrigger>
-          <ContextMenuContent className="w-48">
+          <ContextMenuContent className="w-52">
             <ContextMenuItem onClick={() => create(isDir ? e.path : parentOf(e.path), 'create')}><FilePlus className="mr-2 h-3.5 w-3.5" />{t('tree.newFile')}</ContextMenuItem>
             <ContextMenuItem onClick={() => create(isDir ? e.path : parentOf(e.path), 'mkdir')}><FolderPlus className="mr-2 h-3.5 w-3.5" />{t('tree.newFolder')}</ContextMenuItem>
+            {e.status && e.status !== 'deleted' && (
+              <>
+                <ContextMenuSeparator />
+                {!isDir && <ContextMenuItem onClick={() => void showDiff(e)}><FileDiff className="mr-2 h-3.5 w-3.5" />{t('tree.showDiff')}</ContextMenuItem>}
+                <ContextMenuItem onClick={() => void rollback(e)}><Undo2 className="mr-2 h-3.5 w-3.5" />{t('tree.rollback')}…</ContextMenuItem>
+              </>
+            )}
             <ContextMenuSeparator />
-            <ContextMenuItem onClick={() => rename(e)}>{t('vcs.rename')}…</ContextMenuItem>
-            <ContextMenuItem onClick={() => { void navigator.clipboard.writeText(e.path); }}>{t('tree.copyPath')}</ContextMenuItem>
+            <ContextMenuItem onClick={() => rename(e)}><Pencil className="mr-2 h-3.5 w-3.5" />{t('vcs.rename')}…</ContextMenuItem>
+            <ContextMenuItem onClick={() => { void navigator.clipboard.writeText(e.path); toast({ title: t('workspace.pathCopied') }); }}><Copy className="mr-2 h-3.5 w-3.5" />{t('tree.copyPath')}</ContextMenuItem>
             <ContextMenuSeparator />
-            <ContextMenuItem className="text-destructive" onClick={() => void remove(e)}>{t('vcs.delete')}</ContextMenuItem>
+            <ContextMenuItem className="text-destructive" onClick={() => void remove(e)}><Trash2 className="mr-2 h-3.5 w-3.5" />{t('vcs.delete')}</ContextMenuItem>
           </ContextMenuContent>
         </ContextMenu>
         {isDir && isOpen && (kids[e.path] ?? []).map((c) => row(c, depth + 1))}
@@ -149,7 +207,8 @@ export function GitLocalTree({ repoId, selected, onOpen, onPrompt, onChanged, re
   };
 
   return (
-    <div className="py-1">
+    // select-none: a right-click must open our menu, not select text.
+    <div className="flex min-h-full flex-col select-none py-1">
       <div className="flex items-center gap-1 px-2 pb-1">
         <span className="flex-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{t('tree.title')}</span>
         <button type="button" className="rounded p-0.5 text-muted-foreground hover:bg-accent hover:text-foreground" title={t('tree.newFile')} aria-label={t('tree.newFile')} onClick={() => create('', 'create')}><FilePlus className="h-3.5 w-3.5" /></button>
@@ -157,6 +216,25 @@ export function GitLocalTree({ repoId, selected, onOpen, onPrompt, onChanged, re
         <button type="button" className="rounded p-0.5 text-muted-foreground hover:bg-accent hover:text-foreground" title={t('mr.refresh')} aria-label={t('mr.refresh')} onClick={refresh}><RefreshCw className="h-3.5 w-3.5" /></button>
       </div>
       {!kids[''] ? <div className="flex justify-center py-4"><Loader2 className="h-4 w-4 animate-spin text-muted-foreground" /></div> : kids[''].map((e) => row(e, 0))}
+      {/* Empty space below the files: new file / folder at the root (and no
+          browser menu). */}
+      <ContextMenu>
+        <ContextMenuTrigger asChild>
+          <div className="min-h-8 flex-1" />
+        </ContextMenuTrigger>
+        <ContextMenuContent className="w-48">
+          <ContextMenuItem onClick={() => create('', 'create')}><FilePlus className="mr-2 h-3.5 w-3.5" />{t('tree.newFile')}</ContextMenuItem>
+          <ContextMenuItem onClick={() => create('', 'mkdir')}><FolderPlus className="mr-2 h-3.5 w-3.5" />{t('tree.newFolder')}</ContextMenuItem>
+          <ContextMenuSeparator />
+          <ContextMenuItem onClick={refresh}><RefreshCw className="mr-2 h-3.5 w-3.5" />{t('mr.refresh')}</ContextMenuItem>
+        </ContextMenuContent>
+      </ContextMenu>
+      <Dialog open={!!diff} onOpenChange={(o) => { if (!o) setDiff(null); }}>
+        <DialogContent className="flex h-[80vh] w-[92vw] max-w-[1300px] flex-col gap-2 overflow-hidden p-3">
+          <DialogTitle className="text-sm">{t('tree.diffTitle', { path: diff?.path ?? '' })}</DialogTitle>
+          {diff && <div className="min-h-0 flex-1 rounded border"><GitDiffViewer original={diff.original} modified={diff.modified} path={diff.path} /></div>}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -95,7 +95,11 @@
     "switchInline": "Satır içi diff'e geç",
     "switchSideBySide": "Yan yana diff'e geç",
     "inline": "Satır içi",
-    "sideBySide": "Yan yana"
+    "sideBySide": "Yan yana",
+    "whitespace": "Boşluklar",
+    "showWhitespaceHint": "Boşluk değişiklikleri gizli — göstermek için tıklayın",
+    "ignoreWhitespaceHint": "Boşluk değişiklikleri görünüyor — gizlemek için tıklayın",
+    "noTextChange": "Metin değişmedi (yalnız izin ya da satır sonu)"
   },
   "changes": {
     "refreshStatus": "Durumu yenile",
@@ -728,7 +732,23 @@
     "copyPath": "Yolu kopyala",
     "deleteTitle": "{{name}} silinsin mi?",
     "deleteFolderBody": "Klasör ve içindeki her şey çalışma ağacından silinir (izlenen dosyalar Değişiklikler'de silinmiş görünür).",
-    "deleteFileBody": "Dosya çalışma ağacından silinir (izlenen bir dosya Değişiklikler'de silinmiş görünür)."
+    "deleteFileBody": "Dosya çalışma ağacından silinir (izlenen bir dosya Değişiklikler'de silinmiş görünür).",
+    "showDiff": "Farkı göster",
+    "rollback": "Geri al (Rollback)",
+    "rollbackTitle": "{{name}} geri alınsın mı?",
+    "rollbackBody": "Değişiklikleri atılır ve son commit'teki (HEAD) haline döner.",
+    "rollbackFolderBody": "Commit'li dosyalarındaki değişiklikler atılır. İçindeki yeni dosyalar kalır.",
+    "rollbackNewBody": "Bu dosya son commit'te yok, bu yüzden silinir.",
+    "rolledBack": "{{name}} geri alındı",
+    "diffTitle": "{{path}} değişiklikleri",
+    "status": {
+      "modified": "Değişti",
+      "added": "Eklendi",
+      "untracked": "Yeni (takip edilmiyor)",
+      "renamed": "Yeniden adlandırıldı",
+      "conflicted": "Çakışma",
+      "deleted": "Silindi"
+    }
   },
   "workspace": {
     "empty": "Proje ağacından bir dosya aç.",
@@ -747,7 +767,16 @@
     "changedOnDiskTitle": "{{name}} diskte değişti",
     "autoSavePaused": "Diğer değişiklik kaybolmasın diye bu dosya için otomatik kaydetme durdu. Üzerine yazmak için ⌘S'ye basın ya da diskteki sürümü yüklemek için dosyayı kapatıp yeniden açın.",
     "overwriteBody": "Siz açtıktan sonra başka bir program bu dosyayı değiştirdi. Üzerine yazarsanız o değişikliğin yerine sizin sürümünüz geçer.",
-    "overwrite": "Üzerine yaz"
+    "overwrite": "Üzerine yaz",
+    "tabClose": "Kapat",
+    "tabCloseOthers": "Diğer sekmeleri kapat",
+    "tabCloseLeft": "Soldaki sekmeleri kapat",
+    "tabCloseRight": "Sağdaki sekmeleri kapat",
+    "tabCloseSaved": "Kaydedilmiş sekmeleri kapat",
+    "tabCloseAll": "Tüm sekmeleri kapat",
+    "tabCopyPath": "Yolu kopyala",
+    "pathCopied": "Yol kopyalandı",
+    "closeManyDirtyTitle": "{{count}} dosyada kaydedilmemiş değişiklik var. Atıp kapatılsın mı?"
   },
   "search": {
     "findInFiles": "Dosyalarda Bul",

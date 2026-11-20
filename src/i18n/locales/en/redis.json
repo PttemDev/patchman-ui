@@ -110,7 +110,8 @@
     "stoppedLimit": "more keys may match",
     "stoppedBudget": "scan paused after {{ms}} ms — more keys may match",
     "continueScan": "Continue scanning",
-    "resizeDetailHint": "Drag or use ←/→ to resize · double-click to reset"
+    "resizeDetailHint": "Drag or use ←/→ to resize · double-click to reset",
+    "dbKeys": "{{count}} keys"
   },
   "columns": {
     "key": "Key",

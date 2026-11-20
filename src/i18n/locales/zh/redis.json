@@ -110,7 +110,8 @@
     "stoppedLimit": "可能还有更多匹配的键",
     "stoppedBudget": "扫描在 {{ms}} 毫秒后暂停 — 可能还有更多匹配的键",
     "continueScan": "继续扫描",
-    "resizeDetailHint": "拖动或使用 ←/→ 调整大小 · 双击重置"
+    "resizeDetailHint": "拖动或使用 ←/→ 调整大小 · 双击重置",
+    "dbKeys": "{{count}} 个键"
   },
   "columns": {
     "key": "Key",

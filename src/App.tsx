@@ -104,6 +104,9 @@ function isBenignEditorError(message: string): boolean {
     message.includes('TextModel got disposed') ||
     message.includes('DiffEditorWidget model got reset') ||
     message.includes('Model is disposed') ||
+    // An editor torn down mid-render (a scroll / layout callback runs after
+    // the tab or dialog unmounted it): Monaco's services are already gone.
+    message.includes('InstantiationService has been disposed') ||
     // A Monaco worker proxy couldn't resolve an optional language-service
     // method (e.g. monaco-yaml's document-link "findLinks" — a monaco-editor
     // 0.55 ↔ monaco-yaml 5.5 interop quirk). The editor stays fully usable —

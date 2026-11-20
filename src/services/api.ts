@@ -1212,6 +1212,9 @@ export const redisAPI = {
   // contains match (order → *order*) while explicit globs pass through.
   scanKeys: (id: string, params: { db?: number; match?: string; cursor?: number; count?: number; smart?: 0 | 1 }, scope?: DBScope) =>
     api.get(`/redis/${id}/keys`, { params, ...(scope ? { _executionPin: scope } : {}) }),
+  /** Keys per logical database ({"0": 12}); empty when the server hides INFO. */
+  keyspace: (id: string, scope?: DBScope) =>
+    api.get(`/redis/${id}/keyspace`, { ...(scope ? { _executionPin: scope } : {}) }),
   keyMeta: (id: string, params: { db?: number; key: string }, scope?: DBScope) =>
     api.get(`/redis/${id}/key/meta`, { params, ...(scope ? { _executionPin: scope } : {}) }),
   getValue: (id: string, params: { db?: number; key: string; start?: number; stop?: number; cursor?: number }, scope?: DBScope) =>
@@ -2689,7 +2692,7 @@ export const gitAPI = {
     api.get(`/git/repos/${repoId}/symbols`, { params: { q, exact: exact ? 1 : undefined }, signal, _executionPin: 'local' }),
   ls: (repoId: string, path = '') => api.get(`/git/repos/${repoId}/ls`, { params: { path }, _executionPin: 'local' }),
   blame: (repoId: string, path: string) => api.get(`/git/repos/${repoId}/blame`, { params: { path }, _executionPin: 'local' }),
-  fsOp: (repoId: string, body: { op: 'create' | 'mkdir' | 'rename' | 'delete'; path: string; newPath?: string; content?: string }) =>
+  fsOp: (repoId: string, body: { op: 'create' | 'mkdir' | 'rename' | 'delete' | 'rollback'; path: string; newPath?: string; content?: string }) =>
     api.post(`/git/repos/${repoId}/fs`, body, { _executionPin: 'local' }),
   outgoing: (repoId: string, params: { remote: string; branch: string }) =>
     api.get(`/git/repos/${repoId}/outgoing`, { params, _executionPin: 'local' }),

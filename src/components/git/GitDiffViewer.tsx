@@ -1,13 +1,15 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { CodeDiffEditor } from '@/components/ui/CodeEditor';
-import { Columns2, Rows2 } from 'lucide-react';
+import { Columns2, Pilcrow, Rows2 } from 'lucide-react';
 import { useThemeStore } from '@/stores/themeStore';
 import { useCodeTheme } from '@/lib/monacoShiki';
 import { Button } from '@/components/ui/button';
 import { languageForPath } from './util';
+import { cn } from '@/lib/utils';
 
 const DIFF_MODE_KEY = 'patchman.git.diffMode';
+const DIFF_WS_KEY = 'patchman.git.diffIgnoreWhitespace';
 
 interface GitDiffViewerProps {
   /** Base-ref content (left / removed side). Empty for an added file. */
@@ -38,7 +40,17 @@ export function GitDiffViewer({ original, modified, path, language }: GitDiffVie
     try { localStorage.setItem(DIFF_MODE_KEY, next ? 'side' : 'inline'); } catch { /* storage blocked */ }
     return next;
   });
+  // Whitespace changes are shown by default: Monaco hides leading / trailing
+  // whitespace changes otherwise, so a whitespace-only edit looked unchanged.
+  const [ignoreWs, setIgnoreWsState] = useState<boolean>(() => {
+    try { return localStorage.getItem(DIFF_WS_KEY) === '1'; } catch { return false; }
+  });
+  const toggleWs = () => setIgnoreWsState((v) => {
+    try { localStorage.setItem(DIFF_WS_KEY, v ? '0' : '1'); } catch { /* storage blocked */ }
+    return !v;
+  });
   const lang = language ?? languageForPath(path);
+  const sameText = original === modified;
   const codeTheme = useCodeTheme(theme === 'dark', lang);
 
   return (
@@ -47,6 +59,18 @@ export function GitDiffViewer({ original, modified, path, language }: GitDiffVie
         <span className="text-[11px] font-mono text-muted-foreground truncate min-w-0" title={path}>
           {path ?? ''}
         </span>
+        <div className="flex shrink-0 items-center gap-1">
+        {sameText && <span className="text-[11px] text-muted-foreground">{t('diffViewer.noTextChange')}</span>}
+        <Button
+          size="sm"
+          variant="ghost"
+          className={cn('h-6 gap-1 text-[11px] shrink-0', !ignoreWs && 'text-primary')}
+          onClick={toggleWs}
+          aria-pressed={!ignoreWs}
+          title={ignoreWs ? t('diffViewer.showWhitespaceHint') : t('diffViewer.ignoreWhitespaceHint')}
+        >
+          <Pilcrow className="h-3 w-3" />{t('diffViewer.whitespace')}
+        </Button>
         <Button
           size="sm"
           variant="ghost"
@@ -57,6 +81,7 @@ export function GitDiffViewer({ original, modified, path, language }: GitDiffVie
           {sideBySide ? <Rows2 className="h-3 w-3" /> : <Columns2 className="h-3 w-3" />}
           {sideBySide ? t('diffViewer.inline') : t('diffViewer.sideBySide')}
         </Button>
+        </div>
       </div>
       <div className="flex-1 min-h-0">
         <CodeDiffEditor
@@ -69,6 +94,9 @@ export function GitDiffViewer({ original, modified, path, language }: GitDiffVie
             readOnly: true,
             originalEditable: false,
             renderSideBySide: sideBySide,
+            ignoreTrimWhitespace: ignoreWs,
+            // Make spaces / tabs visible where they changed.
+            renderWhitespace: ignoreWs ? 'none' : 'boundary',
             // Monaco silently drops to inline below ~900px (dialogs, split
             // panes); the toggle must mean what it says.
             useInlineViewWhenSpaceIsLimited: false,

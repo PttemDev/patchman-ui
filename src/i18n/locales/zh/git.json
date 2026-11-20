@@ -95,7 +95,11 @@
     "switchInline": "切换到内联 diff",
     "switchSideBySide": "切换到并排 diff",
     "inline": "内联",
-    "sideBySide": "并排"
+    "sideBySide": "并排",
+    "whitespace": "空白",
+    "showWhitespaceHint": "空白更改已隐藏 — 点击显示",
+    "ignoreWhitespaceHint": "正在显示空白更改 — 点击隐藏",
+    "noTextChange": "文本无变化（仅权限或行尾）"
   },
   "changes": {
     "refreshStatus": "刷新状态",
@@ -728,7 +732,23 @@
     "copyPath": "复制路径",
     "deleteTitle": "删除 {{name}}？",
     "deleteFolderBody": "文件夹及其所有内容将从工作区删除（已跟踪的文件在“更改”中显示为已删除）。",
-    "deleteFileBody": "文件将从工作区删除（已跟踪的文件在“更改”中显示为已删除）。"
+    "deleteFileBody": "文件将从工作区删除（已跟踪的文件在“更改”中显示为已删除）。",
+    "showDiff": "显示差异",
+    "rollback": "回滚",
+    "rollbackTitle": "回滚 {{name}}？",
+    "rollbackBody": "将丢弃其更改并恢复到最后一次提交（HEAD）。",
+    "rollbackFolderBody": "将丢弃其中已提交文件的更改。其中的新文件会保留。",
+    "rollbackNewBody": "此文件不在最后一次提交中，因此会被删除。",
+    "rolledBack": "已回滚 {{name}}",
+    "diffTitle": "{{path}} 的更改",
+    "status": {
+      "modified": "已修改",
+      "added": "已添加",
+      "untracked": "新文件（未跟踪）",
+      "renamed": "已重命名",
+      "conflicted": "冲突",
+      "deleted": "已删除"
+    }
   },
   "workspace": {
     "empty": "从项目树中打开一个文件。",
@@ -747,7 +767,16 @@
     "changedOnDiskTitle": "{{name}} 已在磁盘上更改",
     "autoSavePaused": "为避免丢失其他更改，此文件的自动保存已暂停。按 ⌘S 覆盖，或关闭后重新打开文件以加载磁盘上的版本。",
     "overwriteBody": "在你打开此文件后，另一个程序更改了它。覆盖会用你的版本替换那次更改。",
-    "overwrite": "覆盖"
+    "overwrite": "覆盖",
+    "tabClose": "关闭",
+    "tabCloseOthers": "关闭其他标签页",
+    "tabCloseLeft": "关闭左侧标签页",
+    "tabCloseRight": "关闭右侧标签页",
+    "tabCloseSaved": "关闭已保存的标签页",
+    "tabCloseAll": "关闭所有标签页",
+    "tabCopyPath": "复制路径",
+    "pathCopied": "已复制路径",
+    "closeManyDirtyTitle": "{{count}} 个文件有未保存的更改。放弃并关闭？"
   },
   "search": {
     "findInFiles": "在文件中查找",

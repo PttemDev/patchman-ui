@@ -95,7 +95,11 @@
     "switchInline": "Switch to inline diff",
     "switchSideBySide": "Switch to side-by-side diff",
     "inline": "Inline",
-    "sideBySide": "Side by side"
+    "sideBySide": "Side by side",
+    "whitespace": "Whitespace",
+    "showWhitespaceHint": "Whitespace changes are hidden — click to show them",
+    "ignoreWhitespaceHint": "Whitespace changes are shown — click to hide them",
+    "noTextChange": "No text changes (mode or line endings only)"
   },
   "changes": {
     "refreshStatus": "Refresh status",
@@ -728,7 +732,23 @@
     "copyPath": "Copy path",
     "deleteTitle": "Delete {{name}}?",
     "deleteFolderBody": "The folder and everything in it is deleted from the working tree (tracked files show as deleted in Changes).",
-    "deleteFileBody": "The file is deleted from the working tree (a tracked file shows as deleted in Changes)."
+    "deleteFileBody": "The file is deleted from the working tree (a tracked file shows as deleted in Changes).",
+    "showDiff": "Show diff",
+    "rollback": "Rollback",
+    "rollbackTitle": "Roll back {{name}}?",
+    "rollbackBody": "Its changes are discarded and it goes back to the last commit (HEAD).",
+    "rollbackFolderBody": "The changes to its committed files are discarded. New files in it stay.",
+    "rollbackNewBody": "This file is not in the last commit, so it is deleted.",
+    "rolledBack": "{{name}} rolled back",
+    "diffTitle": "Changes in {{path}}",
+    "status": {
+      "modified": "Modified",
+      "added": "Added",
+      "untracked": "New (untracked)",
+      "renamed": "Renamed",
+      "conflicted": "Conflict",
+      "deleted": "Deleted"
+    }
   },
   "workspace": {
     "empty": "Open a file from the project tree.",
@@ -747,7 +767,16 @@
     "changedOnDiskTitle": "{{name}} changed on disk",
     "autoSavePaused": "Auto save is paused for this file so the other change isn't lost. Press ⌘S to overwrite it, or close and reopen the file to load the disk version.",
     "overwriteBody": "Another program changed this file after you opened it. Overwriting replaces that change with your version.",
-    "overwrite": "Overwrite"
+    "overwrite": "Overwrite",
+    "tabClose": "Close",
+    "tabCloseOthers": "Close other tabs",
+    "tabCloseLeft": "Close tabs to the left",
+    "tabCloseRight": "Close tabs to the right",
+    "tabCloseSaved": "Close saved tabs",
+    "tabCloseAll": "Close all tabs",
+    "tabCopyPath": "Copy path",
+    "pathCopied": "Path copied",
+    "closeManyDirtyTitle": "{{count}} files have unsaved changes. Discard them and close?"
   },
   "search": {
     "findInFiles": "Find in Files",

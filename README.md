@@ -120,7 +120,7 @@ Every connection uses the same model: credentials are stored encrypted, and the 
 | Tool | What you can do |
 |---|---|
 | **Databases** | PostgreSQL (and Cockroach, Yugabyte, Redshift), MySQL (and MariaDB, TiDB), SQL Server, MongoDB and BigQuery. Editor with examples and saved queries, schema browser, result grid with filters, aggregates, charts and export. MongoDB adds index management, explain plans and an aggregation pipeline builder. BigQuery checks every query with a free dry run first and enforces scan limits you set (per query, per connection, or a server-wide ceiling). |
-| **Redis** | Key browser with smart SCAN, typed value views, TTL and memory, a console and a cheatsheet. Read-only by default. |
+| **Redis** | Key browser with smart SCAN, typed value views, TTL and memory, key counts per database, a console and a cheatsheet. Read-only by default. |
 | **Elasticsearch** | Index and alias browser, mappings, Kibana data views with search, and a console with completion, drafts and saved queries. |
 | **Kafka** | Brokers, topics with sizes, consumer groups and lag, and message peek. Peek never commits offsets. |
 | **RabbitMQ** | Overview, queues, exchanges, topology, peek with requeue, publish, a live tail and moving messages out of a DLQ. |
@@ -140,6 +140,7 @@ Every connection uses the same model: credentials are stored encrypted, and the 
 - Merge requests and pull requests: list, read the conversation, review the changes with line comments, reply to and resolve threads, approve, mark as draft or ready, close or reopen, update the branch, and merge with an editable merge commit message. Descriptions and comments render as markdown.
 - CI/CD: GitLab pipelines and jobs (including trigger jobs and downstream pipelines) and GitHub Actions workflow runs, with job logs, retry, run again (also for trigger jobs that wait to be started by hand), schedules shown in plain words, and variables. Values are revealed one at a time, and each reveal is audited.
 - A Git workspace that works like an IDE: open any git folder on your computer (desktop) without a connection, edit files with syntax highlighting and auto save, stage, commit, pull, push, and the full JetBrains-style branch menu (checkout, new branch, update a branch you are not on, merge, rebase, compare, rename, delete). Saves are hash-guarded, so a file changed elsewhere is not overwritten. Local folders can be linked to a GitLab project, existing clones on disk are reused, and Markdown files render as a preview while browsing a repository.
+- In the Git workspace, the file tree marks changed files and folders, and a changed file can be compared or rolled back from its menu. Editor tabs have a context menu and can be reordered by dragging, and diffs show whitespace-only changes unless you hide them.
 
 ### QA and performance
 - Test cases with request, check (status, body, JSON path, header, response time), extract and wait steps.
@@ -460,6 +461,8 @@ Re-checked for 1.68.2 (November 2026): `npm run build`, `npm run check:i18n` and
 Re-checked for 1.70.0 (November 2026): `npm run build`, `npm run check:i18n` and `cargo check` (desktop shell) pass; the changes since 1.68.2 (1.69.0 and 1.70.0) were scanned for secrets, internal hostnames and personal names; `npm audit` shows the same 13 moderate/low advisories. The Windows and Linux packages and update checks from GitHub Releases are new in this version and are built in CI, not on the maintainer's machine.
 
 Re-checked for 1.72.0 (November 2026): `npm run build`, `npm run check:i18n` and `cargo check` (desktop shell) pass; the changes since 1.70.1 (1.71.0 to 1.72.0) and the new developer guide (`docs/dev/`, `AGENTS.md`) were scanned for secrets, internal hostnames and personal names; `npm audit` shows the same 13 moderate/low advisories.
+
+Re-checked for 1.73.0 (November 2026): `npm run build`, `npm run check:i18n` and `cargo check` (desktop shell) pass; the changes since 1.72.0 were scanned for secrets, internal hostnames and personal names; `npm audit` shows the same 13 moderate/low advisories.
 
 Dependency notes: `xlsx` is installed from the SheetJS CDN (`0.20.3`) because newer releases are not published to npm, and `package.json` uses `overrides` to pin patched versions of `lodash-es`, `dompurify` and `nanoid`.
 

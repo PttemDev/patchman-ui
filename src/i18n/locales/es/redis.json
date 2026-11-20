@@ -110,7 +110,8 @@
     "stoppedLimit": "puede haber más claves coincidentes",
     "stoppedBudget": "escaneo en pausa tras {{ms}} ms — puede haber más claves coincidentes",
     "continueScan": "Seguir escaneando",
-    "resizeDetailHint": "Arrastra o usa ←/→ para cambiar el tamaño · doble clic para restablecer"
+    "resizeDetailHint": "Arrastra o usa ←/→ para cambiar el tamaño · doble clic para restablecer",
+    "dbKeys": "{{count}} claves"
   },
   "columns": {
     "key": "Key",

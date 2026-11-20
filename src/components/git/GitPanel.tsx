@@ -500,6 +500,18 @@ export function GitPanel({ tab }: { tab: Tab }) {
     const i = (tab.gitOpenFiles ?? []).indexOf(p);
     updateTab(tab.id, { gitOpenFiles: files, gitActiveFile: tab.gitActiveFile === p ? files[Math.max(0, i - 1)] ?? '' : tab.gitActiveFile });
   }, [tab.id, tab.gitOpenFiles, tab.gitActiveFile, updateTab]);
+  const closeFiles = useCallback((paths: string[]) => {
+    const drop = new Set(paths);
+    const all = tab.gitOpenFiles ?? [];
+    const files = all.filter((x) => !drop.has(x));
+    let activeFile = tab.gitActiveFile ?? '';
+    if (drop.has(activeFile)) {
+      // The nearest kept tab to the left of the closed active one, else the first.
+      const i = all.indexOf(activeFile);
+      activeFile = [...all.slice(0, i)].reverse().find((x) => !drop.has(x)) ?? files[0] ?? '';
+    }
+    updateTab(tab.id, { gitOpenFiles: files, gitActiveFile: activeFile });
+  }, [tab.id, tab.gitOpenFiles, tab.gitActiveFile, updateTab]);
   const onTreeChanged = useCallback((from?: string, to?: string) => {
     const files = tab.gitOpenFiles ?? [];
     const next = files.flatMap((f) => {
@@ -1093,6 +1105,17 @@ export function GitPanel({ tab }: { tab: Tab }) {
                   onOpen={openFile}
                   onPrompt={setNamePrompt}
                   onChanged={onTreeChanged}
+                  onReverted={(path) => {
+                    // Reload an open file (or files under a folder) from disk:
+                    // drop the tabs, then reopen them so their buffers re-read.
+                    const open = (tab.gitOpenFiles ?? []).filter((f) => f === path || f.startsWith(path + '/'));
+                    if (open.length === 0) return;
+                    const all = tab.gitOpenFiles ?? [];
+                    const active = tab.gitActiveFile;
+                    updateTab(tab.id, { gitOpenFiles: all.filter((f) => !open.includes(f)) });
+                    setTimeout(() => updateTab(tab.id, { gitOpenFiles: all, gitActiveFile: active }), 0);
+                    setRefsKey((k) => k + 1);
+                  }}
                   reloadKey={reloadKey}
                 />
               </div>
@@ -1140,6 +1163,8 @@ export function GitPanel({ tab }: { tab: Tab }) {
                 active={tab.gitActiveFile}
                 onActivate={(p) => updateTab(tab.id, { gitActiveFile: p })}
                 onClose={closeFile}
+                onCloseMany={closeFiles}
+                onReorder={(files) => updateTab(tab.id, { gitOpenFiles: files })}
                 onDirtyChange={handleEditorDirty}
                 registerFlush={registerFlush}
                 onSaved={(o) => {

@@ -7,6 +7,18 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '1.73.0',
+    date: '2026-11-20',
+    title: 'Git editor tabs and file tree, whitespace in diffs, Redis key counts',
+    changes: [
+      'Git editor: tabs have a right-click menu (close, close others, close to the left / right, close saved, close all, copy path), can be dragged to reorder and close with a middle click.',
+      'Git editor: typing fast no longer loses keystrokes or shows an "InstantiationService has been disposed" error, and ⌘Z / ⇧⌘Z undo and redo in the desktop app.',
+      'Git file tree: changed files show a letter (M modified, A added, U new, R renamed, C conflict) and changed folders a dot. Right-click a changed file to see its diff against the last commit or roll it back. Right-clicking no longer selects text, and the empty area offers New file / New folder.',
+      'Git diffs: whitespace-only changes now show (they looked unchanged before). The Whitespace button hides them again.',
+      'Redis: the database picker shows how many keys each database has.',
+    ],
+  },
+  {
     version: '1.72.0',
     date: '2026-11-20',
     title: 'Merge commit message, markdown in merge requests',

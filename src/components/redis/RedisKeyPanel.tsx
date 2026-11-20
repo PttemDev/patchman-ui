@@ -158,6 +158,21 @@ export function RedisKeyPanel({ tab }: RedisKeyPanelProps) {
 
   const [browseMode, setBrowseMode] = useState<BrowseMode>('keys');
 
+  // Keys per database for the DB picker (INFO keyspace). Optional: a server
+  // that hides INFO, or an older backend, just shows no counts.
+  const [dbKeys, setDbKeys] = useState<Record<string, number>>({});
+  const loadKeyspace = useCallback(async () => {
+    if (!connId || isCluster) { setDbKeys({}); return; }
+    try {
+      const res = await redisAPI.keyspace(connId, scope);
+      setDbKeys((res.data as Record<string, number>) ?? {});
+    } catch {
+      setDbKeys({});
+    }
+  }, [connId, isCluster, scope]);
+  useEffect(() => { void loadKeyspace(); }, [loadKeyspace]);
+  const dbCount = Math.max(16, ...Object.keys(dbKeys).map((k) => Number(k) + 1).filter(Number.isFinite));
+
   // ── SCAN state ──────────────────────────────────────────────────────
   const [match, setMatch] = useState(tab.redisKeyPattern ?? '*');
   // Matching keys wanted per page — the BE keeps SCANning (within a ~1.5s
@@ -581,12 +596,23 @@ export function RedisKeyPanel({ tab }: RedisKeyPanelProps) {
           </Select>
 
           {!isCluster && (
-            <Select value={String(db)} onValueChange={handleDbChange} disabled={!connId}>
-              <SelectTrigger className="w-[110px] h-9 text-sm"><SelectValue /></SelectTrigger>
+            <Select value={String(db)} onValueChange={handleDbChange} disabled={!connId} onOpenChange={(o) => { if (o) void loadKeyspace(); }}>
+              <SelectTrigger className="w-[140px] h-9 text-sm"><SelectValue /></SelectTrigger>
               <SelectContent>
-                {Array.from({ length: 16 }, (_, i) => (
-                  <SelectItem key={i} value={String(i)}>{t('panel.dbOption', { n: i })}</SelectItem>
-                ))}
+                {Array.from({ length: dbCount }, (_, i) => {
+                  const n = dbKeys[String(i)];
+                  return (
+                    <SelectItem key={i} value={String(i)}>
+                      <span className="flex w-full items-center gap-3">
+                        <span>{t('panel.dbOption', { n: i })}</span>
+                        <span className={cn('ml-auto font-mono text-[11px] tabular-nums', n ? 'text-muted-foreground' : 'text-muted-foreground/40')}
+                          title={t('panel.dbKeys', { count: n ?? 0 })}>
+                          {n ? n.toLocaleString() : '0'}
+                        </span>
+                      </span>
+                    </SelectItem>
+                  );
+                })}
               </SelectContent>
             </Select>
           )}
