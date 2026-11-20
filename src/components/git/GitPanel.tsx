@@ -19,6 +19,7 @@ import {
   ArrowUpFromLine,
   Check,
   Maximize2,
+  RefreshCw,
 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { gitAPI, type DBScope } from '@/services/api';
@@ -668,7 +669,12 @@ export function GitPanel({ tab }: { tab: Tab }) {
           </button>
           <span className="text-[11px] font-medium text-muted-foreground">{t('header.project')}</span>
           {/* Repo picker (searchable) */}
-          <Popover open={repoPickerOpen} onOpenChange={(o) => { if (connId || (desktop && recentCount > 0)) setRepoPickerOpen(o); }}>
+          <Popover open={repoPickerOpen} onOpenChange={(o) => {
+            if (!(connId || (desktop && recentCount > 0))) return;
+            setRepoPickerOpen(o);
+            // A list that failed (VPN was off, network blip) loads again on open.
+            if (o && connId && !reposLoading && (reposError || repos.length === 0)) void loadRepos(connId, repoSearch);
+          }}>
             <PopoverTrigger asChild>
               <Button
                 variant="outline"
@@ -687,16 +693,30 @@ export function GitPanel({ tab }: { tab: Tab }) {
                   value={repoSearch}
                   onChange={(e) => handleRepoSearch(e.target.value)}
                   placeholder={t('repoPicker.searchPlaceholder')}
-                  className="h-9 border-0 pl-8 text-xs focus-visible:ring-0"
+                  className="h-9 border-0 pl-8 pr-8 text-xs focus-visible:ring-0"
                   autoFocus
                 />
-                {reposLoading && <Loader2 className="absolute right-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 animate-spin text-muted-foreground" />}
+                {reposLoading ? (
+                  <Loader2 className="absolute right-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 animate-spin text-muted-foreground" />
+                ) : connId && (
+                  <button type="button" onClick={() => void loadRepos(connId, repoSearch)}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    title={t('common:refresh')} aria-label={t('common:refresh')}>
+                    <RefreshCw className="h-3.5 w-3.5" />
+                  </button>
+                )}
               </div>
               <div className="max-h-[300px] overflow-auto py-1">
                 {reposError ? (
                   <div className="flex items-start gap-2 m-2 p-2 rounded bg-destructive/10 text-destructive text-xs">
                     <AlertTriangle className="h-3.5 w-3.5 shrink-0 mt-0.5" />
-                    <span className="min-w-0 break-words">{reposError}</span>
+                    <span className="min-w-0 flex-1 break-words">{reposError}</span>
+                    {connId && (
+                      <button type="button" onClick={() => void loadRepos(connId, repoSearch)} disabled={reposLoading}
+                        className="shrink-0 underline underline-offset-2 hover:no-underline">
+                        {t('common:retry')}
+                      </button>
+                    )}
                   </div>
                 ) : repos.length === 0 ? (
                   <div className="px-3 py-6 text-center text-xs text-muted-foreground">

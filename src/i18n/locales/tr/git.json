@@ -711,7 +711,10 @@
     "pick_pr": "Bir pull request seç.",
     "search_pr": "Pull request ara",
     "changesRequested": "Değişiklik istendi: {{names}}",
-    "openOn": "{{provider}} üzerinde aç"
+    "openOn": "{{provider}} üzerinde aç",
+    "editCommitMessage": "Commit mesajını düzenle",
+    "squashCommitMessage": "Squash commit mesajı",
+    "mergeCommitMessage": "Merge commit mesajı"
   },
   "tree": {
     "title": "Proje",

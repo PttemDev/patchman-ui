@@ -9,6 +9,7 @@ import { gitOpsToken } from '@/stores/gitConnectionStore';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { MarkdownView } from '@/components/notes/MarkdownView';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -297,14 +298,19 @@ function MRDetail({ connId, project, iid, canWrite, localRepo, onChanged, onChec
       </div>
 
       {tab === 'overview' ? (
-        <div className="min-h-0 flex-1 space-y-3 overflow-auto p-4">
-          <div className="whitespace-pre-wrap rounded-md border bg-card p-3 text-xs">{mr.description || <span className="text-muted-foreground">{t('mr.noDescription')}</span>}</div>
+        <div className="min-h-0 flex-1 overflow-auto p-4">
+          {/* Readable line length on wide screens (description, threads, composer). */}
+          <div className="mx-auto max-w-4xl space-y-3">
+          <div className="break-words rounded-md border bg-card p-3 text-xs">
+            {mr.description ? <MarkdownView markdown={mr.description} className="md-compact" /> : <span className="text-muted-foreground">{t('mr.noDescription')}</span>}
+          </div>
           {general.map((d) => (
             <Thread key={d.id} d={d} canReply={canWrite}
               onReply={(id, b) => act('reply', () => gitAPI.replyMRDiscussion(connId, project, iid, id, b))}
               onResolve={(id, r) => act('resolve', () => gitAPI.resolveMRDiscussion(connId, project, iid, id, r))} />
           ))}
           {canWrite && <Composer immediate={false} onSubmit={(b) => act('note', () => gitAPI.createMRDiscussion(connId, project, iid, { body: b }))} />}
+          </div>
         </div>
       ) : (
         <div className="flex min-h-0 flex-1 flex-col">
@@ -366,6 +372,17 @@ function MRDetail({ connId, project, iid, canWrite, localRepo, onChanged, onChec
   );
 }
 
+/** The provider's default merge commit message, to start editing from:
+ *  GitLab's "Merge branch 'a' into 'b'" template, or GitHub's. */
+function defaultMergeMessage(mr: GitMRDetail, pr?: string): string {
+  const title = mr.title.replace(/^Draft:\s*/i, '');
+  if (pr) return `Merge pull request #${mr.iid} from ${mr.sourceBranch}\n\n${title}`;
+  const path = (() => {
+    try { return new URL(mr.webUrl).pathname.split('/-/')[0].replace(/^\/+/, ''); } catch { return ''; }
+  })();
+  return `Merge branch '${mr.sourceBranch}' into '${mr.targetBranch}'\n\n${title}` + (path ? `\n\nSee merge request ${path}!${mr.iid}` : '');
+}
+
 function MergeDialog({ open, onOpenChange, mr, pipelineStatus, unresolved, onMerge, pr }: {
   pr?: string;
   open: boolean;
@@ -373,19 +390,30 @@ function MergeDialog({ open, onOpenChange, mr, pipelineStatus, unresolved, onMer
   mr: GitMRDetail;
   pipelineStatus?: string;
   unresolved: number;
-  onMerge: (o: { squash: boolean; removeSourceBranch: boolean; mergeWhenPipelineSucceeds: boolean; squashCommitMessage?: string }) => Promise<void>;
+  onMerge: (o: { squash: boolean; removeSourceBranch: boolean; mergeWhenPipelineSucceeds: boolean; squashCommitMessage?: string; mergeCommitMessage?: string }) => Promise<void>;
 }) {
   const { t } = useTranslation('git');
   const [squash, setSquash] = useState(false);
   const [remove, setRemove] = useState(true);
   const running = pipelineStatus === 'running' || pipelineStatus === 'pending' || pipelineStatus === 'created';
   const [auto, setAuto] = useState(running);
-  const [msg, setMsg] = useState(mr.title.replace(/^Draft:\s*/i, ''));
+  const [edit, setEdit] = useState(false);
+  // Separate drafts, like GitLab: switching squash on/off keeps each one.
+  const [squashMsg, setSquashMsg] = useState(mr.title.replace(/^Draft:\s*/i, ''));
+  const [mergeMsg, setMergeMsg] = useState(() => defaultMergeMessage(mr, pr));
   const [busy, setBusy] = useState(false);
-  useEffect(() => { if (open) { setAuto(running); setMsg(mr.title.replace(/^Draft:\s*/i, '')); } }, [open, running, mr.title]);
+  useEffect(() => {
+    if (!open) return;
+    setAuto(running);
+    setEdit(false);
+    setSquashMsg(mr.title.replace(/^Draft:\s*/i, ''));
+    setMergeMsg(defaultMergeMessage(mr, pr));
+  }, [open, running, mr, pr]);
+  const msg = squash ? squashMsg : mergeMsg;
+  const setMsg = squash ? setSquashMsg : setMergeMsg;
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className={cn(edit ? 'sm:max-w-xl' : 'sm:max-w-md')}>
         <DialogHeader>
           <DialogTitle>{t('mr.mergeTitle', { iid: mr.iid, context: pr })}</DialogTitle>
           <DialogDescription className="font-mono text-xs">{mr.sourceBranch} → {mr.targetBranch}</DialogDescription>
@@ -396,17 +424,29 @@ function MergeDialog({ open, onOpenChange, mr, pipelineStatus, unresolved, onMer
             <span>{[unresolved > 0 && t('mr.unresolvedThreads', { count: unresolved }), pipelineStatus === 'failed' && t('mr.pipeline', { status: 'failed' })].filter(Boolean).join(' · ')}</span>
           </div>
         )}
-        <div className="space-y-2 text-xs">
-          <label className="flex items-center gap-2"><Switch checked={squash} onCheckedChange={setSquash} />{t('mr.squash')}</label>
-          {squash && <Textarea value={msg} onChange={(e) => setMsg(e.target.value)} className="min-h-[60px] font-mono text-xs" />}
+        <div className="min-w-0 space-y-2 text-xs">
           <label className="flex items-center gap-2"><Switch checked={remove} onCheckedChange={setRemove} />{t('mr.removeSource')}</label>
+          <label className="flex items-center gap-2"><Switch checked={squash} onCheckedChange={setSquash} />{t('mr.squash')}</label>
+          <label className="flex items-center gap-2"><Switch checked={edit} onCheckedChange={setEdit} />{t('mr.editCommitMessage')}</label>
+          {edit && (
+            <div className="space-y-1">
+              <div className="font-medium">{squash ? t('mr.squashCommitMessage') : t('mr.mergeCommitMessage')}</div>
+              <Textarea value={msg} onChange={(e) => setMsg(e.target.value)} spellCheck={false}
+                className="min-h-[140px] w-full resize-y font-mono text-xs" />
+            </div>
+          )}
           <label className={cn('flex items-center gap-2', !running && 'opacity-50')}><Switch checked={auto && running} disabled={!running} onCheckedChange={setAuto} />{t('mr.autoMerge')}</label>
         </div>
         <DialogFooter>
           <Button size="sm" variant="ghost" onClick={() => onOpenChange(false)}>{t('vcs.cancel')}</Button>
-          <Button size="sm" disabled={busy} onClick={async () => {
+          <Button size="sm" disabled={busy || (edit && !msg.trim())} onClick={async () => {
             setBusy(true);
-            await onMerge({ squash, removeSourceBranch: remove, mergeWhenPipelineSucceeds: auto && running, squashCommitMessage: squash ? msg : undefined });
+            await onMerge({
+              squash, removeSourceBranch: remove, mergeWhenPipelineSucceeds: auto && running,
+              // Without "edit", GitLab / GitHub use their own default message.
+              squashCommitMessage: edit && squash ? squashMsg : undefined,
+              mergeCommitMessage: edit && !squash ? mergeMsg : undefined,
+            });
             setBusy(false);
             onOpenChange(false);
           }}>

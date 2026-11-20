@@ -320,7 +320,8 @@
     "errRpsHint": "Bu çağrıda saniyede başarısız olan istek sayısı",
     "colShare": "Pay",
     "foldedInto": "Haritada {{name}} içine katlı",
-    "hiddenByFilters": "Filtreler ya da namespace seçimi yüzünden gizli — toplamlara yine de dahil"
+    "hiddenByFilters": "Filtreler ya da namespace seçimi yüzünden gizli — toplamlara yine de dahil",
+    "open": "Servis detayı"
   },
   "table": {
     "from": "Kaynak",
@@ -331,7 +332,19 @@
     "p95": "p95",
     "sources": "Kaynaklar",
     "conns": "{{count}} bağlantı",
-    "empty": "Çağrı yok."
+    "empty": "Çağrı yok.",
+    "services": "Servisler",
+    "calls": "Çağrılar",
+    "unitHint": "İstek hızı saniye ya da dakika başına",
+    "unitRps": "/sn",
+    "unitRpm": "/dk",
+    "rpm": "İstek/dk",
+    "service": "Servis",
+    "namespace": "Namespace",
+    "kind": "Tür",
+    "health": "Durum",
+    "noServices": "Servis yok.",
+    "noCallRates": "Bu kaynak hangi servisin hangisini çağırdığını bildiriyor ama ne sıklıkta olduğunu bildirmiyor; her servisin kendi trafiği Servisler sekmesinde."
   },
   "export": {
     "failed": "Harita whiteboard'a eklenemedi",
@@ -381,5 +394,58 @@
     "entitySearch": "Bir isim ya da entity araması: domainType IN ('APM-APPLICATION')",
     "search": "Ara",
     "noEntities": "Entity yok."
+  },
+  "serviceDetail": {
+    "failed": "Servis detayı yüklenemedi",
+    "clusterProm": "Küme Prometheus’u",
+    "source": "Kaynak",
+    "fromMap": "haritadan",
+    "avg": "Ortalama",
+    "summary": "Özet",
+    "charts": "Performans",
+    "alerts": "Alarmlar",
+    "noOpenAlerts": "Açık alarm yok.",
+    "checks": "Sağlık kontrolleri",
+    "endpoints": "Endpoint’ler",
+    "endpoint": "Endpoint",
+    "timeShare": "Süre payı",
+    "errors": "Hatalar",
+    "errorClass": "Hata sınıfı",
+    "message": "Mesaj",
+    "count": "Adet",
+    "lastSeen": "Son görülme",
+    "instances": "Instance’lar",
+    "instance": "Instance",
+    "more": "Diğer grafikler",
+    "noData": "Bu aralıkta veri yok.",
+    "noSource": "Haritadaki hiçbir observability bağlantısı bu servisi tanımıyor, bu yüzden yüklenecek detay yok. Kaynak olarak New Relic, Coroot ya da Prometheus ekleyin.",
+    "empty": "Backend’in bu aralıkta bu servis için verisi yok.",
+    "range": {
+      "30m": "30dk",
+      "1h": "1sa",
+      "6h": "6sa",
+      "24h": "24sa",
+      "7d": "7g"
+    },
+    "chart": {
+      "throughput": "Trafik",
+      "latency": "Yanıt süresi",
+      "errors": "Hata oranı",
+      "apdex": "Apdex"
+    },
+    "series": {
+      "requests": "istek",
+      "errors": "hata",
+      "avg": "ortalama",
+      "p95": "p95",
+      "p99": "p99",
+      "apdex": "Apdex"
+    },
+    "note": {
+      "family": "{{family}} metriklerinden okundu.",
+      "familyError": "Bir metrik ailesi hata verdi: {{detail}}",
+      "no_service_requests": "Bu aralıkta bu servise gelen istekleri gösteren metrik yok.",
+      "coroot_agent_metrics_only": "Burada yalnız Coroot node-agent metrikleri var; çağrıları karşı adrese göre saydıkları için bu servisin sayfası için Coroot bağlantısının kendisini ekleyin."
+    }
   }
 }

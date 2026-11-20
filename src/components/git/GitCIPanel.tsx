@@ -474,10 +474,12 @@ function PipelineDetail({ connId, project, pipelineId, canWrite, onChanged, onOp
                   const cls = 'flex w-full items-center gap-1.5 rounded border border-sky-500/30 px-2 py-1.5 text-xs text-left hover:bg-accent/40';
                   const isOpen = expanded.includes(d.id);
                   return d.sameProject ? (
-                    <div key={j.id} className="flex items-stretch gap-1">
-                      <button type="button" className={cls} onClick={() => onOpenPipeline(d.id)} title={t('ci.openChild', { id: d.id })}>{body}</button>
+                    <div key={j.id} className="flex min-w-0 items-stretch gap-1">
+                      {/* flex-1, not w-full: a full-width card pushed the toggle out of the
+                          column, under the opened child panel, where clicks didn't reach it. */}
+                      <button type="button" className={cn(cls, 'w-auto min-w-0 flex-1')} onClick={() => onOpenPipeline(d.id)} title={t('ci.openChild', { id: d.id })}>{body}</button>
                       <button type="button" onClick={() => toggleExpanded(d.id)}
-                        className={cn('shrink-0 rounded border border-sky-500/30 px-1 text-muted-foreground hover:text-foreground hover:bg-accent/40', isOpen && 'bg-sky-500/10 text-foreground')}
+                        className={cn('relative z-10 shrink-0 rounded border border-sky-500/30 px-1 text-muted-foreground hover:text-foreground hover:bg-accent/40', isOpen && 'bg-sky-500/10 text-foreground')}
                         title={isOpen ? t('ci.collapseChild') : t('ci.expandChild')} aria-expanded={isOpen}>
                         {isOpen ? <ChevronLeft className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
                       </button>
@@ -511,10 +513,11 @@ function PipelineDetail({ connId, project, pipelineId, canWrite, onChanged, onOp
 
 // A child pipeline's stages rendered inline beside its trigger job, like
 // Finished jobs can run again; a manual job waits to be played. Bridges
-// (trigger jobs) have neither through the API.
+// (trigger jobs, e.g. a `when: manual` deploy trigger) too: GitLab's
+// jobs/:id/play and jobs/:id/retry accept them (lib/api/ci/jobs.rb).
 const FINISHED = new Set(['success', 'failed', 'canceled']);
-const canRerun = (j: Job) => j.kind !== 'bridge' && FINISHED.has(j.status);
-const canPlay = (j: Job) => j.kind !== 'bridge' && j.status === 'manual';
+const canRerun = (j: Job) => FINISHED.has(j.status);
+const canPlay = (j: Job) => j.status === 'manual';
 
 /** Run a job again (GitLab "retry"). Retrying a manual job can leave the new
  *  job waiting as `manual` (doğrulanmadı per GitLab version) — play it then,

@@ -1402,6 +1402,9 @@ export const observabilityConnectionAPI = {
     api.get(`/observability-connections/${id}/newrelic/entities`, dbCfg(scope, { params: { q: q || undefined }, timeout: 35000 })),
   newRelicAlerts: (id: string, p: { accountId?: string; hours?: number; open?: boolean }, scope?: DBScope) =>
     api.get(`/observability-connections/${id}/newrelic/alerts`, dbCfg(scope, { params: { accountId: p.accountId, hours: p.hours, open: p.open ? '1' : undefined }, timeout: 90000 })),
+  /** One service's APM page from this connection. */
+  serviceDetail: (id: string, p: ServiceDetailParams, scope?: DBScope) =>
+    api.get(`/observability-connections/${id}/service-detail`, dbCfg(scope, { params: detailParams(p), timeout: 90000 })),
   revealSecret: (id: string, which: 'password' | 'token' | 'apiKey' | 'appKey' | 'session', scope?: DBScope) =>
     api.post(`/observability-connections/${id}/reveal-secret`, { which }, dbCfg(scope)),
   listGrants: (id: string, scope?: DBScope) => api.get(`/observability-connections/${id}/grants`, dbCfg(scope)),
@@ -1423,7 +1426,25 @@ export interface ServiceMapParams {
   fresh?: boolean;
 }
 
+/** A service as its backend knows it, plus the detail's range. */
+export interface ServiceDetailParams {
+  service: string; namespace?: string; key?: string; scope?: string; range?: string;
+}
+
+function detailParams(p: ServiceDetailParams) {
+  return {
+    service: p.service,
+    ...(p.namespace ? { namespace: p.namespace } : {}),
+    ...(p.key ? { key: p.key } : {}),
+    ...(p.scope ? { scope: p.scope } : {}),
+    range: p.range || '1h',
+  };
+}
+
 export const serviceMapAPI = {
+  /** One service from the cluster's own Prometheus. */
+  serviceDetail: (k8s: string, context: string | undefined, p: ServiceDetailParams, scope?: DBScope) =>
+    api.get('/service-map/service-detail', dbCfg(scope, { params: { k8s, ...(context ? { context } : {}), ...detailParams(p) }, timeout: 90000 })),
   get: (p: ServiceMapParams, scope?: DBScope) =>
     api.get('/service-map', dbCfg(scope, {
       timeout: 60000,

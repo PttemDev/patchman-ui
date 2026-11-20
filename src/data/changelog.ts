@@ -7,6 +7,45 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '1.72.0',
+    date: '2026-11-20',
+    title: 'Merge commit message, markdown in merge requests',
+    changes: [
+      'Git merge requests: the merge dialog has "Edit commit message", like GitLab. It starts from GitLab’s "Merge branch … into …" message (or GitHub’s), or from the squash message when squashing.',
+      'Git merge requests: the description and comments show as markdown, so headings, bold text and links (for example a Jira link) look as they do in GitLab.',
+      'Git merge requests: the overview keeps a readable width on wide screens.',
+      'Git CI/CD: the button that closes an opened child pipeline works again when the trigger job has a long name.',
+    ],
+  },
+  {
+    version: '1.71.2',
+    date: '2026-11-20',
+    title: 'Fix for the service details page',
+    changes: [
+      'Observability: the service details page could stop with "null is not an object (evaluating \'ge.points.map\')" when a chart had no values in the selected range (seen with New Relic). Such a chart now says there is no data.',
+    ],
+  },
+  {
+    version: '1.71.1',
+    date: '2026-11-20',
+    title: 'Installer window background',
+    changes: [
+      'Desktop installer (DMG): the background fills the window again instead of sitting small in the top-left corner, and the arrow and the "Drag PatchMan into Applications" hint no longer overlap the icons.',
+    ],
+  },
+  {
+    version: '1.71.0',
+    date: '2026-11-20',
+    title: 'Service details in observability, trigger jobs can run again',
+    changes: [
+      'Observability: a service on the map opens a details page (Service details in its panel, or the chart icon in the table). It shows requests, error rate, average / p95 / p99 response time and Apdex over 30 minutes to 7 days, with charts, the busiest endpoints and their share of time, error classes, instances, health checks and alert incidents. It works with New Relic, Coroot and Prometheus (OpenTelemetry service graph, Istio, Linkerd, Hubble). A part the backend doesn’t report is left out instead of guessed.',
+      'Observability: the table has a Services view with each service’s own requests, errors, p95 and health. With New Relic the Calls view had no rates, because New Relic doesn’t report how often one service calls another; the Services view has them. Rates can be shown per second or per minute.',
+      'AI agents (MCP): new service_detail tool returns the same service page; service_map prints the arguments to call it for each service.',
+      'Git CI/CD: trigger jobs that wait to be run by hand (for example a deploy trigger) have a Play button again, and finished ones can run again. The buttons had been missing since 1.63.0.',
+      'Git: the repository list has a refresh button and a Retry when it fails to load (for example with the VPN off), and it loads again when you open it. You no longer have to close and reopen the tab.',
+    ],
+  },
+  {
     version: '1.70.1',
     date: '2026-11-19',
     title: 'Fix for a crash right after opening the desktop app',

@@ -86,3 +86,11 @@
 .dark .md-view .hljs-attr, .dark .md-view .hljs-attribute, .dark .md-view .hljs-property, .dark .md-view .hljs-variable { color: #e5c07b; }
 .dark .md-view .hljs-type { color: #e5c07b; }
 .dark .md-view .hljs-deletion { color: #e06c75; }
+
+/* Compact variant for comments and descriptions (Git merge requests). */
+.md-view.md-compact { font-size: 0.75rem; line-height: 1.5; }
+.md-view.md-compact h1 { font-size: 1.3em; }
+.md-view.md-compact h2 { font-size: 1.15em; }
+.md-view.md-compact h3 { font-size: 1.05em; }
+.md-view.md-compact > :first-child { margin-top: 0; }
+.md-view.md-compact > :last-child { margin-bottom: 0; }

@@ -711,7 +711,10 @@
     "pick_pr": "Pick a pull request.",
     "search_pr": "Search pull requests",
     "changesRequested": "Changes requested: {{names}}",
-    "openOn": "Open on {{provider}}"
+    "openOn": "Open on {{provider}}",
+    "editCommitMessage": "Edit commit message",
+    "squashCommitMessage": "Squash commit message",
+    "mergeCommitMessage": "Merge commit message"
   },
   "tree": {
     "title": "Project",

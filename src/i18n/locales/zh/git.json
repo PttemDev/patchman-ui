@@ -711,7 +711,10 @@
     "pick_pr": "选择一个拉取请求。",
     "search_pr": "搜索拉取请求",
     "changesRequested": "请求修改：{{names}}",
-    "openOn": "在 {{provider}} 上打开"
+    "openOn": "在 {{provider}} 上打开",
+    "editCommitMessage": "编辑提交信息",
+    "squashCommitMessage": "压缩提交信息",
+    "mergeCommitMessage": "合并提交信息"
   },
   "tree": {
     "title": "项目",

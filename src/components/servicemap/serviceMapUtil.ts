@@ -473,3 +473,36 @@ export function toMermaid(g: ServiceMapGraph, maxNodes = 120): string {
   }
   return lines.join('\n');
 }
+
+/** How request rates read in the table and the service detail: per second
+ *  (the backends' unit) or per minute (New Relic's "rpm"). */
+export type RateUnit = 'rps' | 'rpm';
+const RATE_UNIT_KEY = 'patchman_sm_rate_unit';
+
+export function loadRateUnit(): RateUnit {
+  try {
+    return localStorage.getItem(RATE_UNIT_KEY) === 'rpm' ? 'rpm' : 'rps';
+  } catch {
+    return 'rps';
+  }
+}
+
+export function saveRateUnit(u: RateUnit): void {
+  try {
+    localStorage.setItem(RATE_UNIT_KEY, u);
+  } catch {
+    /* storage unavailable — the choice lasts for this view only */
+  }
+}
+
+/** A requests/s value in the chosen unit. */
+export function fmtRate(rps: number | undefined, unit: RateUnit): string {
+  if (rps == null || !Number.isFinite(rps)) return '—';
+  return fmtRps(unit === 'rpm' ? rps * 60 : rps);
+}
+
+/** Whether a node has a service detail page: a service some observability
+ *  connection knows. */
+export function hasServiceDetail(n: ServiceMapNode): boolean {
+  return !n.group && n.kind === 'service' && (n.refs?.length ?? 0) > 0;
+}

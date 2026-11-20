@@ -1,4 +1,5 @@
 import { Fragment, useMemo, useState } from 'react';
+import { MarkdownView } from '@/components/notes/MarkdownView';
 import { useTranslation } from 'react-i18next';
 import { Check, CornerDownRight, MessageSquarePlus, RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -132,7 +133,8 @@ export function Thread({ d, canReply, onReply, onResolve }: {
                 <span className="font-medium">{n.author}</span>
                 <span className="text-[10px] text-muted-foreground">@{n.username} · {timeAgo(n.createdAt)}</span>
               </div>
-              <p className="whitespace-pre-wrap break-words">{n.body}</p>
+              {/* GitLab / GitHub comments are markdown (links, headings, code). */}
+              <MarkdownView markdown={n.body} className="md-compact break-words" />
             </div>
           ))}
           <div className="flex items-center gap-2 border-t px-3 py-1.5">

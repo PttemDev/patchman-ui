@@ -1977,8 +1977,48 @@ export interface ServiceMapNode {
   k8s?: { kind: string; namespace: string; name: string };
   coroot?: { project: string; appId: string };
   sources: string[];
+  /** How each observability connection knows this node (for the service detail). */
+  refs?: ServiceMapSourceRef[];
   /** FE only: a namespace folded into one node. */
   group?: ServiceMapGroup;
+}
+
+export interface ServiceMapSourceRef {
+  /** Observability connection id, or "k8s:<id>" for the cluster's Prometheus. */
+  conn: string;
+  scope?: string;
+  source: string;
+  name: string;
+  namespace?: string;
+  key?: string;
+}
+
+/** One service's APM page (GET …/service-detail). Every panel is optional;
+ *  null numbers are unknown, never zero. */
+export interface ServiceDetail {
+  provider: string;
+  service: string;
+  rangeSec: number;
+  stepSec: number;
+  summary?: { rps: number | null; errorRate: number | null; avgMs: number | null; p95Ms: number | null; p99Ms: number | null; apdex: number | null };
+  charts: ServiceDetailChart[];
+  endpoints?: Array<{ name: string; rps: number | null; avgMs: number | null; p95Ms: number | null; errorRate: number | null; timeShare: number | null }>;
+  errors?: Array<{ class: string; message?: string; count: number; lastSeen?: number }>;
+  instances?: Array<{ name: string; rps: number | null; avgMs: number | null; errorRate: number | null; status?: string }>;
+  tables?: Array<{ title: string; group?: string; header: string[]; rows: string[][] }>;
+  checks?: Array<{ group?: string; title: string; status: string; message?: string }>;
+  alerts?: Array<Record<string, unknown>>;
+  panelErrors?: Record<string, string>;
+  notes?: string[];
+}
+
+export interface ServiceDetailChart {
+  id: 'throughput' | 'latency' | 'errors' | 'apdex' | 'other' | string;
+  title?: string;
+  group?: string;
+  /** rps | ms | ratio | score | '' (shown as is) */
+  unit: string;
+  series: Array<{ name: string; points: Array<[number, number]> }>;
 }
 
 export interface ServiceMapGroup {

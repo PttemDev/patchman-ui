@@ -1,6 +1,6 @@
 [package]
 name = "patchman-desktop"
-version = "1.70.1"
+version = "1.72.0"
 description = "PatchMan desktop shell — spawns the embedded Go BE and renders the FE."
 authors = ["PatchMan"]
 license = ""
