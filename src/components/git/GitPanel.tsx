@@ -516,6 +516,9 @@ export function GitPanel({ tab }: { tab: Tab }) {
   // File tree → Git → Show History / Annotate.
   const [historyPath, setHistoryPath] = useState('');
   const [annotateReq, setAnnotateReq] = useState<{ path: string; seq: number } | undefined>();
+  // Files to re-read from disk after a rollback.
+  const [reloadReq, setReloadReq] = useState<{ paths: string[]; seq: number } | undefined>();
+  const reloadFromDisk = useCallback((paths: string[]) => setReloadReq((r) => ({ paths, seq: (r?.seq ?? 0) + 1 })), []);
   const [everywhere, setEverywhere] = useState<null | 'all' | 'files' | 'symbols' | 'actions'>(null);
   const findUsages = useCallback((word: string) => { setFindInitial({ q: word, word: true, caseSensitive: true }); setFindOpen(true); }, []);
   const closeFile = useCallback((p: string) => {
@@ -1134,14 +1137,8 @@ export function GitPanel({ tab }: { tab: Tab }) {
                   onAnnotate={(path) => { openFile(path); setAnnotateReq((r) => ({ path, seq: (r?.seq ?? 0) + 1 })); }}
                   onFindInFolder={(dir) => { setFindInitial({ q: '', mask: dir ? `${dir}/**` : '' }); setFindOpen(true); }}
                   onReverted={(path) => {
-                    // Reload an open file (or files under a folder) from disk:
-                    // drop the tabs, then reopen them so their buffers re-read.
-                    const open = (tab.gitOpenFiles ?? []).filter((f) => f === path || f.startsWith(path + '/'));
-                    if (open.length === 0) return;
-                    const all = tab.gitOpenFiles ?? [];
-                    const active = tab.gitActiveFile;
-                    updateTab(tab.id, { gitOpenFiles: all.filter((f) => !open.includes(f)) });
-                    setTimeout(() => updateTab(tab.id, { gitOpenFiles: all, gitActiveFile: active }), 0);
+                    // Open files (or files under the folder) re-read from disk.
+                    reloadFromDisk([path]);
                     setRefsKey((k) => k + 1);
                   }}
                   reloadKey={reloadKey + refsKey}
@@ -1187,6 +1184,7 @@ export function GitPanel({ tab }: { tab: Tab }) {
                 reveal={reveal}
                 annotate={annotateReq}
                 vcsStatus={vcsStatus}
+                reload={reloadReq}
                 onDirtyPaths={setUnsavedPaths}
                 onShowHistory={(p) => { setHistoryPath(p); updateTab(tab.id, { gitView: 'history' }); }}
                 onRollback={async (p) => {
@@ -1196,12 +1194,7 @@ export function GitPanel({ tab }: { tab: Tab }) {
                   if (!ok || !localRepo) return;
                   try {
                     if (vcsStatus[p]) await gitAPI.fsOp(localRepo.id, { op: 'rollback', path: p });
-                    const all = tab.gitOpenFiles ?? [];
-                    if (isNew) { closeFile(p); } else {
-                      // Reopen so the buffer re-reads the file (dropping unsaved edits too).
-                      updateTab(tab.id, { gitOpenFiles: all.filter((f) => f !== p) });
-                      setTimeout(() => updateTab(tab.id, { gitOpenFiles: all, gitActiveFile: p }), 0);
-                    }
+                    if (isNew) closeFile(p); else reloadFromDisk([p]);
                     setRefsKey((k) => k + 1);
                     toast({ title: t('tree.rolledBack', { name }) });
                   } catch (err) {

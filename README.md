@@ -466,6 +466,8 @@ Re-checked for 1.73.0 (November 2026): `npm run build`, `npm run check:i18n` and
 
 Re-checked for 1.74.0 (November 2026): `npm run build`, `npm run check:i18n` and `cargo check` (desktop shell) pass; the changes since 1.73.0 were scanned for secrets, internal hostnames and personal names; `npm audit` shows the same 13 moderate/low advisories.
 
+Re-checked for 1.74.1 (November 2026): `npm run build` and `npm run check:i18n` pass; the changes since 1.74.0 (two frontend fixes) were scanned for secrets, internal hostnames and personal names.
+
 Dependency notes: `xlsx` is installed from the SheetJS CDN (`0.20.3`) because newer releases are not published to npm, and `package.json` uses `overrides` to pin patched versions of `lodash-es`, `dompurify` and `nanoid`.
 
 These checks are a point-in-time snapshot, not a security audit. Run `npm audit` regularly. To report a vulnerability, see [SECURITY.md](SECURITY.md).

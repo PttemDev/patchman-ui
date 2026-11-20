@@ -7,6 +7,15 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '1.74.1',
+    date: '2026-11-20',
+    title: 'Fixes for Rollback and notifications',
+    changes: [
+      'Git: after a Rollback the open file reloads from disk; it no longer stays on a loading spinner.',
+      'Notifications (for example "Updated to …" or a new version) close with their × button or a swipe again; they used to stay until they timed out.',
+    ],
+  },
+  {
     version: '1.74.0',
     date: '2026-11-20',
     title: 'JetBrains-style Git file tree, changes and tabs',

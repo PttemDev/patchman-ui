@@ -107,7 +107,7 @@ const read = async (repoId: string, path: string, ref?: string) => (await readFi
 
 export interface RevealTarget { path: string; line: number; nonce: number }
 
-export function GitWorkspaceEditor({ repoId, files, active, onActivate, onClose, onCloseMany, onReorder, onDirtyChange, onDirtyPaths, vcsStatus, onShowHistory, onRollback, onSaved, registerFlush, reveal, onGotoDefinition, onFindUsages, onCaret, annotate }: {
+export function GitWorkspaceEditor({ repoId, files, active, onActivate, onClose, onCloseMany, onReorder, onDirtyChange, onDirtyPaths, vcsStatus, onShowHistory, onRollback, reload, onSaved, registerFlush, reveal, onGotoDefinition, onFindUsages, onCaret, annotate }: {
   /** Jump here once the file is open (search results, navigation). */
   reveal?: RevealTarget;
   /** ⌘B / F12 / ⌘+click on an identifier. */
@@ -135,6 +135,8 @@ export function GitWorkspaceEditor({ repoId, files, active, onActivate, onClose,
   /** Tab menu → Git → Show History / Rollback (handled by the panel). */
   onShowHistory?: (path: string) => void;
   onRollback?: (path: string) => void;
+  /** Re-read these files (or files under these folders) from disk. */
+  reload?: { paths: string[]; seq: number };
   onDirtyChange?: (dirty: boolean) => void;
   /** auto = an auto save (the panel refreshes lightly). */
   onSaved?: (opts?: { auto?: boolean }) => void;
@@ -161,7 +163,10 @@ export function GitWorkspaceEditor({ repoId, files, active, onActivate, onClose,
   const decoRef = useRef<Monaco.editor.IEditorDecorationsCollection | null>(null);
   const hunksRef = useRef<ChangeHunk[]>([]);
 
-  // Load newly opened files (working tree + HEAD for the markers).
+  // Load newly opened files (working tree + HEAD for the markers). `missing`
+  // re-runs it when an open file has no buffer (a close + reopen in quick
+  // succession could prune it after the reopen — the tab then spun forever).
+  const missing = files.filter((p) => !bufs[p]).join('\n');
   useEffect(() => {
     for (const p of files) {
       if (bufs[p]) continue;
@@ -172,7 +177,18 @@ export function GitWorkspaceEditor({ repoId, files, active, onActivate, onClose,
     }
     // Forget closed files.
     setBufs((b) => Object.fromEntries(Object.entries(b).filter(([p]) => files.includes(p))));
-  }, [files, repoId]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [files, repoId, missing]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Re-read files from disk (after a rollback): drops unsaved edits.
+  const reloadDone = useRef(0);
+  useEffect(() => {
+    if (!reload || reload.seq === reloadDone.current) return;
+    reloadDone.current = reload.seq;
+    const targets = files.filter((f) => reload.paths.some((p) => f === p || f.startsWith(p + '/')));
+    if (targets.length === 0) return;
+    setBlame((x) => { const n = { ...x }; for (const p of targets) delete n[p]; return n; });
+    setBufs((b) => { const n = { ...b }; for (const p of targets) delete n[p]; return n; });
+  }, [reload, files]);
 
   const dirtyPaths = useMemo(() => files.filter((p) => bufs[p] && bufs[p].content !== bufs[p].baseline), [files, bufs]);
   useEffect(() => { onDirtyChange?.(dirtyPaths.length > 0); }, [dirtyPaths.length, onDirtyChange]);

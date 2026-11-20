@@ -10,6 +10,7 @@ type ToasterToast = {
   action?: React.ReactNode
   variant?: "default" | "destructive"
   open?: boolean
+  onOpenChange?: (open: boolean) => void
   duration?: number
 }
 
@@ -127,6 +128,11 @@ function toast({ duration, ...props }: Toast) {
       ...props,
       id,
       open: true,
+      // The toast is controlled (open: true), so its close button / swipe
+      // only report onOpenChange(false) — without this they did nothing.
+      onOpenChange: (open: boolean) => {
+        if (!open) dismiss()
+      },
     },
   })
 
