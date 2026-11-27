@@ -60,6 +60,7 @@ function DiscoverView({ tab }: { tab: Tab }) {
   const connId = tab.esConnectionId ?? '';
   const dvId = tab.esDataViewId ?? '';
   const space = tab.esDataViewSpace;
+  const tenant = tab.esDataViewTenant;
   const conn = connections.find((c) => c.id === connId);
   const scope: DBScope | undefined = loaded ? (tab.esExecScope ?? scopeForEs(connections, connId)) : undefined;
   const ready = loaded && !!connId && !!dvId;
@@ -81,10 +82,10 @@ function DiscoverView({ tab }: { tab: Tab }) {
   // Data view detail (time field + runtime fields) for the header.
   useEffect(() => {
     if (!ready) return;
-    esAPI.dataView(connId, dvId, space, scope)
+    esAPI.dataView(connId, dvId, space, scope, tenant)
       .then((r) => setDv(r.data as ESDataView))
       .catch((e) => setError(errText(e, t('discover.failed'))));
-  }, [ready, connId, dvId, space, scope, t]);
+  }, [ready, connId, dvId, space, tenant, scope, t]);
 
   const run = useCallback(async () => {
     if (!ready) return;
@@ -94,7 +95,7 @@ function DiscoverView({ tab }: { tab: Tab }) {
     setError('');
     try {
       const res = await esAPI.dataViewSearch(connId, dvId, {
-        space, from: w.from, to: w.to, query: tab.esDiscoverQuery ?? '', size: PAGE, histogram: true,
+        space, tenant, from: w.from, to: w.to, query: tab.esDiscoverQuery ?? '', size: PAGE, histogram: true,
       }, scope);
       if (my !== seq.current) return;
       const data = res.data as ESDataViewSearchResult;
@@ -108,7 +109,7 @@ function DiscoverView({ tab }: { tab: Tab }) {
     } finally {
       if (my === seq.current) setLoading(false);
     }
-  }, [ready, range, connId, dvId, space, tab.esDiscoverQuery, scope, t]);
+  }, [ready, range, connId, dvId, space, tenant, tab.esDiscoverQuery, scope, t]);
 
   useEffect(() => { void run(); }, [run]);
 
@@ -120,7 +121,7 @@ function DiscoverView({ tab }: { tab: Tab }) {
     setLoadingMore(true);
     try {
       const res = await esAPI.dataViewSearch(connId, dvId, {
-        space, from: win.from, to: win.to, query: tab.esDiscoverQuery ?? '', size: PAGE,
+        space, tenant, from: win.from, to: win.to, query: tab.esDiscoverQuery ?? '', size: PAGE,
         searchAfter: last.sort, pitId: result.pitId,
       }, scope);
       if (my !== seq.current) return;
@@ -154,7 +155,7 @@ function DiscoverView({ tab }: { tab: Tab }) {
     const w = win ?? resolveRange(range);
     try {
       const res = await esAPI.dataViewSearch(connId, dvId, {
-        space, from: w.from, to: w.to, query: tab.esDiscoverQuery ?? '', size: PAGE, histogram: true, dryRun: true,
+        space, tenant, from: w.from, to: w.to, query: tab.esDiscoverQuery ?? '', size: PAGE, histogram: true, dryRun: true,
       }, scope);
       const q = (res.data as ESDataViewSearchResult).query;
       addTab({
@@ -182,7 +183,7 @@ function DiscoverView({ tab }: { tab: Tab }) {
           <Badge variant="secondary" className="text-[10px] px-1.5 py-0 bg-amber-500/15 text-amber-600">{t('discover.noTimeField')}</Badge>
         )}
         {runtimeCount > 0 && <Badge variant="secondary" className="text-[10px] px-1.5 py-0">{t('discover.runtimeFields', { count: runtimeCount })}</Badge>}
-        {conn && <span className="ml-auto text-muted-foreground truncate">{conn.name}{space ? ` · ${space}` : ''}</span>}
+        {conn && <span className="ml-auto text-muted-foreground truncate">{conn.name}{space ? ` · ${space}` : ''}{tenant ? ` · ${tenant === 'global' ? t('sidebar.tenantGlobal') : tenant === 'private' ? t('sidebar.tenantPrivate') : tenant}` : ''}</span>}
       </div>
 
       {/* Query bar */}

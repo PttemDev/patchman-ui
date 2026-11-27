@@ -101,6 +101,8 @@ export function ESConnectionDialog({ open, onOpenChange, editing, onSaved }: ESC
   const [kibanaUrl, setKibanaUrl] = useState('');
   const [kibanaAuthMode, setKibanaAuthMode] = useState<'basic' | 'cookie'>('basic');
   const [kibanaSpace, setKibanaSpace] = useState('');
+  // OpenSearch Dashboards security tenant (global / private / custom name).
+  const [kibanaTenant, setKibanaTenant] = useState('');
   const [cookie, setCookie] = useState('');
   // Direct ES connections: optional Kibana (for data views). It shares
   // kibanaUrl / kibanaSpace with the proxy mode, plus its own TLS knobs since
@@ -171,6 +173,7 @@ export function ESConnectionDialog({ open, onOpenChange, editing, onSaved }: ESC
         (editing.kibanaAuthMode ?? editing.options?.kibanaAuthMode) === 'cookie' ? 'cookie' : 'basic',
       );
       setKibanaSpace(String(editing.kibanaSpace ?? editing.options?.kibanaSpace ?? ''));
+      setKibanaTenant(String(editing.options?.kibanaTenant ?? ''));
       setCookie('');
       setKibanaCaCert(String(editing.options?.kibanaCaCert ?? ''));
       setKibanaSkipVerify(Boolean(editing.options?.kibanaInsecureSkipVerify));
@@ -196,6 +199,7 @@ export function ESConnectionDialog({ open, onOpenChange, editing, onSaved }: ESC
       setKibanaUrl('');
       setKibanaAuthMode('basic');
       setKibanaSpace('');
+      setKibanaTenant('');
       setCookie('');
       setKibanaCaCert('');
       setKibanaSkipVerify(false);
@@ -217,14 +221,16 @@ export function ESConnectionDialog({ open, onOpenChange, editing, onSaved }: ESC
       if (kibanaUrl.trim()) options.kibanaUrl = kibanaUrl.trim();
       options.kibanaAuthMode = kibanaAuthMode;
       if (kibanaSpace.trim()) options.kibanaSpace = kibanaSpace.trim();
+      if (kibanaTenant.trim()) options.kibanaTenant = kibanaTenant.trim();
     } else if (kibanaUrl.trim()) {
       options.kibanaUrl = kibanaUrl.trim();
       if (kibanaSpace.trim()) options.kibanaSpace = kibanaSpace.trim();
+      if (kibanaTenant.trim()) options.kibanaTenant = kibanaTenant.trim();
       if (kibanaCaCert.trim()) options.kibanaCaCert = kibanaCaCert.trim();
       if (kibanaSkipVerify) options.kibanaInsecureSkipVerify = true;
     }
     return options;
-  }, [caCert, insecureSkipVerify, caFingerprint, clientCert, clientKey, defaultIndex, isKibanaProxy, kibanaUrl, kibanaAuthMode, kibanaSpace, kibanaCaCert, kibanaSkipVerify]);
+  }, [caCert, insecureSkipVerify, caFingerprint, clientCert, clientKey, defaultIndex, isKibanaProxy, kibanaUrl, kibanaAuthMode, kibanaSpace, kibanaTenant, kibanaCaCert, kibanaSkipVerify]);
 
   const buildPayload = useCallback((): Record<string, unknown> => {
     const nodesJoined = nodes.map((s) => s.trim()).filter(Boolean).join(',');
@@ -699,6 +705,17 @@ export function ESConnectionDialog({ open, onOpenChange, editing, onSaved }: ESC
                   {t('dialog.spaceHelp')}
                 </p>
               </div>
+              <div>
+                <Label className="text-xs">{t('dialog.tenant')}</Label>
+                <Input
+                  value={kibanaTenant}
+                  onChange={(e) => setKibanaTenant(e.target.value)}
+                  placeholder={t('dialog.tenantPlaceholder')}
+                  className="font-mono text-xs"
+                  autoComplete="off"
+                />
+                <p className="text-[10px] text-muted-foreground mt-1">{t('dialog.tenantHelp')}</p>
+              </div>
             </div>
           )}
 
@@ -732,6 +749,17 @@ export function ESConnectionDialog({ open, onOpenChange, editing, onSaved }: ESC
                       className="font-mono text-xs"
                       autoComplete="off"
                     />
+                  </div>
+                  <div>
+                    <Label className="text-xs">{t('dialog.tenant')}</Label>
+                    <Input
+                      value={kibanaTenant}
+                      onChange={(e) => setKibanaTenant(e.target.value)}
+                      placeholder={t('dialog.tenantPlaceholder')}
+                      className="font-mono text-xs"
+                      autoComplete="off"
+                    />
+                    <p className="text-[10px] text-muted-foreground mt-1">{t('dialog.tenantHelp')}</p>
                   </div>
                   {/^https:\/\//i.test(kibanaUrl.trim()) || !kibanaUrl.includes('://') ? (
                     <>

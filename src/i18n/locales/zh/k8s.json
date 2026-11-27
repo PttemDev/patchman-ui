@@ -206,7 +206,8 @@
     "dragResize": "拖动以调整大小",
     "localShellBadge": "本地 shell",
     "loadObjectFailed": "无法加载对象",
-    "serviceMap": "服务地图"
+    "serviceMap": "服务地图",
+    "sortBy": "按 {{col}} 排序"
   },
   "kinds": {
     "groupCluster": "Cluster",

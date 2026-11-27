@@ -121,11 +121,11 @@ Every connection uses the same model: credentials are stored encrypted, and the 
 |---|---|
 | **Databases** | PostgreSQL (and Cockroach, Yugabyte, Redshift), MySQL (and MariaDB, TiDB), SQL Server, MongoDB and BigQuery. Editor with examples and saved queries, schema browser, result grid with filters, aggregates, charts and export. The editor runs the selection or the statement at the cursor, completes aliases, foreign-key joins and schema names, and selected rows copy as TSV, CSV, JSON, Markdown or INSERT statements. MongoDB runs mongosh-style scripts and adds index management, explain plans and an aggregation pipeline builder. BigQuery checks every query with a free dry run first and enforces scan limits you set (per query, per connection, or a server-wide ceiling). |
 | **Redis** | Key browser with smart SCAN, typed value views, TTL and memory, key counts per database, a console and a cheatsheet. Read-only by default. |
-| **Elasticsearch** | Index and alias browser, mappings, Kibana data views with search, and a console with completion, drafts and saved queries. |
+| **Elasticsearch** | Index and alias browser, mappings, Kibana (and OpenSearch Dashboards, with tenant selection) data views with search, and a console with completion, drafts and saved queries. |
 | **Kafka** | Brokers, topics with sizes, consumer groups and lag, and message peek. Peek never commits offsets. |
 | **RabbitMQ** | Overview, queues, exchanges, topology, peek with requeue, publish, a live tail and moving messages out of a DLQ. |
 | **S3** | Buckets and objects. A connection can be limited to one bucket or path. |
-| **Kubernetes** | Contexts, resources, pod logs with search and download (and a picker for the other pods of the same workload), an exec terminal, apply, and historical pod metrics from Prometheus. |
+| **Kubernetes** | Contexts, resource tables sortable by any column, pod logs with search and download (and a picker for the other pods of the same workload), an exec terminal, apply, and historical pod metrics from Prometheus. |
 | **Google Cloud** | Projects, Cloud Storage buckets and objects, Pub/Sub topics and subscriptions with peek (without consuming) and publish, GKE clusters, Cloud Logging search and BigQuery. Connect with a service account key, gcloud on this computer (desktop), or your Google account (web). |
 
 ### Observability and dashboards
@@ -472,6 +472,8 @@ Re-checked for 1.74.0 (November 2026): `npm run build`, `npm run check:i18n` and
 Re-checked for 1.74.1 (November 2026): `npm run build` and `npm run check:i18n` pass; the changes since 1.74.0 (two frontend fixes) were scanned for secrets, internal hostnames and personal names.
 
 Re-checked for 1.78.5 (November 2026): `npm run build`, `npm run check:i18n`, `cargo check` and `cargo test` (desktop shell) pass; the changes since 1.74.1 (1.75.0 to 1.78.5) were scanned for secrets, internal hostnames and personal names. The public GitLab webhook checks its secret token in constant time. Pre-approved agent tools are limited to the six CR + QA tools.
+
+Re-checked for 1.79.0 (November 2026): `npm run build` and `npm run check:i18n` pass; the changes since 1.78.5 were scanned for secrets, internal hostnames and personal names.
 
 Dependency notes: `xlsx` is installed from the SheetJS CDN (`0.20.3`) because newer releases are not published to npm, and `package.json` uses `overrides` to pin patched versions of `lodash-es`, `dompurify` and `nanoid`.
 

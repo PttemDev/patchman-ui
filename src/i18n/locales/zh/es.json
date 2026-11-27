@@ -25,7 +25,13 @@
     "dataViewsError": "无法加载 data views",
     "space": "Space",
     "dataViewTitle": "{{pattern}} · 时间字段：{{timeField}}",
-    "dataViewsUnsupported": "此服务器上的 PatchMan 后端尚不支持数据视图（需要 1.61.0 或更高版本）。"
+    "dataViewsUnsupported": "此服务器上的 PatchMan 后端尚不支持数据视图（需要 1.61.0 或更高版本）。",
+    "tenant": "租户",
+    "tenantHint": "OpenSearch Dashboards 租户：每个租户的数据视图和已保存搜索各自独立",
+    "tenantDefault": "默认",
+    "tenantGlobal": "全局",
+    "tenantPrivate": "私有",
+    "tenantReadOnly": "只读"
   },
   "dialog": {
     "titleNew": "新建 Elasticsearch 连接",
@@ -112,7 +118,10 @@
     "kibanaCaCert": "Kibana CA 证书（PEM，可选）",
     "kibanaTestOk": "Kibana 可访问",
     "kibanaTestFail": "Kibana：{{error}}",
-    "errKibanaSecret": "Kibana 地址已更改：请重新输入密码 / API key，以便发送到新的 Kibana。"
+    "errKibanaSecret": "Kibana 地址已更改：请重新输入密码 / API key，以便发送到新的 Kibana。",
+    "tenant": "租户（OpenSearch Dashboards）",
+    "tenantPlaceholder": "global、private 或租户名称",
+    "tenantHelp": "仅适用于启用多租户的 OpenSearch Dashboards。留空 = 默认租户。可在侧栏切换。"
   },
   "share": {
     "title": "共享 \"{{name}}\"",

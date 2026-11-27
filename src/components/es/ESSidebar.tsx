@@ -42,7 +42,7 @@ import { dualWrite } from '@/stores/dbConnectionStore';
 import { useRequestStore } from '@/stores/requestStore';
 import { esConnectionAPI, esAPI, type DBScope } from '@/services/api';
 import { cn } from '@/lib/utils';
-import type { ESConnection, IndexRow, AliasRow, ESDataView, ESKibanaSpaces } from '@/types';
+import type { ESConnection, IndexRow, AliasRow, ESDataView, ESKibanaSpaces, ESOSDTenants } from '@/types';
 import { groupAliases, healthDot, formatCount, type AliasGroup } from './esRow';
 import { ESConnectionDialog } from './ESConnectionDialog';
 import { createSidebarDialogStore } from '@/stores/sidebarDialogStore';
@@ -103,25 +103,34 @@ export function ESSidebar() {
   const [dvByConn, setDvByConn] = useState<Record<string, DataViewState>>({});
   const [spacesByConn, setSpacesByConn] = useState<Record<string, ESKibanaSpaces | undefined>>({});
   const [spaceByConn, setSpaceByConn] = useState<Record<string, string | undefined>>({});
+  // OpenSearch Dashboards security tenants (saved objects differ per tenant)
+  // and the picked one (undefined = the connection's configured tenant).
+  const [tenantsByConn, setTenantsByConn] = useState<Record<string, ESOSDTenants | undefined>>({});
+  const [tenantByConn, setTenantByConn] = useState<Record<string, string | undefined>>({});
   const [closedDv, setClosedDv] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     fetchConnections();
   }, [fetchConnections]);
 
-  const loadDataViews = useCallback(async (conn: ESConnection, space?: string, refresh?: boolean) => {
+  const loadDataViews = useCallback(async (conn: ESConnection, space?: string, refresh?: boolean, tenant?: string) => {
     if (!hasKibana(conn)) {
       setDvByConn((m) => ({ ...m, [conn.id]: { views: [], noKibana: true } }));
       return;
     }
     const scope = scopeForEs(connections, conn.id);
     setDvByConn((m) => ({ ...m, [conn.id]: { ...(m[conn.id] ?? { views: [] }), loading: true, error: undefined } }));
-    const [vr, sr] = await Promise.allSettled([
-      esAPI.dataViews(conn.id, space, scope, refresh),
+    const [vr, sr, tr] = await Promise.allSettled([
+      esAPI.dataViews(conn.id, space, scope, refresh, tenant),
       spacesByConn[conn.id] && !refresh ? Promise.resolve(null) : esAPI.kibanaSpaces(conn.id, scope, refresh),
+      // 404 on a BE that predates tenants → no picker.
+      tenantsByConn[conn.id] && !refresh ? Promise.resolve(null) : esAPI.kibanaTenants(conn.id, scope, refresh),
     ]);
     if (sr.status === 'fulfilled' && sr.value) {
       setSpacesByConn((m) => ({ ...m, [conn.id]: sr.value!.data as ESKibanaSpaces }));
+    }
+    if (tr.status === 'fulfilled' && tr.value) {
+      setTenantsByConn((m) => ({ ...m, [conn.id]: tr.value!.data as ESOSDTenants }));
     }
     if (vr.status === 'fulfilled') {
       setDvByConn((m) => ({ ...m, [conn.id]: { views: (vr.value.data as ESDataView[]) ?? [] } }));
@@ -137,10 +146,10 @@ export function ESSidebar() {
           ? { views: [], noKibana: true }
           : { views: [], error: e?.response?.data?.error || e?.message || t('sidebar.dataViewsError') },
     }));
-  }, [connections, spacesByConn, t]);
+  }, [connections, spacesByConn, tenantsByConn, t]);
 
   const loadTree = useCallback(async (conn: ESConnection) => {
-    void loadDataViews(conn, spaceByConn[conn.id]);
+    void loadDataViews(conn, spaceByConn[conn.id], false, tenantByConn[conn.id]);
     setLoadingIdx((m) => ({ ...m, [conn.id]: true }));
     const scope = scopeForEs(connections, conn.id);
     try {
@@ -164,7 +173,7 @@ export function ESSidebar() {
     } finally {
       setLoadingIdx((m) => ({ ...m, [conn.id]: false }));
     }
-  }, [connections, loadDataViews, spaceByConn]);
+  }, [connections, loadDataViews, spaceByConn, tenantByConn]);
 
   const toggleExpand = useCallback((conn: ESConnection) => {
     const next = !expanded[conn.id];
@@ -187,10 +196,10 @@ export function ESSidebar() {
     }, true);
   }, [addTab]);
 
-  const openDataViewTab = useCallback((conn: ESConnection, dv: ESDataView, space: string | undefined) => {
+  const openDataViewTab = useCallback((conn: ESConnection, dv: ESDataView, space: string | undefined, tenant: string | undefined) => {
     const { tabs, setActiveTab } = useRequestStore.getState();
     const existing = tabs.find((x) => x.type === 'es' && x.esConnectionId === conn.id
-      && x.esDataViewId === dv.id && x.esDataViewSpace === space);
+      && x.esDataViewId === dv.id && x.esDataViewSpace === space && x.esDataViewTenant === tenant);
     if (existing) {
       setActiveTab(existing.id);
       return;
@@ -204,6 +213,7 @@ export function ESSidebar() {
       esDataViewId: dv.id,
       esDataViewName: dv.name,
       esDataViewSpace: space,
+      esDataViewTenant: tenant,
       esIndex: dv.pattern,
     }, true);
   }, [addTab]);
@@ -334,6 +344,8 @@ export function ESSidebar() {
                   : allDv;
                 const spaces = spacesByConn[conn.id];
                 const pickedSpace = spaceByConn[conn.id];
+                const tenants = tenantsByConn[conn.id];
+                const pickedTenant = tenantByConn[conn.id];
                 return (
                   <div className="ml-3 border-l border-border/60 pl-1 py-1 space-y-1">
                     {/* Filter both listings by index / alias name. */}
@@ -372,11 +384,33 @@ export function ESSidebar() {
                                       onChange={(e) => {
                                         const v = e.target.value;
                                         setSpaceByConn((m) => ({ ...m, [conn.id]: v }));
-                                        void loadDataViews(conn, v);
+                                        void loadDataViews(conn, v, false, pickedTenant);
                                       }}
                                       className="flex-1 min-w-0 h-5 rounded border bg-background px-1 text-[10px]"
                                     >
                                       {spaces.spaces.map((sp) => <option key={sp.id} value={sp.id}>{sp.name}</option>)}
+                                    </select>
+                                  </div>
+                                )}
+                                {tenants?.supported && tenants.tenants.length > 0 && (
+                                  <div className="px-2 py-0.5 flex items-center gap-1" title={t('sidebar.tenantHint')}>
+                                    <span className="text-[10px] text-muted-foreground/70 shrink-0">{t('sidebar.tenant')}</span>
+                                    <select
+                                      value={pickedTenant ?? tenants.default}
+                                      onChange={(e) => {
+                                        const v = e.target.value;
+                                        setTenantByConn((m) => ({ ...m, [conn.id]: v }));
+                                        void loadDataViews(conn, pickedSpace, false, v);
+                                      }}
+                                      className="flex-1 min-w-0 h-5 rounded border bg-background px-1 text-[10px]"
+                                    >
+                                      <option value="">{t('sidebar.tenantDefault')}</option>
+                                      {tenants.tenants.map((tn) => (
+                                        <option key={tn.id} value={tn.id}>
+                                          {tn.kind === 'global' ? t('sidebar.tenantGlobal') : tn.kind === 'private' ? t('sidebar.tenantPrivate') : tn.name}
+                                          {tn.writable ? '' : ` (${t('sidebar.tenantReadOnly')})`}
+                                        </option>
+                                      ))}
                                     </select>
                                   </div>
                                 )}
@@ -398,7 +432,7 @@ export function ESSidebar() {
                                 ) : dvState.error ? (
                                   <div className="px-2 py-1 text-[10px] text-destructive/90 break-words" title={dvState.error}>
                                     <span className="line-clamp-3">{dvState.error}</span>
-                                    <button type="button" className="text-primary hover:underline" onClick={() => void loadDataViews(conn, pickedSpace, true)}>
+                                    <button type="button" className="text-primary hover:underline" onClick={() => void loadDataViews(conn, pickedSpace, true, pickedTenant)}>
                                       {t('common:retry')}
                                     </button>
                                   </div>
@@ -409,7 +443,7 @@ export function ESSidebar() {
                                     <button
                                       key={d.id}
                                       type="button"
-                                      onClick={() => openDataViewTab(conn, d, pickedSpace)}
+                                      onClick={() => openDataViewTab(conn, d, pickedSpace, pickedTenant)}
                                       className="w-full flex flex-col gap-0.5 px-2 py-0.5 rounded text-left hover:bg-accent/40"
                                       title={d.timeField
                                         ? t('sidebar.dataViewTitle', { pattern: d.pattern, timeField: d.timeField })

@@ -46,7 +46,7 @@ import {
   ChevronRight,
   ChevronDown,
   History,
-  ArrowLeft, Waypoints,
+  ArrowLeft, Waypoints, ArrowUp, ArrowDown,
 } from 'lucide-react';
 import { k8sAPI, type DBScope, type K8sAccessCheck, type K8sPortForward } from '@/services/api';
 import { useK8sConnectionStore, scopeForK8s } from '@/stores/k8sConnectionStore';
@@ -185,6 +185,43 @@ const FIXED_LABEL_KEYS: Record<FixedCol, string> = {
   node: 'col.node',
   age: 'col.age',
 };
+
+// Seconds behind the BE's kubectl-style AGE string ("45s", "12m", "30h",
+// "9d"); unknown / empty sorts as -1 (before everything ascending).
+function ageSeconds(a: string): number {
+  const m = /^(\d+)([smhd])$/.exec(a.trim());
+  if (!m) return -1;
+  return Number(m[1]) * ({ s: 1, m: 60, h: 3600, d: 86400 } as const)[m[2] as 's' | 'm' | 'h' | 'd'];
+}
+
+// "2/3" → 0.667 so READY sorts by ratio, then by the total.
+function readyRatio(r: string): number {
+  const m = /^(\d+)\/(\d+)$/.exec(r.trim());
+  if (!m) return -1;
+  const total = Number(m[2]);
+  return total === 0 ? 0 : Number(m[1]) / total + total / 1e6;
+}
+
+type SortState = { col: string; dir: 1 | -1 } | null;
+
+// Sort key of a table cell: numbers for numeric columns (age, cpu, memory,
+// restarts, ready), lowercase text otherwise. Pods without metrics sort as -1.
+function sortKey(col: string, row: ResourceRow, metric?: { cpuMilli: number; memBytes: number }): number | string {
+  switch (col) {
+    case 'age': return ageSeconds(row.age);
+    case 'cpu': return metric ? metric.cpuMilli : -1;
+    case 'memory': return metric ? metric.memBytes : -1;
+    case 'restarts': return row.restarts;
+    case 'ready': return readyRatio(row.ready);
+    case 'name': return row.name.toLowerCase();
+    case 'status': return row.status.toLowerCase();
+    case 'node': return row.node.toLowerCase();
+    default:
+      return col.startsWith('extra:') ? String(row.extra?.[col.slice(6)] ?? '').toLowerCase() : '';
+  }
+}
+
+const collator = new Intl.Collator(undefined, { numeric: true, sensitivity: 'base' });
 
 // kubectl-top-style memory formatting: binary (Ki/Mi/Gi) with a compact
 // significand, matching the units the metrics-server reports.
@@ -428,6 +465,9 @@ function K8sExplorerPanelInner({ tab }: K8sExplorerPanelProps) {
   const [rowsLoading, setRowsLoading] = useState(false);
   const [rowsError, setRowsError] = useState('');
   const [filter, setFilter] = useState('');
+  // Column sort (click a header: asc → desc → off). Kept per kind so
+  // switching Pods ↔ Deployments doesn't carry a column the kind lacks.
+  const [sortByKind, setSortByKind] = useState<Record<string, SortState>>({});
   // ── Live watch (SSE) ────────────────────────────────────────────────
   // `live` is the user toggle (default on). `watchActive` is true only while
   // an SSE watch stream is actually open (drives the green "live" dot).
@@ -960,12 +1000,31 @@ function K8sExplorerPanelInner({ tab }: K8sExplorerPanelProps) {
     return rows.filter((r) => r.name.toLowerCase().includes(q) || r.namespace.toLowerCase().includes(q)
       || Object.values(r.extra ?? {}).some((v) => String(v).toLowerCase().includes(q)));
   }, [rows, filter]);
+  const sort = sortByKind[kind] ?? null;
+  const sortedRows = useMemo(() => {
+    if (!sort || !columns.some((c) => c.id === sort.col)) return visibleRows;
+    const keyed = visibleRows.map((r) => ({ r, k: sortKey(sort.col, r, podMetrics.get(`${r.namespace}/${r.name}`)) }));
+    keyed.sort((a, b) => {
+      const c = typeof a.k === 'number' && typeof b.k === 'number' ? a.k - b.k : collator.compare(String(a.k), String(b.k));
+      return c !== 0 ? c * sort.dir : collator.compare(a.r.name, b.r.name);
+    });
+    return keyed.map((x) => x.r);
+  }, [visibleRows, sort, columns, podMetrics]);
+  const toggleSort = useCallback((col: string) => {
+    setSortByKind((m) => {
+      const cur = m[kind];
+      // Numeric columns open descending (biggest memory / oldest first).
+      const firstDir: 1 | -1 = ['age', 'cpu', 'memory', 'restarts'].includes(col) ? -1 : 1;
+      const next: SortState = !cur || cur.col !== col ? { col, dir: firstDir } : cur.dir === firstDir ? { col, dir: (-firstDir) as 1 | -1 } : null;
+      return { ...m, [kind]: next };
+    });
+  }, [kind]);
   // Cap the rendered rows: an all-namespaces view can return thousands of
   // resources and painting them all (each row carries an actions menu) locks
   // up the panel. Show a bounded slice + a hint to filter; the filter above
   // narrows the full set, so any resource is still reachable.
   const MAX_TABLE_ROWS = 500;
-  const cappedRows = visibleRows.length > MAX_TABLE_ROWS ? visibleRows.slice(0, MAX_TABLE_ROWS) : visibleRows;
+  const cappedRows = sortedRows.length > MAX_TABLE_ROWS ? sortedRows.slice(0, MAX_TABLE_ROWS) : sortedRows;
 
   const contexts = conn?.contexts ?? [];
 
@@ -1286,8 +1345,20 @@ function K8sExplorerPanelInner({ tab }: K8sExplorerPanelProps) {
                   <thead className="sticky top-0 z-10 bg-muted/60 backdrop-blur border-b text-[10px] uppercase tracking-wider text-muted-foreground">
                     <tr>
                       {columns.map((c) => (
-                        <th key={c.id} className="text-left font-semibold px-3 py-1.5 whitespace-nowrap">
-                          {c.label}
+                        <th
+                          key={c.id}
+                          className="text-left font-semibold px-3 py-1.5 whitespace-nowrap"
+                          aria-sort={sort?.col === c.id ? (sort.dir === 1 ? 'ascending' : 'descending') : undefined}
+                        >
+                          <button
+                            type="button"
+                            onClick={() => toggleSort(c.id)}
+                            title={t('explorer.sortBy', { col: c.label })}
+                            className={cn('inline-flex items-center gap-0.5 uppercase tracking-wider hover:text-foreground', sort?.col === c.id && 'text-foreground')}
+                          >
+                            {c.label}
+                            {sort?.col === c.id && (sort.dir === 1 ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />)}
+                          </button>
                         </th>
                       ))}
                       <th className="w-8 px-2 py-1.5" aria-label={t('common:actions')} />

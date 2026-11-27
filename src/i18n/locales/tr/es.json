@@ -25,7 +25,13 @@
     "dataViewsError": "Data view'lar yüklenemedi",
     "space": "Space",
     "dataViewTitle": "{{pattern}} · zaman alanı: {{timeField}}",
-    "dataViewsUnsupported": "Bu sunucudaki PatchMan backend'i data view'ları henüz desteklemiyor (1.61.0 veya üstü gerekir)."
+    "dataViewsUnsupported": "Bu sunucudaki PatchMan backend'i data view'ları henüz desteklemiyor (1.61.0 veya üstü gerekir).",
+    "tenant": "Tenant",
+    "tenantHint": "OpenSearch Dashboards tenantı: data view ve kayıtlı aramalar her tenantın kendine ait",
+    "tenantDefault": "Varsayılan",
+    "tenantGlobal": "Global",
+    "tenantPrivate": "Kişisel",
+    "tenantReadOnly": "salt okunur"
   },
   "dialog": {
     "titleNew": "Yeni Elasticsearch bağlantısı",
@@ -112,7 +118,10 @@
     "kibanaCaCert": "Kibana CA sertifikası (PEM, isteğe bağlı)",
     "kibanaTestOk": "Kibana'ya erişildi",
     "kibanaTestFail": "Kibana: {{error}}",
-    "errKibanaSecret": "Kibana adresi değişti: yeni Kibana'ya gönderilebilmesi için parolayı / API anahtarını yeniden gir."
+    "errKibanaSecret": "Kibana adresi değişti: yeni Kibana'ya gönderilebilmesi için parolayı / API anahtarını yeniden gir.",
+    "tenant": "Tenant (OpenSearch Dashboards)",
+    "tenantPlaceholder": "global, private ya da tenant adı",
+    "tenantHelp": "Yalnızca multi-tenancy açık OpenSearch Dashboards için. Boş = varsayılan tenant. Kenar çubuğundan değiştirebilirsin."
   },
   "share": {
     "title": "\"{{name}}\" paylaş",

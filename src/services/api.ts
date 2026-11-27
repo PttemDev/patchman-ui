@@ -1816,14 +1816,18 @@ export const esAPI = {
   // "default" = the default space explicitly.
   kibanaSpaces: (id: string, scope?: DBScope, refresh?: boolean) =>
     api.get(`/es/${id}/kibana/spaces`, { params: refresh ? { refresh: 1 } : {}, ...(scope ? { _executionPin: scope } : {}) }),
-  dataViews: (id: string, space?: string, scope?: DBScope, refresh?: boolean) =>
+  // OpenSearch Dashboards security tenants (supported=false on Kibana).
+  kibanaTenants: (id: string, scope?: DBScope, refresh?: boolean) =>
+    api.get(`/es/${id}/kibana/tenants`, { params: refresh ? { refresh: 1 } : {}, ...(scope ? { _executionPin: scope } : {}) }),
+  // tenant: undefined = the connection's tenant, '' = OSD's default.
+  dataViews: (id: string, space?: string, scope?: DBScope, refresh?: boolean, tenant?: string) =>
     api.get(`/es/${id}/data-views`, {
-      params: { ...(space !== undefined ? { space } : {}), ...(refresh ? { refresh: 1 } : {}) },
+      params: { ...(space !== undefined ? { space } : {}), ...(tenant !== undefined ? { tenant } : {}), ...(refresh ? { refresh: 1 } : {}) },
       ...(scope ? { _executionPin: scope } : {}),
     }),
-  dataView: (id: string, dvId: string, space?: string, scope?: DBScope) =>
+  dataView: (id: string, dvId: string, space?: string, scope?: DBScope, tenant?: string) =>
     api.get(`/es/${id}/data-views/${encodeURIComponent(dvId)}`, {
-      params: space !== undefined ? { space } : {},
+      params: { ...(space !== undefined ? { space } : {}), ...(tenant !== undefined ? { tenant } : {}) },
       ...(scope ? { _executionPin: scope } : {}),
     }),
   dataViewSearch: (id: string, dvId: string, data: ESDataViewSearchRequest, scope?: DBScope) =>

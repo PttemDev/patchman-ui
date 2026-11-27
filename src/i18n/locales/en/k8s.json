@@ -206,7 +206,8 @@
     "dragResize": "Drag to resize",
     "localShellBadge": "Local shell",
     "loadObjectFailed": "Could not load object",
-    "serviceMap": "Service map"
+    "serviceMap": "Service map",
+    "sortBy": "Sort by {{col}}"
   },
   "kinds": {
     "groupCluster": "Cluster",

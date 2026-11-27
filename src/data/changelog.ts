@@ -7,6 +7,17 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '1.79.0',
+    date: '2026-11-27',
+    title: 'OpenSearch Dashboards tenants + sortable Kubernetes tables',
+    changes: [
+      'Elasticsearch: on OpenSearch Dashboards with multi-tenancy, pick the tenant (Global, Private or a custom tenant) in the sidebar next to Data views. Data views and Discover then show that tenant\'s saved objects.',
+      'A default tenant can be set on the connection (Tenant field, next to the Kibana space). A tenant you have no access to now gives a clear error instead of silently showing another tenant\'s data views.',
+      'AI agents: es_data_views lists your tenants (tenants=true) and, like es_data_view_search, takes a tenant.',
+      'Kubernetes: click any column header to sort the resource table — by age, CPU, memory, restarts, ready, name or any other column. Click again to reverse, a third time to turn sorting off.',
+    ],
+  },
+  {
     version: '1.78.5',
     date: '2026-11-27',
     title: 'Fix checks for posted findings + team review guide',

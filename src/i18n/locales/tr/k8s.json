@@ -206,7 +206,8 @@
     "dragResize": "Yeniden boyutlandırmak için sürükleyin",
     "localShellBadge": "Yerel kabuk",
     "loadObjectFailed": "Nesne yüklenemedi",
-    "serviceMap": "Servis haritası"
+    "serviceMap": "Servis haritası",
+    "sortBy": "{{col}} sütununa göre sırala"
   },
   "kinds": {
     "groupCluster": "Cluster",

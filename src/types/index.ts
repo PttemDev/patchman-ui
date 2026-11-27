@@ -717,6 +717,8 @@ export interface Tab {
   esDataViewName?: string;
   /** Kibana space of the data view (undefined = the connection's space). */
   esDataViewSpace?: string;
+  /** OSD security tenant of the data view (undefined = the connection's tenant). */
+  esDataViewTenant?: string;
   /** Discover: Lucene query, time range and selected columns. */
   esDiscoverQuery?: string;
   esDiscoverRange?: GraylogRange;
@@ -2620,6 +2622,8 @@ export interface ESDataView {
   timeField?: string;
   runtimeFields?: Record<string, { type?: string; script?: { source?: string } }>;
   space?: string;
+  /** OpenSearch Dashboards security tenant the data view was read from. */
+  tenant?: string;
   /** True when timeField / runtimeFields are authoritative (detail call). */
   detailed: boolean;
 }
@@ -2640,8 +2644,29 @@ export interface ESKibanaSpaces {
   default: string;
 }
 
+/** One OpenSearch Dashboards security tenant (id = the securitytenant value). */
+export interface ESOSDTenant {
+  id: string;
+  name: string;
+  kind: 'global' | 'private' | 'custom';
+  writable: boolean;
+}
+
+export interface ESOSDTenants {
+  tenants: ESOSDTenant[];
+  /** False on Kibana / OpenSearch without multi-tenancy. */
+  supported: boolean;
+  /** The connection's configured tenant ("" = OSD's default). */
+  default: string;
+  /** The tenant the user picked at OSD login (user_requested_tenant). */
+  current?: string;
+  user?: string;
+}
+
 export interface ESDataViewSearchRequest {
   space?: string;
+  /** OSD tenant; omitted = the connection's tenant, "" = OSD's default. */
+  tenant?: string;
   /** ISO-8601 or ES date math (now-15m). */
   from?: string;
   to?: string;

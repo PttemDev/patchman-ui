@@ -206,7 +206,8 @@
     "dragResize": "Arrastra para redimensionar",
     "localShellBadge": "Shell local",
     "loadObjectFailed": "No se pudo cargar el objeto",
-    "serviceMap": "Mapa de servicios"
+    "serviceMap": "Mapa de servicios",
+    "sortBy": "Ordenar por {{col}}"
   },
   "kinds": {
     "groupCluster": "Cluster",

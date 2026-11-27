@@ -25,7 +25,13 @@
     "dataViewsError": "Could not load data views",
     "space": "Space",
     "dataViewTitle": "{{pattern}} · time field: {{timeField}}",
-    "dataViewsUnsupported": "This server's PatchMan backend doesn't support data views yet (it needs 1.61.0 or later)."
+    "dataViewsUnsupported": "This server's PatchMan backend doesn't support data views yet (it needs 1.61.0 or later).",
+    "tenant": "Tenant",
+    "tenantHint": "OpenSearch Dashboards tenant: data views and saved searches are separate per tenant",
+    "tenantDefault": "Default",
+    "tenantGlobal": "Global",
+    "tenantPrivate": "Private",
+    "tenantReadOnly": "read-only"
   },
   "dialog": {
     "titleNew": "New Elasticsearch connection",
@@ -112,7 +118,10 @@
     "kibanaCaCert": "Kibana CA certificate (PEM, optional)",
     "kibanaTestOk": "Kibana reachable",
     "kibanaTestFail": "Kibana: {{error}}",
-    "errKibanaSecret": "The Kibana address changed: enter the password / API key again so it can be sent to the new Kibana."
+    "errKibanaSecret": "The Kibana address changed: enter the password / API key again so it can be sent to the new Kibana.",
+    "tenant": "Tenant (OpenSearch Dashboards)",
+    "tenantPlaceholder": "global, private or a tenant name",
+    "tenantHelp": "Only for OpenSearch Dashboards with multi-tenancy. Empty = the default tenant. You can switch it in the sidebar."
   },
   "share": {
     "title": "Share \"{{name}}\"",
