@@ -22,7 +22,7 @@ import { mcpTokensAPI, type MCPToken, type McpPin } from '@/services/api';
 // Tool-group keys — MUST match internal/mcpscope.AllGroups on the BE.
 const GROUPS = [
   'collections', 'requests', 'environments', 'testcases', 'mocks',
-  'connections', 'http', 'db', 'es', 'redis', 'kafka', 's3', 'k8s', 'git', 'devtools', 'whiteboards', 'notes', 'grafana', 'rabbitmq', 'observability', 'graylog', 'gcp',
+  'connections', 'http', 'db', 'es', 'redis', 'kafka', 's3', 'k8s', 'git', 'devtools', 'whiteboards', 'notes', 'grafana', 'rabbitmq', 'observability', 'graylog', 'gcp', 'jira',
 ] as const;
 
 type PanelToken = MCPToken & { source: McpPin };

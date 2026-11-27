@@ -64,6 +64,8 @@ import {
 } from './folderTree';
 import { activeRunEnv, isExecutableCase, runErrorResult } from './stepVars';
 import type { TestCase, TestCaseFolder, TestExecutionResult } from '@/types';
+import { useAuthStore } from '@/stores/authStore';
+import { QAMoveSubmenu } from '@/components/qahub/QAScope';
 
 const statusConfig: Record<string, { variant: string; labelKey: string }> = {
   draft: { variant: 'secondary', labelKey: 'caseStatus.draft' },
@@ -105,7 +107,9 @@ type NameDialogState =
   | { mode: 'create'; parentId: string | null }
   | { mode: 'rename'; folder: TestCaseFolder };
 
-export function TestCaseList() {
+// wide (CR + QA Hub): the list on the left, the selected case's editor on
+// the right instead of in a dialog.
+export function TestCaseList({ wide = false }: { wide?: boolean } = {}) {
   const { t } = useTranslation('qa');
   const { toast } = useToast();
   const [testCases, setTestCases] = useState<TestCase[]>([]);
@@ -307,6 +311,7 @@ export function TestCaseList() {
           onNewCase={() => { setFolderExpanded(f.id, true); newCaseIn(f.id); }}
           onNewSubfolder={() => setNameDialog({ mode: 'create', parentId: f.id })}
           onRename={() => setNameDialog({ mode: 'rename', folder: f })}
+          onMoved={fetchAll}
           onDelete={() => void deleteFolder(f)}
         />
         {open && (
@@ -327,7 +332,7 @@ export function TestCaseList() {
   const nothingAtAll = testCases.length === 0 && folders.length === 0;
 
   return (
-    <div className="space-y-3">
+    <div className={wide ? 'grid grid-cols-1 items-start gap-x-5 gap-y-3 @4xl:grid-cols-[minmax(280px,380px)_minmax(0,1fr)] @4xl:[&>*]:col-start-1' : 'space-y-3'}>
       <div className="flex items-center gap-2">
         <div className="relative flex-1">
           <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
@@ -394,13 +399,34 @@ export function TestCaseList() {
         </DragOverlay>
       </DndContext>
 
-      <TestCaseEditor
-        open={editorOpen}
-        onOpenChange={setEditorOpen}
-        testCase={editingCase}
-        folderId={editingCase ? undefined : newCaseFolderId}
-        onSaved={fetchAll}
-      />
+      {wide ? (
+        <div className="order-first @4xl:sticky @4xl:top-0 @4xl:order-none @4xl:!col-start-2 @4xl:[grid-row:1/span_50]">
+          {editorOpen ? (
+            <TestCaseEditor
+              key={editingCase?.id ?? 'new'}
+              variant="panel"
+              open
+              onOpenChange={setEditorOpen}
+              testCase={editingCase}
+              folderId={editingCase ? undefined : newCaseFolderId}
+              onSaved={fetchAll}
+            />
+          ) : (
+            <div className="flex h-64 flex-col items-center justify-center gap-2 rounded-lg border border-dashed text-center text-xs text-muted-foreground">
+              <FlaskConical className="h-8 w-8 opacity-30" />
+              {t('caseList.pickToEdit')}
+            </div>
+          )}
+        </div>
+      ) : (
+        <TestCaseEditor
+          open={editorOpen}
+          onOpenChange={setEditorOpen}
+          testCase={editingCase}
+          folderId={editingCase ? undefined : newCaseFolderId}
+          onSaved={fetchAll}
+        />
+      )}
 
       <FolderNameDialog
         state={nameDialog}
@@ -457,11 +483,14 @@ interface FolderRowProps {
   onNewCase: () => void;
   onNewSubfolder: () => void;
   onRename: () => void;
+  /** Set when the folder can be moved between personal and a workspace. */
+  onMoved?: () => void;
   onDelete: () => void;
 }
 
-function FolderRow({ folder, depth, open, caseCount, canRun, onToggle, onRunAll, onNewCase, onNewSubfolder, onRename, onDelete }: FolderRowProps) {
+function FolderRow({ folder, depth, open, caseCount, canRun, onToggle, onRunAll, onNewCase, onNewSubfolder, onRename, onDelete, onMoved }: FolderRowProps) {
   const { t } = useTranslation('qa');
+  const me = useAuthStore((s) => s.user?.id);
   const { setNodeRef, isOver } = useDroppable({ id: FOLDER_PREFIX + folder.id });
   const runLabel = t('folders.runAll', { defaultValue: 'Run all' });
   return (
@@ -526,6 +555,9 @@ function FolderRow({ folder, depth, open, caseCount, canRun, onToggle, onRunAll,
           <DropdownMenuItem className="text-xs" onSelect={onRename}>
             <Pencil className="h-3.5 w-3.5 mr-2" />{t('folders.rename', { defaultValue: 'Rename' })}
           </DropdownMenuItem>
+          {onMoved && folder.parentId == null && (!folder.userId || folder.userId === me) && (
+            <QAMoveSubmenu kind="folder" id={folder.id} currentWorkspaceId={folder.workspaceId} onMoved={onMoved} />
+          )}
           <DropdownMenuSeparator />
           <DropdownMenuItem className="text-xs text-destructive focus:text-destructive" onSelect={onDelete}>
             <Trash2 className="h-3.5 w-3.5 mr-2" />{t('folders.delete', { defaultValue: 'Delete' })}

@@ -147,7 +147,12 @@
     "queryFailed": "Query failed",
     "emptyRun": "Press Cmd+Enter to run the query.",
     "emptyPickConnection": "Pick a connection above to get started.",
-    "savedQueryDefault": "Saved query"
+    "savedQueryDefault": "Saved query",
+    "runStatement": "Run statement",
+    "runModesHint": "⌘↵ runs the selection or the statement at the caret · ⇧⌘↵ runs everything",
+    "runAll_one": "Run all ({{count}})",
+    "runAll_other": "Run all ({{count}})",
+    "runAllTooltip": "Run every statement in the editor; each gets its own result tab."
   },
   "results": {
     "truncated": "truncated",
@@ -178,17 +183,57 @@
     "copyValue": "Copy value",
     "showAsJson": "Show as JSON…",
     "copyAs": "Copy as…",
-    "copyPlain": "Plain text",
-    "copyRowJson": "Row as JSON",
-    "copyRowInsert": "Row as INSERT",
-    "copyColumnName": "Column name",
+    "copyColumnName": "Copy column name",
     "filterByValue": "Filter by this value",
     "excludeValue": "Exclude this value",
     "filterNull": "Filter NULL",
     "filterNotNull": "Filter NOT NULL",
     "openReferenced": "Open referenced row…",
     "unfreezeColumn": "Unfreeze column",
-    "freezeColumn": "Freeze column"
+    "freezeColumn": "Freeze column",
+    "copiedValue": "Copied",
+    "copiedName": "Column name copied",
+    "copiedRows_one": "{{count}} row copied as {{format}}",
+    "copiedRows_other": "{{count}} rows copied as {{format}}",
+    "copiedValues_one": "{{count}} value copied",
+    "copiedValues_other": "{{count}} values copied",
+    "fmt": {
+      "tsv": "TSV (pastes into Excel / Sheets)",
+      "csv": "CSV",
+      "json": "JSON",
+      "markdown": "Markdown table",
+      "insert": "SQL INSERT"
+    },
+    "dl": {
+      "csv": "CSV",
+      "json": "JSON",
+      "xlsx": "Excel (.xlsx)"
+    },
+    "selectAllRows": "Select all rows",
+    "rowSelectHint": "Click to select · Shift+click for a range · ⌘+click to add",
+    "rowsSelected_one": "{{count}} row selected",
+    "rowsSelected_other": "{{count}} rows selected",
+    "copy": "Copy",
+    "copyShortcut": "Copy selected rows with headers (⌘C)",
+    "download": "Download",
+    "downloadSelected_one": "Download {{count}} selected row",
+    "downloadSelected_other": "Download {{count}} selected rows",
+    "clearSelection": "Clear",
+    "copyAllColumnNames": "Copy all column names",
+    "copyColumnValues": "Copy column values",
+    "copyColumnIn": "Copy as IN (…) list",
+    "sortAsc": "Sort ascending",
+    "sortDesc": "Sort descending",
+    "hideColumn": "Hide column",
+    "copyWhere": "Copy as WHERE condition",
+    "copyRowAs": "Copy row as",
+    "copyRowsAs_one": "Copy {{count}} row as",
+    "copyRowsAs_other": "Copy {{count}} rows as",
+    "downloadRow": "Download row as",
+    "downloadRows_one": "Download {{count}} row as",
+    "downloadRows_other": "Download {{count}} rows as",
+    "selectRow": "Select row",
+    "deselectRow": "Deselect row"
   },
   "chart": {
     "noData": "No data to chart.",
@@ -802,5 +847,20 @@
     "costTitle": "This query will scan {{size}}",
     "costBody": "That's above your {{ask}} \"ask first\" limit. BigQuery bills by the data scanned.",
     "costRun": "Run it"
+  },
+  "completion": {
+    "columnsCount_one": "{{count}} column",
+    "columnsCount_other": "{{count}} columns",
+    "template": "Live template",
+    "fkJoin": "join along foreign key",
+    "schema": "schema",
+    "fkCondition": "foreign key",
+    "expandColumns_one": "expand to {{count}} column",
+    "expandColumns_other": "expand to {{count}} columns"
+  },
+  "editor": {
+    "runCurrent": "Run statement at caret / selection",
+    "runAll": "Run whole script",
+    "runThis": "Run this statement"
   }
 }

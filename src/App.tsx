@@ -34,8 +34,10 @@ import { hasOverlayTitleBar, isDesktop } from '@/lib/platform';
 import { RemoteConnectGate, useBackendGate } from '@/components/RemoteConnectGate';
 import { RemoteNoticeBanner } from '@/components/RemoteNoticeBanner';
 import { runBackendGuard } from '@/lib/backendGuard';
+import { useTrayBadge } from '@/hooks/useTrayBadge';
 import { useUpdateChecker } from '@/hooks/useUpdateChecker';
 import { initDetachHost } from '@/lib/detach/DetachController';
+import { initTerminalBridge } from '@/components/terminal/terminalBridge';
 
 // React render-time errors. The boundary still has to render *something* in
 // place of the broken subtree (you can't unmount the boundary itself), but
@@ -104,6 +106,9 @@ function isBenignEditorError(message: string): boolean {
     message.includes('TextModel got disposed') ||
     message.includes('DiffEditorWidget model got reset') ||
     message.includes('Model is disposed') ||
+    // An editor torn down mid-render (a scroll / layout callback runs after
+    // the tab or dialog unmounted it): Monaco's services are already gone.
+    message.includes('InstantiationService has been disposed') ||
     // A Monaco worker proxy couldn't resolve an optional language-service
     // method (e.g. monaco-yaml's document-link "findLinks" — a monaco-editor
     // 0.55 ↔ monaco-yaml 5.5 interop quirk). The editor stays fully usable —
@@ -214,6 +219,7 @@ function App() {
   useRemoteConnectDeepLink();
   useTrayEvents();
   useUpdateChecker();
+  useTrayBadge();
 
   // Desktop backend gate: no reachable backend yet (open-source build, no baked
   // URL, no remote chosen) → 'setup'; the active backend is incompatible with
@@ -237,6 +243,7 @@ function App() {
   // standalone (detached) window. Runs once per main-window session.
   useEffect(() => {
     initDetachHost();
+    if (isDesktop()) initTerminalBridge(); // detached terminal tabs talk to their shell here
   }, []);
 
   // Packaged desktop only: suppress the webview's native right-click menu on

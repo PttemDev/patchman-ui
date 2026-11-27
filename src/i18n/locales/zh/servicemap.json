@@ -320,7 +320,8 @@
     "errRpsHint": "此调用每秒失败的请求数",
     "colShare": "占比",
     "foldedInto": "在图上折叠于 {{name}}",
-    "hiddenByFilters": "被筛选条件或命名空间选择隐藏 — 仍计入总数"
+    "hiddenByFilters": "被筛选条件或命名空间选择隐藏 — 仍计入总数",
+    "open": "服务详情"
   },
   "table": {
     "from": "来源",
@@ -331,7 +332,19 @@
     "p95": "p95",
     "sources": "数据源",
     "conns": "{{count}} 个连接",
-    "empty": "没有调用。"
+    "empty": "没有调用。",
+    "services": "服务",
+    "calls": "调用",
+    "unitHint": "每秒或每分钟的请求速率",
+    "unitRps": "/秒",
+    "unitRpm": "/分",
+    "rpm": "请求/分",
+    "service": "服务",
+    "namespace": "命名空间",
+    "kind": "类型",
+    "health": "健康",
+    "noServices": "没有服务。",
+    "noCallRates": "此来源只报告服务之间的调用关系，不报告调用频率；每个服务自身的流量见“服务”。"
   },
   "export": {
     "failed": "无法将地图添加到白板",
@@ -381,5 +394,58 @@
     "entitySearch": "名称，或实体搜索：domainType IN ('APM-APPLICATION')",
     "search": "搜索",
     "noEntities": "没有实体。"
+  },
+  "serviceDetail": {
+    "failed": "无法加载服务详情",
+    "clusterProm": "集群 Prometheus",
+    "source": "来源",
+    "fromMap": "来自地图",
+    "avg": "平均",
+    "summary": "概要",
+    "charts": "性能",
+    "alerts": "告警",
+    "noOpenAlerts": "没有未关闭的告警。",
+    "checks": "健康检查",
+    "endpoints": "端点",
+    "endpoint": "端点",
+    "timeShare": "耗时占比",
+    "errors": "错误",
+    "errorClass": "错误类",
+    "message": "消息",
+    "count": "次数",
+    "lastSeen": "最近出现",
+    "instances": "实例",
+    "instance": "实例",
+    "more": "更多图表",
+    "noData": "此时间范围内没有数据。",
+    "noSource": "地图上没有可观测性连接认识此服务，因此没有可加载的详情。请添加 New Relic、Coroot 或 Prometheus 作为来源。",
+    "empty": "后端在此时间范围内没有此服务的数据。",
+    "range": {
+      "30m": "30分",
+      "1h": "1时",
+      "6h": "6时",
+      "24h": "24时",
+      "7d": "7天"
+    },
+    "chart": {
+      "throughput": "吞吐量",
+      "latency": "响应时间",
+      "errors": "错误率",
+      "apdex": "Apdex"
+    },
+    "series": {
+      "requests": "请求",
+      "errors": "错误",
+      "avg": "平均",
+      "p95": "p95",
+      "p99": "p99",
+      "apdex": "Apdex"
+    },
+    "note": {
+      "family": "读取自 {{family}} 指标。",
+      "familyError": "一个指标族失败：{{detail}}",
+      "no_service_requests": "此时间范围内没有指标显示发往此服务的请求。",
+      "coroot_agent_metrics_only": "这里只有 Coroot node-agent 指标，它们按对端地址统计调用；请添加 Coroot 连接本身以查看此服务的页面。"
+    }
   }
 }

@@ -1,4 +1,4 @@
-import { Globe, Info, ScrollText, Download, GitBranch, Database, Bot, Keyboard, Languages, Cloud, Palette, Shield, Puzzle, FileCode2, CloudCog } from 'lucide-react';
+import { Globe, Info, ScrollText, Download, GitBranch, Database, Bot, Keyboard, Languages, Cloud, Palette, Shield, Puzzle, FileCode2, CloudCog, TerminalSquare, Ticket } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import { isDesktop } from '@/lib/platform';
@@ -19,7 +19,9 @@ import { ChangelogSection } from './ChangelogSection';
 import { UpdatesSection } from './UpdatesSection';
 import { KeymapSection } from './KeymapSection';
 import { EditorSection } from './EditorSection';
+import { TerminalSection } from './TerminalSection';
 import { GoogleCloudSection } from './GoogleCloudSection';
+import { JiraSection } from './JiraSection';
 import { LanguageSection } from './LanguageSection';
 import { RemoteSection } from './RemoteSection';
 import { AppearanceSection } from './AppearanceSection';
@@ -36,6 +38,7 @@ interface SectionDef {
 const ALL_SECTIONS: SectionDef[] = [
   { id: 'keymap', labelKey: 'settings:nav.shortcuts', icon: Keyboard, render: () => <KeymapSection /> },
   { id: 'editor', labelKey: 'settings:nav.editor', icon: FileCode2, render: () => <EditorSection /> },
+  { id: 'terminal', labelKey: 'settings:nav.terminal', icon: TerminalSquare, render: () => <TerminalSection /> },
   { id: 'appearance', labelKey: 'settings:nav.appearance', icon: Palette, render: () => <AppearanceSection /> },
   { id: 'language', labelKey: 'common:language', icon: Languages, render: () => <LanguageSection /> },
   { id: 'remote', labelKey: 'settings:nav.remote', icon: Cloud, render: () => <RemoteSection /> },
@@ -43,6 +46,7 @@ const ALL_SECTIONS: SectionDef[] = [
   { id: 'proxy', labelKey: 'settings:nav.proxy', icon: Globe, render: () => <ProxySection /> },
   { id: 'integrations', labelKey: 'settings:nav.integrations', icon: GitBranch, render: () => <IntegrationsSection /> },
   { id: 'gcp', labelKey: 'settings:nav.gcp', icon: CloudCog, render: () => <GoogleCloudSection /> },
+  { id: 'jira', labelKey: 'settings:nav.jira', icon: Ticket, render: () => <JiraSection /> },
   { id: 'mcp', labelKey: 'settings:nav.mcp', icon: Bot, render: () => <MCPSection /> },
   { id: 'plugins', labelKey: 'plugins:settings.nav', icon: Puzzle, render: () => <PluginsSection /> },
   { id: 'data', labelKey: 'settings:nav.data', icon: Database, render: () => <DataSection /> },

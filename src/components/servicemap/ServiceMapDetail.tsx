@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next';
 import {
   ArrowDownRight, ArrowRight, ArrowUpRight, Boxes, CheckCircle2, CircleHelp, Crosshair, ExternalLink, EyeOff, FileKey2, FileText, FolderClosed, FolderInput,
   FolderOpen, FolderTree,
-  KeyRound, Link2, OctagonX, Radar, Route, X,
+  KeyRound, LineChart, Link2, OctagonX, Radar, Route, X,
 } from 'lucide-react';
 import type { TFunction } from 'i18next';
 import { Button } from '@/components/ui/button';
@@ -11,7 +11,7 @@ import { useRequestStore } from '@/stores/requestStore';
 import { cn } from '@/lib/utils';
 import { openRabbitCluster } from '@/components/rabbit/rabbitUtil';
 import { HealthIcon, NodeIcon } from './ServiceNodeCard';
-import { errorKnown, fmtMs, fmtPct, fmtRps, isErrorStatus, nodeClass, CLASS_VAR, HEALTH_VAR } from './serviceMapUtil';
+import { errorKnown, fmtMs, fmtPct, fmtRps, hasServiceDetail, isErrorStatus, nodeClass, CLASS_VAR, HEALTH_VAR } from './serviceMapUtil';
 
 /** Where a node is on the current view: drawn, folded into a namespace, or
  *  hidden by the filters / namespace scope. */
@@ -40,6 +40,8 @@ interface Props {
   onFocus: (depth: number) => void;
   focusDepth?: number;
   onOnlyNamespace?: (ns: string) => void;
+  /** Opens the service detail (charts, endpoints, errors, alerts). */
+  onOpenDetail?: (node: ServiceMapNode) => void;
 }
 
 const HEALTH_ORDER: Record<string, number> = { critical: 0, warning: 1, unknown: 2, ok: 3 };
@@ -79,7 +81,7 @@ function Metric({ label, value, tone }: { label: string; value: string; tone?: s
 }
 
 export function ServiceMapDetail({
-  graph, full, placeOf, node, edge, tab, corootUrls, onSelectNode, onSelectEdge, onClose, members, onOpenMember, onExpand, onCollapse, onFocus, focusDepth, onOnlyNamespace,
+  graph, full, placeOf, node, edge, tab, corootUrls, onSelectNode, onSelectEdge, onClose, members, onOpenMember, onExpand, onCollapse, onFocus, focusDepth, onOnlyNamespace, onOpenDetail,
 }: Props) {
   const { t } = useTranslation('servicemap');
   const byId = new Map([...full.nodes, ...graph.nodes].map((n) => [n.id, n]));
@@ -159,6 +161,11 @@ export function ServiceMapDetail({
             )}
           </div>
           <div className="flex flex-wrap gap-1.5">
+            {onOpenDetail && hasServiceDetail(node) && (
+              <Button size="sm" className="h-7 text-xs" onClick={() => onOpenDetail(node)}>
+                <LineChart className="h-3.5 w-3.5 mr-1" /> {t('detail.open')}
+              </Button>
+            )}
             {node.connection && (
               <Button size="sm" variant="secondary" className="h-7 text-xs" onClick={() => openTool(node)}>
                 <Link2 className="h-3.5 w-3.5 mr-1" /> {t('detail.openConnection', { name: node.connection.name })}

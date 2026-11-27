@@ -53,7 +53,9 @@
       "rabbit": "RabbitMQ",
       "graylog": "Graylog",
       "servicemap": "Servis haritası",
-      "plugin": "Eklenti"
+      "plugin": "Eklenti",
+      "terminal": "Terminal · {{cwd}}",
+      "qahub": "CR + QA Hub"
     },
     "moreParams": "parametre daha"
   },

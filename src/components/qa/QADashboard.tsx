@@ -182,7 +182,7 @@ function QuickRunResultDetail({ result }: { result: TestExecutionResult }) {
 
 // ── Overview Tab ──
 
-function OverviewSection() {
+export function OverviewSection() {
   const { t } = useTranslation('qa');
   const [testCases, setTestCases] = useState<TestCase[]>([]);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -564,10 +564,14 @@ function OverviewSection() {
 
 // ── Enhanced Test Cases Tab (with wizard button) ──
 
-function TestCasesSection() {
+// wide (CR + QA Hub): no wizard banner (the hub header has "New test case")
+// and the case editor opens in a side pane.
+export function TestCasesSection({ wide = false }: { wide?: boolean } = {}) {
   const { t } = useTranslation('qa');
   const [wizardOpen, setWizardOpen] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
+
+  if (wide) return <TestCaseList key={refreshKey} wide />;
 
   return (
     <div className="space-y-3">

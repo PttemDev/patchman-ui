@@ -3,7 +3,9 @@ import { useRequestStore } from '@/stores/requestStore';
 import { detachTab } from '@/lib/detach/DetachController';
 import { usePasteHistoryUiStore } from '@/stores/pasteHistoryUiStore';
 import { getInsertTarget } from '@/lib/paste/insertIntoTarget';
-import { matchesAction } from '@/lib/keymap';
+import { isTabSwitchKey, matchesAction, terminalOwnsKey } from '@/lib/keymap';
+import { isDesktop } from '@/lib/platform';
+import { toggleTerminal } from '@/components/terminal/toggleTerminal';
 
 /**
  * Global keyboard shortcuts for PatchMan. The bindings are the `global.*`
@@ -17,14 +19,16 @@ export function useKeyboardShortcuts() {
 
       // Skip if user is typing in an input/textarea (except for our explicit shortcuts)
       const target = e.target as HTMLElement;
+      if (terminalOwnsKey(e)) return;
       const isEditing =
         target.tagName === 'INPUT' ||
         target.tagName === 'TEXTAREA' ||
         target.isContentEditable;
 
-      // Alt + 1-9: Switch to tab by index (works even when editing)
-      if (e.altKey && !e.shiftKey && !e.ctrlKey && !e.metaKey) {
-        const num = parseInt(e.key, 10);
+      // Alt + 1-9: Switch to tab by index (works even when editing). Read from
+      // e.code: on macOS ⌥1 types a character (e.key '¡'), not '1'.
+      if (isTabSwitchKey(e)) {
+        const num = Number(e.code.slice('Digit'.length));
         if (num >= 1 && num <= 9) {
           e.preventDefault();
           const store = useRequestStore.getState();
@@ -103,9 +107,11 @@ export function useKeyboardShortcuts() {
       // active tab is already detached (in the loan ledger).
       if (on('global.detachTab')) {
         e.preventDefault();
-        if (isEditing) return;
         const store = useRequestStore.getState();
         const id = store.activeTabId;
+        // A terminal tab's focus sits in xterm's helper <textarea>; ⌘D still detaches it.
+        const terminalTab = store.tabs.find((t) => t.id === id)?.type === 'terminal' && !!target.closest('.xterm');
+        if (isEditing && !terminalTab) return;
         if (!id) return;
         if (store.detached.some((l) => l.tabId === id)) return;
         detachTab(id);
@@ -134,6 +140,14 @@ export function useKeyboardShortcuts() {
       if (on('global.globalSearch')) {
         e.preventDefault();
         window.dispatchEvent(new CustomEvent('patchman:open-search'));
+        return;
+      }
+
+      // Show / hide the sidebar terminal (desktop only). Works while typing,
+      // and from inside the terminal (keymap.terminalOwnsKey lets it through).
+      if (isDesktop() && on('global.toggleTerminal')) {
+        e.preventDefault();
+        toggleTerminal();
         return;
       }
 

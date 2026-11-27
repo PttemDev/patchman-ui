@@ -1,12 +1,14 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Terminal } from '@xterm/xterm';
-import { FitAddon } from '@xterm/addon-fit';
-import '@xterm/xterm/css/xterm.css';
+import type { Terminal } from '@xterm/xterm';
+import type { FitAddon } from '@xterm/addon-fit';
 import { RotateCw, TerminalSquare, AlertTriangle, Loader2, MonitorSmartphone } from 'lucide-react';
 import { aiShellAPI } from '@/services/api';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { applyTerminalPrefs, attachPtySocket, createXterm, sendPtyResize, xtermTheme as xtermThemeFn } from '@/lib/ptyTerminal';
+import { useThemeStore } from '@/stores/themeStore';
+import { useTerminalPrefsStore } from '@/stores/terminalPrefsStore';
 
 // ClaudeTerminal embeds the locally-installed `claude` CLI in an xterm terminal,
 // bridged to the BE PTY over a WebSocket (same stdin/stdout framing as the K8s
@@ -15,13 +17,6 @@ import { cn } from '@/lib/utils';
 
 type Status = 'connecting' | 'open' | 'closed';
 type Probe = 'checking' | 'ready' | 'no-desktop' | 'not-installed' | 'error';
-
-interface OutFrame {
-  type: 'stdout' | 'stderr' | 'exit';
-  data?: string;
-  code?: number;
-  error?: string;
-}
 
 export function ClaudeTerminal({ theme }: { theme?: string }) {
   const { t } = useTranslation('ai');
@@ -55,34 +50,18 @@ export function ClaudeTerminal({ theme }: { theme?: string }) {
     return () => { cancelled = true; };
   }, [nonce]);
 
-  const xtermTheme = useMemo(() => {
-    if (theme === 'light') {
-      return { background: '#ffffff', foreground: '#1e293b', cursor: '#1e293b', selectionBackground: '#cbd5e199' };
-    }
-    return { background: '#0a0a0a', foreground: '#e4e4e7', cursor: '#e4e4e7', selectionBackground: '#3f3f4699' };
-  }, [theme]);
+  const preset = useThemeStore((s) => s.preset);
+  const prefs = useTerminalPrefsStore();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const xtermTheme = useMemo(() => xtermThemeFn(), [theme, preset, prefs.cursorColor, prefs.colorScheme]);
 
-  const sendResize = useCallback(() => {
-    const term = termRef.current;
-    const ws = wsRef.current;
-    if (!term || !ws || ws.readyState !== WebSocket.OPEN) return;
-    ws.send(JSON.stringify({ type: 'resize', cols: term.cols, rows: term.rows }));
-  }, []);
+  const sendResize = useCallback(() => sendPtyResize(wsRef.current, termRef.current), []);
 
   // Connect the terminal only once the probe says ready.
   useEffect(() => {
     if (probe !== 'ready') return;
 
-    const term = new Terminal({
-      cursorBlink: true,
-      fontSize: 12,
-      fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace',
-      theme: xtermTheme,
-      scrollback: 8000,
-      convertEol: false,
-    });
-    const fit = new FitAddon();
-    term.loadAddon(fit);
+    const { term, fit } = createXterm(8000);
     termRef.current = term;
     fitRef.current = fit;
 
@@ -110,28 +89,10 @@ export function ClaudeTerminal({ theme }: { theme?: string }) {
       sendResize();
     };
 
-    ws.onmessage = (ev) => {
-      let frame: OutFrame;
-      try {
-        frame = JSON.parse(typeof ev.data === 'string' ? ev.data : '') as OutFrame;
-      } catch {
-        return;
-      }
-      if (frame.type === 'stdout' || frame.type === 'stderr') {
-        if (frame.data) term.write(frame.data);
-      } else if (frame.type === 'exit') {
-        setExit({ code: frame.code, error: frame.error });
-      }
-    };
-
     ws.onclose = () => setStatus('closed');
     ws.onerror = () => setExit((e) => e ?? { error: t('terminal.wsError') });
 
-    const dataSub = term.onData((d) => {
-      if (ws.readyState === WebSocket.OPEN) {
-        ws.send(JSON.stringify({ type: 'stdin', data: d }));
-      }
-    });
+    const dataSub = attachPtySocket(term, ws, setExit);
 
     const ro = new ResizeObserver(() => {
       try { fit.fit(); } catch { /* noop */ }
@@ -158,8 +119,13 @@ export function ClaudeTerminal({ theme }: { theme?: string }) {
 
   // Push theme changes to the live terminal without tearing it down.
   useEffect(() => {
-    if (termRef.current) termRef.current.options.theme = xtermTheme;
-  }, [xtermTheme]);
+    if (!termRef.current) return;
+    applyTerminalPrefs(termRef.current);
+    if (hostRef.current?.clientWidth) { // font size may have changed — refit
+      try { fitRef.current?.fit(); } catch { /* not laid out */ }
+      sendResize();
+    }
+  }, [xtermTheme, prefs.cursorStyle, prefs.cursorBlink, prefs.fontSize, sendResize]);
 
   const reconnect = () => setNonce((n) => n + 1);
 

@@ -8,6 +8,7 @@
 
 <p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT"/></a>
+  <a href="https://join.slack.com/t/patchman-workspace/shared_invite/zt-4hjqey19u-~AxNN3qSh51RbOsedKTwdw"><img src="https://img.shields.io/badge/Slack-join_the_community-4A154B?logo=slack&logoColor=white" alt="Slack: join the community"/></a>
 </p>
 
 <p align="center">
@@ -15,6 +16,11 @@
   <a href="https://github.com/PttemDev/patchman-ui/releases/latest"><img src="https://img.shields.io/badge/Download_for_Windows-x64-0078D4?style=for-the-badge&logo=windows&logoColor=white" alt="Download PatchMan for Windows (x64)"/></a>
   <a href="https://github.com/PttemDev/patchman-ui/releases/latest"><img src="https://img.shields.io/badge/Download_for_Linux-x64-FCC624?style=for-the-badge&logo=linux&logoColor=black" alt="Download PatchMan for Linux (x64)"/></a><br/>
   <sub>macOS: signed and notarized · Windows and Linux: preview builds · <a href="#download">download details</a></sub>
+</p>
+
+<p align="center">
+  <a href="https://join.slack.com/t/patchman-workspace/shared_invite/zt-4hjqey19u-~AxNN3qSh51RbOsedKTwdw"><img src="https://img.shields.io/badge/Join_the_community-on_Slack-4A154B?style=for-the-badge&logo=slack&logoColor=white" alt="Join the PatchMan community on Slack"/></a><br/>
+  <sub>Questions, feedback, feature ideas and release news. Come say hi.</sub>
 </p>
 
 <p align="center">
@@ -114,7 +120,7 @@ Every connection uses the same model: credentials are stored encrypted, and the 
 | Tool | What you can do |
 |---|---|
 | **Databases** | PostgreSQL (and Cockroach, Yugabyte, Redshift), MySQL (and MariaDB, TiDB), SQL Server, MongoDB and BigQuery. Editor with examples and saved queries, schema browser, result grid with filters, aggregates, charts and export. MongoDB adds index management, explain plans and an aggregation pipeline builder. BigQuery checks every query with a free dry run first and enforces scan limits you set (per query, per connection, or a server-wide ceiling). |
-| **Redis** | Key browser with smart SCAN, typed value views, TTL and memory, a console and a cheatsheet. Read-only by default. |
+| **Redis** | Key browser with smart SCAN, typed value views, TTL and memory, key counts per database, a console and a cheatsheet. Read-only by default. |
 | **Elasticsearch** | Index and alias browser, mappings, Kibana data views with search, and a console with completion, drafts and saved queries. |
 | **Kafka** | Brokers, topics with sizes, consumer groups and lag, and message peek. Peek never commits offsets. |
 | **RabbitMQ** | Overview, queues, exchanges, topology, peek with requeue, publish, a live tail and moving messages out of a DLQ. |
@@ -125,15 +131,16 @@ Every connection uses the same model: credentials are stored encrypted, and the 
 ### Observability and dashboards
 - **Grafana:** native dashboard rendering through the Grafana HTTP API, using a token, basic auth or anonymous access.
 - **Graylog:** log search with a histogram, streams and field-level drill-down. Read-only.
-- **Service map:** a live, animated map built from APM providers (Coroot, Prometheus-compatible backends, Jaeger, Kiali, SigNoz, Datadog, New Relic).
+- **Service map:** a live, animated map built from APM providers (Coroot, Prometheus-compatible backends, Jaeger, Kiali, SigNoz, Datadog, New Relic). Each service opens a details page with request, error and latency charts, endpoints, errors, instances, health checks and alerts (New Relic, Coroot and Prometheus-compatible backends), and the table has a Services view with requests/s, errors and p95.
 - **New Relic:** APM applications with health, request rate, error % and p95, plus a console for NRQL queries, alerts and entities.
 
 ### Git and CI/CD (GitLab and GitHub)
 - GitLab and GitHub (including GitHub Enterprise Server) connections with a personal access token, or a GitLab account linked through OAuth.
 - Repositories, branches, history, commits and files, comparisons and code search.
-- Merge requests and pull requests: list, read the conversation, review the changes with line comments, reply to and resolve threads, approve, mark as draft or ready, close or reopen, and update the branch.
-- CI/CD: GitLab pipelines and jobs (including trigger jobs and downstream pipelines) and GitHub Actions workflow runs, with job logs, retry, run again, schedules shown in plain words, and variables. Values are revealed one at a time, and each reveal is audited.
+- Merge requests and pull requests: list, read the conversation, review the changes with line comments, reply to and resolve threads, approve, mark as draft or ready, close or reopen, update the branch, and merge with an editable merge commit message. Descriptions and comments render as markdown.
+- CI/CD: GitLab pipelines and jobs (including trigger jobs and downstream pipelines) and GitHub Actions workflow runs, with job logs, retry, run again (also for trigger jobs that wait to be started by hand), schedules shown in plain words, and variables. Values are revealed one at a time, and each reveal is audited.
 - A Git workspace that works like an IDE: open any git folder on your computer (desktop) without a connection, edit files with syntax highlighting and auto save, stage, commit, pull, push, and the full JetBrains-style branch menu (checkout, new branch, update a branch you are not on, merge, rebase, compare, rename, delete). Saves are hash-guarded, so a file changed elsewhere is not overwritten. Local folders can be linked to a GitLab project, existing clones on disk are reused, and Markdown files render as a preview while browsing a repository.
+- In the Git workspace, the file tree marks changed files and folders (also while edits are unsaved), and its JetBrains-style menu has a Git submenu (compare, rollback, annotate, history), copy path, find in folder and reveal in Finder. Show History lists only the commits that touched a file or folder, following renames. Editor tabs and the Changes list use the same status colours and have their own context menus, tabs can be reordered by dragging, and diffs show whitespace-only changes unless you hide them.
 
 ### QA and performance
 - Test cases with request, check (status, body, JSON path, header, response time), extract and wait steps.
@@ -343,7 +350,7 @@ The bundle identifier `com.pttem.patchman` in `tauri.conf.json` is the upstream 
 Desktop builds are published as [GitHub Releases](https://github.com/PttemDev/patchman-ui/releases), never committed to the repository. Windows and Linux packages are built by GitHub Actions when a `v<version>` tag is pushed. Signing and notarization need the maintainer's Apple Developer ID certificate in the local Keychain and the notarization credentials, so the macOS build runs on the maintainer's Mac:
 
 1. Bump the version in `package.json`, `src-tauri/Cargo.toml` and `src-tauri/tauri.conf.json`, and add a `src/data/changelog.ts` entry.
-2. Build, sign and notarize: `TAURI_SIGNING_PRIVATE_KEY="$(cat ~/.tauri/patchman-oss.key)" GOTOOLCHAIN=go1.26.11 npm run tauri:build` with `APPLE_ID`, `APPLE_PASSWORD` and `APPLE_TEAM_ID` set and a local `src-tauri/tauri.tenant.json` that sets your Developer ID `signingIdentity`. The DMG is notarized, stapled and copied to `public/downloads/PatchMan-<version>-aarch64.dmg`; the signed update package is `src-tauri/target/release/bundle/macos/PatchMan.app.tar.gz` (+ `.sig`).
+2. Build, sign and notarize: `TAURI_SIGNING_PRIVATE_KEY="$(cat ~/.tauri/patchman-oss.key)" TAURI_SIGNING_PRIVATE_KEY_PASSWORD="" GOTOOLCHAIN=go1.26.11 npm run tauri:build` with `APPLE_ID`, `APPLE_PASSWORD` and `APPLE_TEAM_ID` set and a local `src-tauri/tauri.tenant.json` that sets your Developer ID `signingIdentity`. The DMG is notarized, stapled and copied to `public/downloads/PatchMan-<version>-aarch64.dmg`; the signed update package is `src-tauri/target/release/bundle/macos/PatchMan.app.tar.gz` (+ `.sig`).
 3. Tag the same version in both repositories (`git tag -a v<version>` here and in `patchman-api`). Push the `patchman-api` tag first, then this one: the tag push starts [`desktop-release.yml`](.github/workflows/desktop-release.yml), which builds the Windows and Linux packages against the `patchman-api` tag of the same name, creates the release as a draft and attaches them with their `SHA256SUMS` lines and `latest.json` entries. The Actions secret `TAURI_SIGNING_PRIVATE_KEY` must hold the updater private key; without it the packages are built without update signatures. To test the workflow without a release, push to the `ci/desktop-release` branch or run it by hand (**Actions → Desktop release → Run workflow**); the packages are then kept as workflow artifacts only.
 4. When the workflow has finished, attach the DMG and add its line to `SHA256SUMS` (keep the Windows and Linux lines), then add the release notes and publish the draft:
    `gh release download v<version> -p SHA256SUMS -O - | grep -v aarch64.dmg > SHA256SUMS && (cd public/downloads && shasum -a 256 PatchMan-<version>-aarch64.dmg) >> SHA256SUMS`
@@ -453,13 +460,27 @@ Re-checked for 1.68.2 (November 2026): `npm run build`, `npm run check:i18n` and
 
 Re-checked for 1.70.0 (November 2026): `npm run build`, `npm run check:i18n` and `cargo check` (desktop shell) pass; the changes since 1.68.2 (1.69.0 and 1.70.0) were scanned for secrets, internal hostnames and personal names; `npm audit` shows the same 13 moderate/low advisories. The Windows and Linux packages and update checks from GitHub Releases are new in this version and are built in CI, not on the maintainer's machine.
 
+Re-checked for 1.72.0 (November 2026): `npm run build`, `npm run check:i18n` and `cargo check` (desktop shell) pass; the changes since 1.70.1 (1.71.0 to 1.72.0) and the new developer guide (`docs/dev/`, `AGENTS.md`) were scanned for secrets, internal hostnames and personal names; `npm audit` shows the same 13 moderate/low advisories.
+
+Re-checked for 1.73.0 (November 2026): `npm run build`, `npm run check:i18n` and `cargo check` (desktop shell) pass; the changes since 1.72.0 were scanned for secrets, internal hostnames and personal names; `npm audit` shows the same 13 moderate/low advisories.
+
+Re-checked for 1.74.0 (November 2026): `npm run build`, `npm run check:i18n` and `cargo check` (desktop shell) pass; the changes since 1.73.0 were scanned for secrets, internal hostnames and personal names; `npm audit` shows the same 13 moderate/low advisories.
+
+Re-checked for 1.74.1 (November 2026): `npm run build` and `npm run check:i18n` pass; the changes since 1.74.0 (two frontend fixes) were scanned for secrets, internal hostnames and personal names.
+
 Dependency notes: `xlsx` is installed from the SheetJS CDN (`0.20.3`) because newer releases are not published to npm, and `package.json` uses `overrides` to pin patched versions of `lodash-es`, `dompurify` and `nanoid`.
 
 These checks are a point-in-time snapshot, not a security audit. Run `npm audit` regularly. To report a vulnerability, see [SECURITY.md](SECURITY.md).
 
+## Community
+
+Join the [PatchMan Slack workspace](https://join.slack.com/t/patchman-workspace/shared_invite/zt-4hjqey19u-~AxNN3qSh51RbOsedKTwdw) to ask questions, share feedback and ideas, and hear about new releases. Bug reports and feature requests are also welcome as GitHub issues.
+
 ## Contributing
 
 Contributions are welcome: bug reports, fixes, new connection types and translations. See [CONTRIBUTING.md](CONTRIBUTING.md) for setup and the pull request flow.
+
+The [developer guide](docs/dev/README.md) explains the architecture, the rules the code relies on, recipes for common changes and how to test them. AI coding agents read [AGENTS.md](AGENTS.md) (Claude Code loads it through `CLAUDE.md`).
 
 Please report security issues privately, as described in [SECURITY.md](SECURITY.md), rather than in public issues.
 

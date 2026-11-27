@@ -1,7 +1,7 @@
 {
   "name": "patchman",
   "private": true,
-  "version": "1.70.0",
+  "version": "1.78.5",
   "license": "MIT",
   "type": "module",
   "scripts": {
@@ -46,6 +46,7 @@
     "@tanstack/react-virtual": "^3.10.9",
     "@tauri-apps/api": "~2.10.1",
     "@tauri-apps/plugin-deep-link": "^2.4.8",
+    "@tauri-apps/plugin-notification": "~2.4.0",
     "@tauri-apps/plugin-opener": "^2.5.5",
     "@tauri-apps/plugin-process": "^2.3.1",
     "@tauri-apps/plugin-shell": "^2.3.5",

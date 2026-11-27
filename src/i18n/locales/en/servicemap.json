@@ -320,7 +320,8 @@
     "errRpsHint": "Failed requests per second on this call",
     "colShare": "Share",
     "foldedInto": "Folded into {{name}} on the map",
-    "hiddenByFilters": "Hidden by the filters or namespace selection — still counted in the totals"
+    "hiddenByFilters": "Hidden by the filters or namespace selection — still counted in the totals",
+    "open": "Service details"
   },
   "table": {
     "from": "From",
@@ -331,7 +332,19 @@
     "p95": "p95",
     "sources": "Sources",
     "conns": "{{count}} conns",
-    "empty": "No calls."
+    "empty": "No calls.",
+    "services": "Services",
+    "calls": "Calls",
+    "unitHint": "Request rate per second or per minute",
+    "unitRps": "/s",
+    "unitRpm": "/min",
+    "rpm": "Requests/min",
+    "service": "Service",
+    "namespace": "Namespace",
+    "kind": "Type",
+    "health": "Health",
+    "noServices": "No services.",
+    "noCallRates": "This source reports which service calls which, but not how often; each service’s own traffic is under Services."
   },
   "export": {
     "failed": "Could not add the map to a whiteboard",
@@ -381,5 +394,58 @@
     "entitySearch": "A name, or entity search: domainType IN ('APM-APPLICATION')",
     "search": "Search",
     "noEntities": "No entities."
+  },
+  "serviceDetail": {
+    "failed": "Couldn't load the service details",
+    "clusterProm": "Cluster Prometheus",
+    "source": "Source",
+    "fromMap": "from the map",
+    "avg": "Average",
+    "summary": "Summary",
+    "charts": "Performance",
+    "alerts": "Alerts",
+    "noOpenAlerts": "No open alerts.",
+    "checks": "Health checks",
+    "endpoints": "Endpoints",
+    "endpoint": "Endpoint",
+    "timeShare": "Time share",
+    "errors": "Errors",
+    "errorClass": "Error class",
+    "message": "Message",
+    "count": "Count",
+    "lastSeen": "Last seen",
+    "instances": "Instances",
+    "instance": "Instance",
+    "more": "More charts",
+    "noData": "No data in this range.",
+    "noSource": "No observability connection on the map knows this service, so there are no details to load. Add New Relic, Coroot or Prometheus as a source.",
+    "empty": "The backend has no data for this service in this range.",
+    "range": {
+      "30m": "30m",
+      "1h": "1h",
+      "6h": "6h",
+      "24h": "24h",
+      "7d": "7d"
+    },
+    "chart": {
+      "throughput": "Throughput",
+      "latency": "Response time",
+      "errors": "Error rate",
+      "apdex": "Apdex"
+    },
+    "series": {
+      "requests": "requests",
+      "errors": "errors",
+      "avg": "average",
+      "p95": "p95",
+      "p99": "p99",
+      "apdex": "Apdex"
+    },
+    "note": {
+      "family": "Read from {{family}} metrics.",
+      "familyError": "A metric family failed: {{detail}}",
+      "no_service_requests": "No metrics show requests to this service in this range.",
+      "coroot_agent_metrics_only": "Only Coroot node-agent metrics are here; they count calls by peer address, so add the Coroot connection itself for this service’s page."
+    }
   }
 }

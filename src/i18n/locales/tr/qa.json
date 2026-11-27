@@ -509,7 +509,9 @@
     "saving": "Kaydediliyor...",
     "update": "Güncelle",
     "create": "Oluştur",
-    "manualHint": "Manuel adım: koşturucu atlar, elle uygulanır."
+    "manualHint": "Manuel adım: koşturucu atlar, elle uygulanır.",
+    "jiraKey": "Jira anahtarı",
+    "jiraKeyHint": "Case'i CR + QA Hub'da Jira işine ve onun MR'larına bağlar"
   },
   "defectStatus": {
     "open": "Açık",
@@ -678,7 +680,8 @@
     "skippedCount": "{{count}} atlandı",
     "skippedInline": "atlandı",
     "assertExpected": "{{type}}: beklenen {{expected}}",
-    "assertExpectedGot": "{{type}}: beklenen {{expected}}, alınan {{actual}}"
+    "assertExpectedGot": "{{type}}: beklenen {{expected}}, alınan {{actual}}",
+    "pickToEdit": "Burada düzenlemek için bir test case seçin ya da yeni bir tane oluşturun."
   },
   "sharedSteps": {
     "editTitle": "Paylaşılan Adımları Düzenle",
@@ -810,5 +813,586 @@
     "runTitle": "“{{name}}” içindekilerin tümünü çalıştır",
     "save": "Kaydet",
     "skippedCount": "atlandı (çalıştırılabilir adım yok): {{count}}"
+  },
+  "hub": {
+    "title": "CR + QA Hub",
+    "subtitle": "Review, test ve takip tek yerde: MR'lar, Jira ve test case'ler",
+    "newTestCase": "Yeni test case",
+    "group": {
+      "test": "Test",
+      "track": "Takip",
+      "setup": "Kurulum",
+      "review": "Review"
+    },
+    "section": {
+      "overview": "Genel bakış",
+      "cases": "Test case'ler",
+      "plans": "Planlar",
+      "runs": "Koşular",
+      "load": "Yük testleri",
+      "defects": "Hatalar",
+      "requirements": "Gereksinimler",
+      "steps": "Paylaşılan adımlar",
+      "settings": "Ayarlar",
+      "inbox": "Gelen kutusu",
+      "radar": "MR Radar",
+      "reviews": "AI review'lar",
+      "reports": "Raporlar",
+      "automation": "Otomasyon"
+    },
+    "sectionHint": {
+      "overview": "kapsam, öncelikler ve hızlı çalıştırma",
+      "cases": "klasörlerde çalıştırılabilir API ve manuel case'ler",
+      "plans": "case'leri plana toplayıp çalıştırın",
+      "runs": "plan ve klasör koşularının sonuçları",
+      "load": "yük ve performans testleri",
+      "defects": "test sırasında bulunan hatalar",
+      "requirements": "testlerin neyi kapsadığı",
+      "steps": "case'ler arasında tekrar kullanılan adım blokları",
+      "settings": "Jira ve Git bağlantıları, eşleştirmeler",
+      "inbox": "şu an seni bekleyenler",
+      "radar": "bağlı projelerin açık MR'ları ve sinyaller",
+      "reviews": "ajanın MR'ları review eder; insanlar onaylayıp gönderir",
+      "reports": "takım eğilimleri — kişi bazlı değil",
+      "automation": "gece koşusu, zamanlanmış koşular, kanallar"
+    },
+    "open": "CR + QA Hub'ı aç",
+    "openHint": "QA artık her görünüme yer açan bir sekmede açılıyor",
+    "jumpTo": "Hızlı geçiş",
+    "classicView": "Klasik kenar çubuğu görünümü",
+    "classicNote": "Klasik görünüm — ileriki bir sürümde kaldırılacak",
+    "backToHub": "Hub",
+    "scope": {
+      "label": "QA alanı",
+      "hint": "Kişisel öğeler yalnız sizindir; takım workspace'i QA öğelerini takımla paylaşır",
+      "personal": "Kişisel",
+      "none": "Henüz takım workspace'i yok — QA öğelerini paylaşmak için bir workspace'e takım bağlayın"
+    },
+    "move": {
+      "to": "Taşı…",
+      "share": "Paylaş…",
+      "done_one": "{{target}} alanına taşındı",
+      "done_other": "{{count}} öğe {{target}} alanına taşındı",
+      "failed": "Taşınamadı"
+    }
+  },
+  "settings": {
+    "links": {
+      "title": "Projeler ↔ Jira",
+      "hint": "hangi Git projesinin MR'ları hangi Jira projesine ait",
+      "add": "Proje bağla",
+      "loading": "Bağlantılar yükleniyor…",
+      "empty": "Henüz bağlı proje yok. MR'ların Jira işleriyle eşleşmesi için bir Git projesini bir Jira projesine bağlayın.",
+      "gitProject": "Git projesi",
+      "jiraProject": "Jira projesi",
+      "keyPattern": "İş anahtarı kalıbı",
+      "testEnv": "Test ortamı",
+      "noJira": "Jira'ya bağlı değil",
+      "defaultPattern": "PROJE-123 (varsayılan)",
+      "unknownConn": "Erişilemeyen bağlantı",
+      "edit": "Bağlantıyı düzenle",
+      "delete": "Bağlantıyı sil",
+      "deleteTitle": "{{project}} bağlantısı silinsin mi?",
+      "deleteBody": "Bu projenin MR'ları artık Jira işleriyle eşleştirilmeyecek. Proje ve işlere dokunulmaz.",
+      "deleteFailed": "Bağlantı silinemedi",
+      "loadFailed": "Bağlantılar yüklenemedi",
+      "saveFailed": "Bağlantı kaydedilemedi",
+      "addTitle": "Proje bağla",
+      "editTitle": "Bağlantıyı düzenle",
+      "dialogHint": "MR başlığı, kaynak branch ve açıklamada Jira projesinin iş anahtarı aranır.",
+      "gitConnection": "Git bağlantısı",
+      "gitProjectPlaceholder": "grup/repo, sahip/ad veya proje id",
+      "jiraConnection": "Jira bağlantısı",
+      "pick": "Seçin",
+      "noGitConns": "Git bağlantısı yok — Git aracından ekleyin",
+      "noJiraConns": "Jira bağlantısı yok — aşağıdan ekleyin",
+      "keyPatternHint": "Anahtarlar için isteğe bağlı düzenli ifade, örn. MER-\\d+. Boşsa PROJE-123 kullanılır.",
+      "noTestEnv": "Yok",
+      "cancel": "Vazgeç",
+      "save": "Kaydet",
+      "gitProjectHint": "Tüm Git bağlantılarında aranır; bir proje seçince bağlantısı da seçilir."
+    },
+    "radar": {
+      "title": "Radar eşikleri",
+      "hint": "boş bırakılan sinyal kapalıdır",
+      "slaHours": "Review SLA (saat)",
+      "slaHint": "Review bekliyor: onay yok ve en az bu kadar süredir hareketsiz.",
+      "off": "Kapalı",
+      "largeFiles": "Büyük MR (dosya)",
+      "largeHint": "Büyük: en az bu kadar dosya değişmiş.",
+      "testPatterns": "Test dosyası kalıpları",
+      "testPatternsHint": "Satır başına bir glob. Test yok: kaynak değişmiş ama bunların hiçbiri değişmemiş.",
+      "sourcePatterns": "Kaynak dosya kalıpları",
+      "sourcePatternsHint": "İsteğe bağlı. Boşsa test olmayan her dosya.",
+      "testStatuses": "Jira test durumları",
+      "testStatusesHint": "Virgülle ayrılmış. Bu durumlarda sana atanmış işler gelen kutuna düşer.",
+      "mergedDays": "Merge geriye bakış (gün)",
+      "digestHour": "Günlük özet",
+      "signals": "Sinyaller",
+      "signalsHint": "Kapatılan sinyaller hesaplanmaz ve gösterilmez.",
+      "saved": "Radar ayarları kaydedildi",
+      "saveFailed": "Ayarlar kaydedilemedi",
+      "reviewGuide": "Ekip inceleme rehberi",
+      "reviewGuidePlaceholder": "ör. Para her zaman decimal, asla float. payments/ altındaki her değişiklik en az major. Biçimlendirmeyi yok say.",
+      "reviewGuideHint": "Ekibinin kuralları, riskli alanları ve önem politikası. Bu QA alanındaki her AI incelemesine ve düzeltme kontrolüne verilir."
+    },
+    "mine": {
+      "column": "Senin bağlantın",
+      "hint": "Bu bağlantıyı kendi Git / Jira bağlantınla oku; review'ların, MR'ların ve Jira test kuyruğun gelen kutuna düşsün.",
+      "useMine": "Kendi bağlantımı kullan",
+      "title": "{{project}} için senin bağlantın",
+      "body": "Bağlantı kendi bağlantılarıyla okur; onların token'ları sahiplerine ait. Radarın orada seni tanıması için kendi bağlantını seç. Yalnızca seni etkiler.",
+      "linkDefault": "Bağlantınınki: {{name}}",
+      "note": "Bağlantın aynı Git projesine ve Jira projesine erişebilmeli."
+    },
+    "webhook": {
+      "body": "GitLab MR, pipeline ve yorum olaylarını PatchMan'e anında bildirir; Radar ve Gelen kutusu beklemeden güncellenir.",
+      "create": "Webhook sırrı oluştur",
+      "events": "Olaylar: merge request'ler, pipeline'lar, yorumlar.",
+      "exists": "Bir webhook sırrı var. Yenisini oluşturmak, GitLab'da güncellenene kadar eski webhook'u çalışmaz hale getirir.",
+      "install": "GitLab'da oluştur",
+      "installFailed": "GitLab reddetti (Maintainer yetkisi gerekir) — webhook'u orada elle ekleyin",
+      "installed": "Webhook GitLab'da oluşturuldu",
+      "lastEvent": "Son olay {{when}}",
+      "regenerate": "Yeni sır oluştur",
+      "secret": "Gizli token",
+      "secretOnce": "Yalnızca şimdi gösterilir. GitLab bunu X-Gitlab-Token ile gönderir.",
+      "title": "GitLab webhook",
+      "url": "Webhook URL"
+    }
+  },
+  "radar": {
+    "loading": "Bağlı projeler okunuyor…",
+    "loadFailed": "Radar yüklenemedi",
+    "noLinks": "Bu QA alanında henüz bağlı Git projesi yok. Bir projeyi Jira projesine bağlayın; radar açık MR'larını sinyalleriyle gösterir.",
+    "linkProjects": "Proje bağla",
+    "search": "Başlık, branch, yazar, anahtar ara…",
+    "allProjects": "Tüm projeler",
+    "mine": "Benimkiler",
+    "table": "Tablo",
+    "board": "Pano",
+    "refresh": "Yenile",
+    "updated": "{{when}} güncellendi",
+    "noneMatch": "Filtrelere uyan MR yok.",
+    "mergedTitle": "Yakında merge edilenler — Jira bitmemiş",
+    "openRemote": "Tarayıcıda aç",
+    "close": "Kapat",
+    "openSettings": "Ayarları aç",
+    "truncated": "{{total}} açık MR'ın {{shown}} tanesi gösteriliyor — radar proje başına en fazla 300 okur.",
+    "mergedTruncated": "Geriye bakış süresinde kontrol edilenden fazla merge edilmiş MR var.",
+    "jiraNotRead": "Bu anahtar için Jira okunmadı",
+    "jiraMissing": "Bu iş anahtarı Jira'da yok",
+    "linkStatus": {
+      "noAccess": "Bu bağlantının Git bağlantısını kullanamıyorsunuz",
+      "needsToken": "Bu Git bağlantısı için token yok",
+      "error": "Okunamadı"
+    },
+    "jiraStatus": {
+      "noAccess": "Bu bağlantının Jira bağlantısını kullanamıyorsunuz",
+      "error": "Jira okunamadı"
+    },
+    "col": {
+      "mr": "Merge request",
+      "author": "Yazar",
+      "reviewers": "Reviewer'lar",
+      "pipeline": "Pipeline",
+      "jira": "Jira",
+      "updated": "Güncellendi"
+    },
+    "pipeline": {
+      "success": "geçti",
+      "failed": "kırık",
+      "running": "çalışıyor",
+      "pending": "bekliyor",
+      "canceled": "iptal",
+      "skipped": "atlandı",
+      "manual": "manuel",
+      "created": "oluşturuldu"
+    },
+    "column": {
+      "review": "Review bekliyor",
+      "stuck": "Takıldı",
+      "ready": "Merge'e hazır",
+      "draft": "Taslak"
+    },
+    "signal": {
+      "stuck": {
+        "label": "Takıldı",
+        "hint": "çakışma, kırık pipeline, çözülmemiş tartışma veya rebase gerekiyor"
+      },
+      "unverifiedFixes": {
+        "label": "Doğrulanmamış düzeltmeler",
+        "hint": "bulgular gönderildi ve yeni commit geldi, ama düzeltmeleri henüz kimse kontrol etmedi"
+      },
+      "awaitingReview": {
+        "label": "Review bekliyor",
+        "hint": "onay yok ve SLA süresinden uzun süredir hareketsiz"
+      },
+      "noJira": {
+        "label": "Jira yok",
+        "hint": "bağlı Jira projesinin anahtarı yok ya da anahtar bulunamadı"
+      },
+      "jiraMismatch": {
+        "label": "Jira uyumsuz",
+        "hint": "MR açıkken Jira bitmiş ya da MR merge edilmiş ama Jira bitmemiş"
+      },
+      "noTests": {
+        "label": "Test yok",
+        "hint": "kaynak dosyalar değişmiş ama test dosyası yok"
+      },
+      "large": {
+        "label": "Büyük",
+        "hint": "eşikten fazla dosya değişmiş"
+      },
+      "collision": {
+        "label": "Çakışan",
+        "hint": "başka bir açık MR aynı dosyaya dokunuyor"
+      },
+      "aiAssisted": {
+        "label": "Muhtemelen AI",
+        "hint": "bir commit AI aracı imzası taşıyor (tahmini)"
+      }
+    },
+    "incomplete_one": "{{count}} MR tam okunamadı — okunamayan bilgileri bilinmiyor görünür.",
+    "incomplete_other": "{{count}} MR tam okunamadı — okunamayan bilgileri bilinmiyor görünür.",
+    "notPersonal": "Bazı bağlantılar sahibine ait bir token kullanıyor; \"Benimkiler\" oradaki MR'larını ayırt edemez."
+  },
+  "inbox": {
+    "loading": "Gelen kutun yükleniyor…",
+    "loadFailed": "Gelen kutusu yüklenemedi",
+    "noLinks": "Gelen kutun bağlı projelerden dolar: borçlu olduğun review'lar, takılan MR'ların ve testini bekleyen Jira işleri. Başlamak için bir proje bağla.",
+    "kind": {
+      "review": "Review'unu bekleyen",
+      "stuck": "Takılan MR'ların",
+      "test": "Test edilecek (Jira)",
+      "verify": "Doğrulanacak düzeltmeler"
+    },
+    "updated": "{{when}} güncellendi",
+    "snoozedCount_one": "{{count}} ertelendi",
+    "snoozedCount_other": "{{count}} ertelendi",
+    "testOff": "Jira test kuyruğu kapalı — test durumlarını ayarla",
+    "jiraTruncated": "gösterilenden fazla Jira işi var",
+    "enableNotifications": "Bildirimleri aç",
+    "empty": "Şu an seni bekleyen bir şey yok.",
+    "monitoring_one": "{{count}} bağlı proje izleniyor.",
+    "monitoring_other": "{{count}} bağlı proje izleniyor.",
+    "open": "Aç",
+    "openJira": "Jira",
+    "snooze": "Ertele",
+    "snoozeFor": {
+      "h1": "1 saat",
+      "h4": "4 saat",
+      "tomorrow": "Yarın 09:00'a kadar",
+      "week": "1 hafta"
+    },
+    "snoozed": "Ertelendi",
+    "snoozeFailed": "Ertelenemedi",
+    "snoozeNote": "Ertelenen bir MR yeni commit gelince geri döner.",
+    "notify": {
+      "title_one": "QA gelen kutunda {{count}} yeni öğe",
+      "title_other": "QA gelen kutunda {{count}} yeni öğe"
+    },
+    "digest": {
+      "title": "Bugün QA gelen kutunda",
+      "body": "{{review}} review · {{stuck}} takılan · {{test}} test"
+    },
+    "jiraSkipped_one": "{{count}} Jira bağlantısı test kuyruğuna dahil edilmedi",
+    "jiraSkipped_other": "{{count}} Jira bağlantısı test kuyruğuna dahil edilmedi",
+    "jiraSkippedHint": "Token'ı sahibine ait; \"bana atanan\" sahibi olur. Kendi Jira bağlantınızı ekleyin.",
+    "notPersonal": "{{projects}} üzerindeki review ve MR'ların listelenmiyor: Git bağlantısı senin hesabını değil sahibinin token'ını kullanıyor. Görmek için bu projeleri kendi bağlantınla (veya GitLab hesabınla) bağla."
+  },
+  "drawer": {
+    "mr": "MR",
+    "review": "AI review",
+    "tests": "Testler"
+  },
+  "review": {
+    "approve": "Onayla",
+    "approverNote": "Bulguları MR'ın yazarı, reviewer'ları ve review'un sahibi onaylayabilir. Gönderim senin Git kimlik bilgilerinle yapılır; insan olmadan hiçbir şey gönderilmez.",
+    "copied": "Kopyalandı",
+    "copy": "Kopyala",
+    "copyCommand": "Komutu kopyala",
+    "copyPrompt": "İstemi kopyala",
+    "decideFailed": "Karar kaydedilemedi",
+    "discard": "At",
+    "discardBody": "Review geçmişte atılmış olarak kalır; ajanın bu commit'i yeniden review edebilir.",
+    "discardTitle": "Bu review atılsın mı?",
+    "edit": "Düzenle",
+    "findingBody": "Bulgu metni",
+    "findingTitle": "Bulgu başlığı",
+    "hiddenCount_one": "{{count}} minor/nit gizli",
+    "hiddenCount_other": "{{count}} minor/nit gizli",
+    "inProgress": "Bir ajan bu commit'i review ediyor ({{when}} sahiplenildi).",
+    "launchFailed": "Terminal açılamadı — komutu kopyalayın",
+    "loadFailed": "Review'lar yüklenemedi",
+    "loading": "Review yükleniyor…",
+    "noFindings": "Ajan sorun bulmadı.",
+    "olderOnly": "Aşağıdaki review eski bir commit için; güncel head'i yeniden review edin.",
+    "postApproved_one": "Onaylı {{count}} bulguyu gönder",
+    "postApproved_other": "Onaylı {{count}} bulguyu gönder",
+    "postConfirmBody": "Onaylanan bulgular ve özet {{mr}} üzerine senin adınla yorum olarak gönderilir.",
+    "postConfirmTitle_one": "{{count}} bulgu gönderilsin mi?",
+    "postConfirmTitle_other": "{{count}} bulgu gönderilsin mi?",
+    "postFailed": "Gönderilemedi",
+    "postFailedSome_one": "{{count}} tanesi gönderilemedi — bulguya bakın",
+    "postFailedSome_other": "{{count}} tanesi gönderilemedi — bulgulara bakın",
+    "posted_one": "{{count}} bulgu gönderildi",
+    "posted_other": "{{count}} bulgu gönderildi",
+    "postedGeneral": "genel yorum olarak gönderildi",
+    "reject": "Reddet",
+    "runInTerminal": "Terminalde çalıştır",
+    "saveEdit": "Kaydet",
+    "showAll": "Minor ve nit'leri göster",
+    "staleNote": "Bu review'dan sonra MR'a yeni commit geldi. Bulgular diff ile uyuşmayabilir; yeniden review edin.",
+    "title": "AI review",
+    "withAgent": "Ajanımla review et",
+    "withAgentHint": "Kendi ajanın (PatchMan MCP'li Claude Code) MR'ı senin makinende review eder ve buraya taslak gönderir. PatchMan kodu kendisi hiçbir AI servisine göndermez.",
+    "severity": {
+      "blocker": "blocker",
+      "major": "major",
+      "minor": "minor",
+      "nit": "nit"
+    },
+    "status": {
+      "pending": "bekliyor",
+      "approved": "onaylandı",
+      "rejected": "reddedildi",
+      "posted": "gönderildi"
+    },
+    "reviewStatus": {
+      "claimed": "sürüyor",
+      "draft": "taslak",
+      "posted": "gönderildi",
+      "discarded": "atıldı",
+      "stale": "eskidi"
+    }
+  },
+  "reviews": {
+    "claimedByYou": "sende",
+    "noneYet": "Henüz review yok.",
+    "queue": "Review kuyruğu",
+    "queueEmpty": "Her açık MR'ın güncel commit'inde review var.",
+    "reason": {
+      "reviewer": "review'unu sen yapıyorsun",
+      "mine": "senin MR'ın",
+      "open": "açık"
+    },
+    "recent": "Son review'lar",
+    "reviewWithAgent": "Ajanla review et",
+    "workQueue": "Kuyruğumu ajanımla bitir",
+    "workQueueHint": "Ajanın review ettiğin MR'ları ve kendi MR'larını tek tek dolaşır, onaylaman için taslak gönderir.",
+    "verifyKind_one": "{{count}} düzeltmeyi kontrol et",
+    "verifyKind_other": "{{count}} düzeltmeyi kontrol et",
+    "verifyWithAgent": "Ajanımla doğrula"
+  },
+  "mrTests": {
+    "automated": "otomatik",
+    "byJira": "Jira anahtarıyla",
+    "byMR": "MR ile",
+    "cases": "Bağlı test case'ler",
+    "draftHint": "Ajanın Jira kabul kriterlerini ve diff'i okur, bu MR'a bağlı taslak test case'ler oluşturur. Onları Test case'lerde gözden geçirip etkinleştirirsin.",
+    "draftWithAgent": "Ajanımla test taslağı çıkar",
+    "loadFailed": "MR testleri yüklenemedi",
+    "manual": "manuel",
+    "noCases": "Bu MR'a henüz bağlı test case yok — ajanınla taslak çıkar ya da bir case'e Jira anahtarı gir.",
+    "noEnv": "Ortam yok",
+    "noRuns": "Henüz koşu yok.",
+    "postBody": {
+      "mr": "Koşu sonucu {{mr}} üzerine senin adınla yorum olarak gönderilir.",
+      "jira": "Koşu sonucu Jira bağlantısıyla {{key}} işine yorum olarak eklenir."
+    },
+    "postJira": "Jira'ya yorum yaz",
+    "postMR": "MR'a gönder",
+    "postTitle": {
+      "mr": "Sonuç MR'a gönderilsin mi?",
+      "jira": "Sonuç Jira'ya yorum olarak yazılsın mı?"
+    },
+    "posted": "Gönderildi",
+    "ran": "Koşuldu: {{passed}} geçti, {{failed}} kaldı, {{skipped}} manuel atlandı",
+    "result": "{{passed}} geçti · {{failed}} kaldı",
+    "run_one": "{{count}} testi koş",
+    "run_other": "{{count}} testi koş",
+    "runFailed": "Testler koşulamadı",
+    "runs": "Koşular",
+    "title": "Bu MR'ın testleri",
+    "draftsNote_one": "{{count}} case taslak veya pasif, koşulmaz — önce Test case'lerde gözden geçirip etkinleştirin.",
+    "draftsNote_other": "{{count}} case taslak veya pasif, koşulmaz — önce Test case'lerde gözden geçirip etkinleştirin."
+  },
+  "defectJira": {
+    "body": "“{{title}}” için açıklaması ve tekrar adımlarıyla bir Jira işi oluşturur.",
+    "create": "Jira'da oluştur",
+    "created": "{{key}} oluşturuldu",
+    "failed": "Jira işi oluşturulamadı",
+    "issueType": "İş tipi",
+    "linked": "Jira işi",
+    "title": "Jira'da oluştur"
+  },
+  "reports": {
+    "aiFindings": "AI review bulguları",
+    "aiHint_one": "dönemde {{count}} review",
+    "aiHint_other": "dönemde {{count}} review",
+    "days_one": "{{count}} gün",
+    "days_other": "{{count}} gün",
+    "defects": "Açık hatalar",
+    "defectsSub": "{{closed}} kapandı · dönemde {{created}} yeni",
+    "failed": "kaldı",
+    "leadHint": "açılıştan merge'e saat",
+    "leadTime": "Teslim süresi (medyan)",
+    "leadTrend": "Teslim süresi",
+    "loadFailed": "Raporlar yüklenemedi",
+    "loading": "Raporlar yükleniyor…",
+    "median": "medyan",
+    "noReviews": "Dönemde AI review yok.",
+    "noRuns": "Dönemde test koşusu yok.",
+    "noSnapshot": "Henüz radar verisi yok — biri Radar veya Gelen kutusunu açtığında günde bir kez toplanır.",
+    "openMrs": "Açık MR'lar",
+    "p90": "p90 {{h}} sa",
+    "passRate": "Test geçme oranı",
+    "passed": "geçti",
+    "radarHint": "günlük, sinyale göre açık MR'lar",
+    "radarTrend": "Zaman içinde sinyaller",
+    "runs_one": "{{count}} koşu",
+    "runs_other": "{{count}} koşu",
+    "stuckNow": "şu an {{count}} takılı",
+    "teamOnly": "Bu QA alanının takım düzeyindeki sayıları. Kişi bazlı döküm yoktur.",
+    "testTrend": "Günlük test sonuçları"
+  },
+  "automation": {
+    "channels": {
+      "add": "Kanal ekle",
+      "body": "Slack veya Teams gelen webhook'ları MR olaylarını (GitLab webhook'undan) ve günlük özeti alır.",
+      "deleteTitle": "Bu kanal silinsin mi?",
+      "dialogHint": "Slack veya Teams'te bir gelen webhook oluşturup URL'sini yapıştırın. Şifreli saklanır ve bir daha gösterilmez.",
+      "events": "Olaylar",
+      "kind": "Servis",
+      "name": "Ad",
+      "none": "Henüz kanal yok.",
+      "sendFailed": "Gönderilemedi",
+      "sent": "Test mesajı gönderildi",
+      "test": "Test gönder",
+      "title": "Bildirim kanalları",
+      "url": "Gelen webhook URL",
+      "urlHint": "Slack: hooks.slack.com · Teams: *.webhook.office.com veya bir Power Automate akış URL'si."
+    },
+    "days": "Günler",
+    "enabled": "Etkin",
+    "everyDay": "her gün",
+    "time": "Saat",
+    "event": {
+      "mr_opened": "MR açıldı",
+      "pipeline_failed": "Pipeline kırıldı",
+      "mr_approved": "MR onaylandı",
+      "mr_merged": "MR merge edildi",
+      "digest": "Günlük özet"
+    },
+    "night": {
+      "body": "Kendi ajanın geceleri senin makinende review kuyruğunu bitirir: seni bekleyen MR'ları review eder, eksik testlerin taslağını çıkarır, taslakları gönderir. Sabah biri onaylayana kadar hiçbir şey gönderilmez.",
+      "copyCron": "Cron satırını kopyala",
+      "install": "Bu Mac'te zamanla",
+      "installFailed": "Zamanlanamadı",
+      "installed": "Gece koşusu zamanlandı",
+      "log": "Kayıt: {{path}}",
+      "on": "zamanlı",
+      "remove": "Zamanlamayı kaldır",
+      "title": "Gece koşusu",
+      "update": "Zamanlamayı güncelle",
+      "webNote": "Tarayıcıda: cron satırını crontab'ınıza ekleyin veya PatchMan masaüstü uygulamasından zamanlayın.",
+      "prompt": "İstem",
+      "server": "Claude Code'unuzdaki PatchMan MCP sunucu adı",
+      "toolsHint": "Yalnız şu araçlara önceden izin verilir: {{tools}}. Ajan başkalarının yazdığı MR ve Jira metinlerini okur; başsız çalışırken başka hiçbir şeye izin verilmez.",
+      "serverLocal": "patchman-local — bu cihaz (masaüstü uygulaması)",
+      "serverRemote": "patchman — PatchMan sunucusu",
+      "serverCustom": "Diğer…"
+    },
+    "schedules": {
+      "add": "Zamanlama ekle",
+      "body": "Sunucu bir test klasörünü veya planını zamanında koşar (AI yok). Sonuçlar Koşular ve Raporlar'da görünür.",
+      "deleteTitle": "Bu zamanlama silinsin mi?",
+      "dialogHint": "Zamanlamayı oluşturmak koşularını onaylamak demektir. Klasöre veya plana senin erişiminle koşar.",
+      "folder": "Klasör",
+      "kind": "Ne",
+      "last": "son {{status}} {{when}}",
+      "name": "Ad",
+      "namePlaceholder": "Gece smoke",
+      "none": "Henüz zamanlanmış koşu yok.",
+      "plan": "Plan",
+      "ranNow": "Koşu bitti",
+      "runNow": "Şimdi koş",
+      "target": "Klasör / plan",
+      "title": "Zamanlanmış test koşuları",
+      "tz": "Saatler {{tz}} diliminde."
+    },
+    "day": {
+      "1": "Pzt",
+      "2": "Sal",
+      "3": "Çar",
+      "4": "Per",
+      "5": "Cum",
+      "6": "Cmt",
+      "7": "Paz"
+    }
+  },
+  "picker": {
+    "search": "Ara…",
+    "none": "Bulunamadı",
+    "loadFailed": "Liste yüklenemedi",
+    "useTyped": "“{{value}}” kullan",
+    "typeToSearch": "İlk sonuçlar gösteriliyor — aramak için yazın."
+  },
+  "pending": {
+    "title_one": "Ajanından {{count}} kurulum değişikliği",
+    "title_other": "Ajanından {{count}} kurulum değişikliği",
+    "body": "Bunları bir AI ajanı MCP üzerinden istedi. Sen uygulayana kadar hiçbir şey değişmez; uygulayınca değişiklik senin adınla yapılır.",
+    "anAgent": "Bir ajan",
+    "apply": "Uygula",
+    "reject": "Reddet",
+    "applied": "Uygulandı",
+    "applyFailed": "Değişiklik uygulanamadı",
+    "banner_one": "Ajanından {{count}} kurulum değişikliği Ayarlar'da seni bekliyor",
+    "banner_other": "Ajanından {{count}} kurulum değişikliği Ayarlar'da seni bekliyor"
+  },
+  "agentRun": {
+    "run": "Ajanımla çalıştır",
+    "runAgain": "Yeniden çalıştır",
+    "starting": "Başlatılıyor…",
+    "running": "çalışıyor",
+    "done": "bitti",
+    "stop": "Durdur",
+    "openTab": "Terminal sekmesinde aç",
+    "close": "Kapat",
+    "webNote": "Tarayıcıda: komutu kopyalayıp Claude Code'da PatchMan MCP olan bir terminalde çalıştırın. Masaüstü uygulaması burada çalıştırır."
+  },
+  "verify": {
+    "title": "Düzeltme kontrolü",
+    "openCount_one": "Yeni commit sonrası kontrol bekleyen {{count}} gönderilmiş bulgu",
+    "openCount_other": "Yeni commit sonrası kontrol bekleyen {{count}} gönderilmiş bulgu",
+    "inProgress": "Bir ajan düzeltmeleri kontrol ediyor ({{when}} başladı)",
+    "withAgent": "Düzeltmeleri ajanımla doğrula",
+    "withAgentHint": "Ajanın gönderilmiş bulguları ve yalnızca o incelemeden sonraki değişiklikleri okur, her bulgu için düzeltildi, düzeltilmedi, kısmen ya da geçersiz der. Sen uygulayana kadar hiçbir şey gönderilmez.",
+    "verdict": {
+      "fixed": "düzeltildi",
+      "not_fixed": "düzeltilmedi",
+      "partly": "kısmen",
+      "obsolete": "geçersiz"
+    },
+    "appliedState": {
+      "resolved": "çözüldü",
+      "replied": "yanıtlandı"
+    },
+    "resolveVerified_one": "Doğrulananları çöz ({{count}})",
+    "resolveVerified_other": "Doğrulananları çöz ({{count}})",
+    "replyOpen_one": "Düzeltilmeyenlere yanıt yaz ({{count}})",
+    "replyOpen_other": "Düzeltilmeyenlere yanıt yaz ({{count}})",
+    "resolveConfirmTitle_one": "{{count}} tartışma yanıtlanıp çözülsün mü?",
+    "resolveConfirmTitle_other": "{{count}} tartışma yanıtlanıp çözülsün mü?",
+    "replyConfirmTitle_one": "{{count}} tartışmaya yanıt yazılsın mı?",
+    "replyConfirmTitle_other": "{{count}} tartışmaya yanıt yazılsın mı?",
+    "applyConfirmBody": "Yanıtlar ajanın kanıtıyla birlikte kendi adınla {{mr}} üzerine gider.",
+    "applied_one": "{{count}} yanıt gönderildi",
+    "applied_other": "{{count}} yanıt gönderildi",
+    "appliedFailed_one": "{{count}} başarısız",
+    "appliedFailed_other": "{{count}} başarısız",
+    "applyFailed": "Düzeltme kontrolü uygulanamadı",
+    "applyNote": "Doğrulanan bulguların GitLab tartışmaları çözülür; GitHub'da yalnızca yanıt yazılır."
   }
 }

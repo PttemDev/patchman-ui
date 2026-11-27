@@ -28,9 +28,10 @@ import {
   filterGraph, fmtPct, fmtRps, groupByNamespace, matchesSearch, membersOf, namespacesOf, neighbourhood, scopeNamespaces, toMermaid, totals,
   DENSE_EDGES, DENSE_NODES, GROUP_AUTO, NODE_KINDS, type MapFilters,
 } from './serviceMapUtil';
-import type { ServiceMapGroup, ServiceMapNodeKind } from '@/types';
+import type { ServiceMapGroup, ServiceMapNode, ServiceMapNodeKind } from '@/types';
 import type { MotionMode } from './particles';
 import { noteText } from '@/components/observability/providers';
+import { ServiceDetailDialog } from './ServiceDetailDialog';
 import './serviceMap.css';
 
 const MOTION_KEY = 'patchman_sm_motion';
@@ -91,6 +92,9 @@ export default function ServiceMapTab({ tab }: { tab: Tab }) {
   const [error, setError] = useState('');
   const [newIds, setNewIds] = useState<Set<string>>(new Set());
   const [selectedNode, setSelectedNode] = useState<string | null>(null);
+  // The node whose service detail (charts, endpoints, errors) is open.
+  const [detailNode, setDetailNode] = useState<ServiceMapNode | null>(null);
+  const openDetail = useCallback((n: ServiceMapNode) => setDetailNode(n), []);
   const [selectedEdge, setSelectedEdge] = useState<string | null>(null);
   const [motion, setMotion] = useState<MotionMode>(readMotion);
   const [filters, setFilters] = useState<MapFilters>(readFilters);
@@ -497,7 +501,10 @@ export default function ServiceMapTab({ tab }: { tab: Tab }) {
         ) : view && view.nodes.length === 0 ? (
           <Empty icon={<Waypoints className="h-10 w-10" />} title={t('emptyGraph.title')} text={t('emptyGraph.text')} />
         ) : view && filtered && isTable ? (
-          <ServiceMapTable graph={focus ? view : filtered} selectedEdge={selectedEdge} onSelectEdge={(id) => { setSelectedNode(null); setSelectedEdge(id); }} />
+          <ServiceMapTable graph={focus ? view : filtered} selectedEdge={selectedEdge} selectedNode={selectedNode}
+            onSelectEdge={(id) => { setSelectedNode(null); setSelectedEdge(id); }}
+            onSelectNode={(id) => { setSelectedEdge(null); setSelectedNode(id); }}
+            onOpenDetail={openDetail} />
         ) : view ? (
           <ServiceMapCanvas
             graph={view}
@@ -544,9 +551,11 @@ export default function ServiceMapTab({ tab }: { tab: Tab }) {
             onFocus={(depth) => node && setFocus({ id: node.id, depth })}
             focusDepth={focus && node && focus.id === node.id ? focus.depth : undefined}
             onOnlyNamespace={(ns) => setNsFilter([ns])}
+            onOpenDetail={openDetail}
           />
         )}
       </div>
+      <ServiceDetailDialog open={!!detailNode} onOpenChange={(o) => { if (!o) setDetailNode(null); }} node={detailNode} scope={execScope} obsConns={obsConns} />
     </div>
   );
 }

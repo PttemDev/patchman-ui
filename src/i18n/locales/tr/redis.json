@@ -110,7 +110,8 @@
     "stoppedLimit": "daha fazla anahtar eşleşebilir",
     "stoppedBudget": "tarama {{ms}} ms sonra duraklatıldı — daha fazla anahtar eşleşebilir",
     "continueScan": "Taramaya devam et",
-    "resizeDetailHint": "Boyutlandırmak için sürükleyin ya da ←/→ kullanın · sıfırlamak için çift tıklayın"
+    "resizeDetailHint": "Boyutlandırmak için sürükleyin ya da ←/→ kullanın · sıfırlamak için çift tıklayın",
+    "dbKeys": "{{count}} key"
   },
   "columns": {
     "key": "Key",

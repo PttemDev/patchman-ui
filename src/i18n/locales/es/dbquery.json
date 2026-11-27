@@ -147,7 +147,12 @@
     "queryFailed": "Consulta fallida",
     "emptyRun": "Pulsa Cmd+Enter para ejecutar la consulta.",
     "emptyPickConnection": "Elige una conexión arriba para empezar.",
-    "savedQueryDefault": "Consulta guardada"
+    "savedQueryDefault": "Consulta guardada",
+    "runStatement": "Ejecutar sentencia",
+    "runModesHint": "⌘↵ ejecuta la selección o la sentencia del cursor · ⇧⌘↵ ejecuta todo",
+    "runAll_one": "Ejecutar todo ({{count}})",
+    "runAll_other": "Ejecutar todo ({{count}})",
+    "runAllTooltip": "Ejecuta todas las sentencias del editor; cada una en su propia pestaña de resultados."
   },
   "results": {
     "truncated": "truncado",
@@ -178,17 +183,57 @@
     "copyValue": "Copiar valor",
     "showAsJson": "Mostrar como JSON…",
     "copyAs": "Copiar como…",
-    "copyPlain": "Texto plano",
-    "copyRowJson": "Fila como JSON",
-    "copyRowInsert": "Fila como INSERT",
-    "copyColumnName": "Nombre de columna",
+    "copyColumnName": "Copiar nombre de columna",
     "filterByValue": "Filtrar por este valor",
     "excludeValue": "Excluir este valor",
     "filterNull": "Filtrar NULL",
     "filterNotNull": "Filtrar NOT NULL",
     "openReferenced": "Abrir fila referenciada…",
     "unfreezeColumn": "Descongelar columna",
-    "freezeColumn": "Congelar columna"
+    "freezeColumn": "Congelar columna",
+    "copiedValue": "Copiado",
+    "copiedName": "Nombre de columna copiado",
+    "copiedRows_one": "{{count}} fila copiada como {{format}}",
+    "copiedRows_other": "{{count}} filas copiadas como {{format}}",
+    "copiedValues_one": "{{count}} valor copiado",
+    "copiedValues_other": "{{count}} valores copiados",
+    "fmt": {
+      "tsv": "TSV (se pega en Excel / Sheets)",
+      "csv": "CSV",
+      "json": "JSON",
+      "markdown": "Tabla Markdown",
+      "insert": "SQL INSERT"
+    },
+    "dl": {
+      "csv": "CSV",
+      "json": "JSON",
+      "xlsx": "Excel (.xlsx)"
+    },
+    "selectAllRows": "Seleccionar todas las filas",
+    "rowSelectHint": "Clic: seleccionar · Mayús+clic: rango · ⌘+clic: añadir",
+    "rowsSelected_one": "{{count}} fila seleccionada",
+    "rowsSelected_other": "{{count}} filas seleccionadas",
+    "copy": "Copiar",
+    "copyShortcut": "Copiar las filas seleccionadas con encabezados (⌘C)",
+    "download": "Descargar",
+    "downloadSelected_one": "Descargar {{count}} fila seleccionada",
+    "downloadSelected_other": "Descargar {{count}} filas seleccionadas",
+    "clearSelection": "Limpiar",
+    "copyAllColumnNames": "Copiar todos los nombres de columna",
+    "copyColumnValues": "Copiar valores de la columna",
+    "copyColumnIn": "Copiar como lista IN (…)",
+    "sortAsc": "Orden ascendente",
+    "sortDesc": "Orden descendente",
+    "hideColumn": "Ocultar columna",
+    "copyWhere": "Copiar como condición WHERE",
+    "copyRowAs": "Copiar fila como",
+    "copyRowsAs_one": "Copiar {{count}} fila como",
+    "copyRowsAs_other": "Copiar {{count}} filas como",
+    "downloadRow": "Descargar fila como",
+    "downloadRows_one": "Descargar {{count}} fila como",
+    "downloadRows_other": "Descargar {{count}} filas como",
+    "selectRow": "Seleccionar fila",
+    "deselectRow": "Quitar selección"
   },
   "chart": {
     "noData": "No hay datos para graficar.",
@@ -802,5 +847,20 @@
     "costTitle": "Esta consulta escaneará {{size}}",
     "costBody": "Supera tu límite de \"preguntar primero\" de {{ask}}. BigQuery cobra por los datos escaneados.",
     "costRun": "Ejecutarla"
+  },
+  "completion": {
+    "columnsCount_one": "{{count}} columna",
+    "columnsCount_other": "{{count}} columnas",
+    "template": "Plantilla",
+    "fkJoin": "join por clave foránea",
+    "schema": "esquema",
+    "fkCondition": "clave foránea",
+    "expandColumns_one": "expandir a {{count}} columna",
+    "expandColumns_other": "expandir a {{count}} columnas"
+  },
+  "editor": {
+    "runCurrent": "Ejecutar sentencia en el cursor / selección",
+    "runAll": "Ejecutar todo el script",
+    "runThis": "Ejecutar esta sentencia"
   }
 }

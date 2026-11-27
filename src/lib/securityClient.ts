@@ -102,6 +102,7 @@ const SENSITIVE: Array<[string, RegExp]> = [
   ['GET', /\/api\/environments\/[^/]+\/variables\/[^/]+\/reveal$/],
   ['GET', /\/api\/k8s\/[^/]+\/(exec|local-shell)$/],
   ['GET', /\/api\/ai\/claude-shell$/],
+  ['GET', /\/api\/terminal\/shell$/],
   ['POST', /\/api\/k8s\/[^/]+\/(apply|scale|rollout-restart|cordon|drain|cronjob\/trigger|port-forward)$/],
   ['DELETE', /\/api\/k8s\/[^/]+\/resource$/],
   ['POST', /\/api\/git\/repos\/[^/]+\/branches\/force-delete$/],

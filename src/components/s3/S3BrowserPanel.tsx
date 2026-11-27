@@ -98,6 +98,17 @@ export function S3BrowserPanel({ tab }: S3BrowserPanelProps) {
   // cloud/VPN bucket behind the server network).
   const scope = tab.s3ExecScope ?? conn?.scope ?? (connId ? scopeForS3(connections, connId) : undefined);
   const canWrite = conn ? conn.grantRole !== 'read' : false;
+  // A connection limited to a bucket / path: open there, and treat the path
+  // as the breadcrumb root (its parents are off-limits to the key).
+  const pinBucket = String(conn?.options?.bucket ?? '').trim();
+  const pinPrefix = (() => {
+    const p = String(conn?.options?.prefix ?? '').trim().replace(/^\/+/, '');
+    return p && !p.endsWith('/') ? `${p}/` : p;
+  })();
+  useEffect(() => {
+    if (!conn || !pinBucket || bucket) return;
+    updateTab(tab.id, { s3Bucket: pinBucket, s3Prefix: pinPrefix });
+  }, [conn, pinBucket, pinPrefix, bucket, tab.id, updateTab]);
 
   useEffect(() => {
     if (connections.length === 0) fetchConnections();
@@ -212,11 +223,13 @@ export function S3BrowserPanel({ tab }: S3BrowserPanelProps) {
   }, [tab.id, updateTab, selectFile]);
 
   // ── Breadcrumb navigation ──────────────────────────────────────────
-  const crumbs = useMemo(() => prefix.split('/').filter(Boolean), [prefix]);
+  // Inside the pinned path the crumbs start below it; "root" means the pin.
+  const root = bucket === pinBucket && pinPrefix && prefix.startsWith(pinPrefix) ? pinPrefix : '';
+  const crumbs = useMemo(() => prefix.slice(root.length).split('/').filter(Boolean), [prefix, root]);
   const goToCrumb = useCallback((index: number) => {
-    const next = index < 0 ? '' : crumbs.slice(0, index + 1).join('/') + '/';
+    const next = index < 0 ? root : root + crumbs.slice(0, index + 1).join('/') + '/';
     updateTab(tab.id, { s3Prefix: next });
-  }, [crumbs, tab.id, updateTab]);
+  }, [crumbs, root, tab.id, updateTab]);
 
   // ── Write actions ──────────────────────────────────────────────────
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -429,7 +442,7 @@ export function S3BrowserPanel({ tab }: S3BrowserPanelProps) {
 
           <Select
             value={bucket}
-            onValueChange={(v) => updateTab(tab.id, { s3Bucket: v, s3Prefix: '' })}
+            onValueChange={(v) => updateTab(tab.id, { s3Bucket: v, s3Prefix: v === pinBucket ? pinPrefix : '' })}
             disabled={!connId}
           >
             <SelectTrigger className="w-[200px] h-9 text-sm">
@@ -503,7 +516,7 @@ export function S3BrowserPanel({ tab }: S3BrowserPanelProps) {
               title={bucket}
             >
               <Home className="h-3 w-3" />
-              <span className="font-mono">{bucket}</span>
+              <span className="font-mono">{bucket}{root && `/${root.replace(/\/$/, '')}`}</span>
             </button>
             {crumbs.map((c, i) => (
               <span key={i} className="flex items-center gap-1">

@@ -29,7 +29,14 @@ export type DetachMsgType =
   | 'detach:return' // child → main: final flush before teardown
   | 'detach:rollcall' // main → all: main reloaded, who's still alive?
   | 'detach:here' // child → main: rollcall answer
-  | 'detach:open-tab'; // child → main: open a NEW tab in the main window
+  | 'detach:open-tab' // child → main: open a NEW tab in the main window
+  // Terminal tabs (terminalBridge): the shell stays in main, the child is a screen + keyboard.
+  | 'term:attach' // child → main: connect me, send the replay
+  | 'term:in' // child → main: keystrokes
+  | 'term:resize' // child → main: cols / rows
+  | 'term:restart' // child → main: restart the ended shell
+  | 'term:out' // main → child: output (replay: the whole tail, reset first)
+  | 'term:state'; // main → child: session state
 
 export interface DetachMsg {
   type: DetachMsgType;
@@ -41,6 +48,12 @@ export interface DetachMsg {
   /** open-tab: the new tab's overrides (what addTab would have received). */
   open?: Partial<Tab>;
   forceNew?: boolean;
+  /** term:* payloads. 'ended' = the user ended it (close the window); 'gone' = main reloaded. */
+  data?: string;
+  replay?: boolean;
+  cols?: number;
+  rows?: number;
+  state?: 'connecting' | 'open' | 'closed' | 'cancelled' | 'ended' | 'gone';
 }
 
 export interface CrossWindowChannel {

@@ -198,7 +198,8 @@
       "collab": "Çalışma alanları ve ekipler",
       "devtools": "Geliştirici araçları",
       "sync": "Masaüstü senkronizasyonu",
-      "other": "Diğer"
+      "other": "Diğer",
+      "jira": "Jira"
     }
   }
 }

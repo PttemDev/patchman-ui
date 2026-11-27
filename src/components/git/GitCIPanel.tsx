@@ -15,6 +15,7 @@ import { confirmDialog } from '@/components/ui/confirm';
 import { cn } from '@/lib/utils';
 import { cronText } from '@/lib/cronText';
 import { extractErr, timeAgo } from './util';
+import { groupJobs } from './ciJobGroups';
 
 // GitCIPanel is the Git tab's CI/CD mode for one GitLab project: pipelines
 // (with their jobs and logs, live while running), pipeline schedules (cron in
@@ -356,6 +357,7 @@ function PipelineDetail({ connId, project, pipelineId, canWrite, onChanged, onOp
     const id = window.setInterval(() => { void load(); }, 5000);
     return () => window.clearInterval(id);
   }, [live, load]);
+  const playAll = usePlayAll(connId, project, setBusy, async () => { await load(); onChanged(); });
 
   const act = async (key: string, fn: () => Promise<unknown>, okMsg: string, confirm?: string) => {
     if (confirm && !(await confirmDialog({ title: confirm }))) return;
@@ -426,9 +428,8 @@ function PipelineDetail({ connId, project, pipelineId, canWrite, onChanged, onOp
         <div className="flex flex-wrap gap-3 p-3">
           {data.stages.map((st) => (
             <div key={st} className="w-56 shrink-0">
-              <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1.5">{st}</div>
-              <div className="space-y-1">
-                {data.jobs.filter((j) => j.stage === st).map((j) => (
+              <StageJobs stage={st} jobs={data.jobs.filter((j) => j.stage === st)} canWrite={canWrite} playAll={playAll} busy={busy}
+                renderJob={(j) => (
                   <div key={j.id}
                     className={cn('group flex items-center gap-1.5 rounded border px-2 py-1.5 text-xs hover:bg-accent/40',
                       (j.kind !== 'bridge' || j.downstream?.sameProject) && 'cursor-pointer',
@@ -449,12 +450,11 @@ function PipelineDetail({ connId, project, pipelineId, canWrite, onChanged, onOp
                         <ExternalLink className="h-3.5 w-3.5" />
                       </a>
                     )}
-                    <JobActionButtons job={j} canWrite={canWrite} busy={busy}
+                    <JobActionButtons job={j} canWrite={canWrite} busy={busy} locked={!!playAll.progress}
                       onPlay={() => void act(`play-${j.id}`, () => gitAPI.playJob(connId, project, j.id), t('ci.jobStarted', { name: j.name }))}
                       onRerun={() => void act(`retry-${j.id}`, () => rerunJob(connId, project, j), t('ci.jobRetried', { name: j.name }))} />
                   </div>
-                ))}
-              </div>
+                )} />
             </div>
           ))}
           {downstream.length > 0 && (
@@ -474,10 +474,12 @@ function PipelineDetail({ connId, project, pipelineId, canWrite, onChanged, onOp
                   const cls = 'flex w-full items-center gap-1.5 rounded border border-sky-500/30 px-2 py-1.5 text-xs text-left hover:bg-accent/40';
                   const isOpen = expanded.includes(d.id);
                   return d.sameProject ? (
-                    <div key={j.id} className="flex items-stretch gap-1">
-                      <button type="button" className={cls} onClick={() => onOpenPipeline(d.id)} title={t('ci.openChild', { id: d.id })}>{body}</button>
+                    <div key={j.id} className="flex min-w-0 items-stretch gap-1">
+                      {/* flex-1, not w-full: a full-width card pushed the toggle out of the
+                          column, under the opened child panel, where clicks didn't reach it. */}
+                      <button type="button" className={cn(cls, 'w-auto min-w-0 flex-1')} onClick={() => onOpenPipeline(d.id)} title={t('ci.openChild', { id: d.id })}>{body}</button>
                       <button type="button" onClick={() => toggleExpanded(d.id)}
-                        className={cn('shrink-0 rounded border border-sky-500/30 px-1 text-muted-foreground hover:text-foreground hover:bg-accent/40', isOpen && 'bg-sky-500/10 text-foreground')}
+                        className={cn('relative z-10 shrink-0 rounded border border-sky-500/30 px-1 text-muted-foreground hover:text-foreground hover:bg-accent/40', isOpen && 'bg-sky-500/10 text-foreground')}
                         title={isOpen ? t('ci.collapseChild') : t('ci.expandChild')} aria-expanded={isOpen}>
                         {isOpen ? <ChevronLeft className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
                       </button>
@@ -511,10 +513,11 @@ function PipelineDetail({ connId, project, pipelineId, canWrite, onChanged, onOp
 
 // A child pipeline's stages rendered inline beside its trigger job, like
 // Finished jobs can run again; a manual job waits to be played. Bridges
-// (trigger jobs) have neither through the API.
+// (trigger jobs, e.g. a `when: manual` deploy trigger) too: GitLab's
+// jobs/:id/play and jobs/:id/retry accept them (lib/api/ci/jobs.rb).
 const FINISHED = new Set(['success', 'failed', 'canceled']);
-const canRerun = (j: Job) => j.kind !== 'bridge' && FINISHED.has(j.status);
-const canPlay = (j: Job) => j.kind !== 'bridge' && j.status === 'manual';
+const canRerun = (j: Job) => FINISHED.has(j.status);
+const canPlay = (j: Job) => j.status === 'manual';
 
 /** Run a job again (GitLab "retry"). Retrying a manual job can leave the new
  *  job waiting as `manual` (doğrulanmadı per GitLab version) — play it then,
@@ -529,8 +532,9 @@ async function rerunJob(connId: string, project: string, j: Job): Promise<number
 /** Play / Run-again buttons for a job row. Always visible (not hover-only):
  *  a finished job's "run again" is a primary action, e.g. re-running a
  *  deploy job. */
-function JobActionButtons({ job: j, canWrite, busy, onPlay, onRerun }: {
+function JobActionButtons({ job: j, canWrite, busy, locked, onPlay, onRerun }: {
   job: Job; canWrite: boolean; busy?: string;
+  /** A Play all is running: the row buttons wait. */ locked?: boolean;
   onPlay: () => void; onRerun: () => void;
 }) {
   const { t } = useTranslation('git');
@@ -540,17 +544,134 @@ function JobActionButtons({ job: j, canWrite, busy, onPlay, onRerun }: {
   return (
     <>
       {canPlay(j) && (
-        <button type="button" className="shrink-0 text-violet-600 hover:text-violet-500" title={t('ci.playJob')} aria-label={t('ci.playJob')}
-          onClick={(e) => { e.stopPropagation(); onPlay(); }}>
+        <button type="button" className="shrink-0 text-violet-600 hover:text-violet-500 disabled:opacity-40" title={t('ci.playJob')} aria-label={t('ci.playJob')}
+          disabled={locked} onClick={(e) => { e.stopPropagation(); onPlay(); }}>
           <Play className="h-3.5 w-3.5" />
         </button>
       )}
       {canRerun(j) && (
-        <button type="button" className="shrink-0 text-muted-foreground/70 hover:text-foreground" title={t('ci.retryJob')} aria-label={t('ci.retryJob')}
-          onClick={(e) => { e.stopPropagation(); onRerun(); }}>
+        <button type="button" className="shrink-0 text-muted-foreground/70 hover:text-foreground disabled:opacity-40" title={t('ci.retryJob')} aria-label={t('ci.retryJob')}
+          disabled={locked} onClick={(e) => { e.stopPropagation(); onRerun(); }}>
           <RotateCcw className="h-3.5 w-3.5" />
         </button>
       )}
+    </>
+  );
+}
+
+interface PlayAll {
+  /** The running Play all: its key (stage / group) and how far it got. */
+  progress: { key: string; done: number; total: number } | null;
+  run: (key: string, label: string, jobs: Job[]) => Promise<void>;
+}
+
+/** Play every playable manual job of a stage or job group: confirm with the
+ *  list, play them one by one through the same job_play endpoint as the row
+ *  Play button (manual trigger jobs included — the 1.71 fix), keep going past
+ *  a failure, then one reload and one summary toast. The job list is a
+ *  snapshot taken at confirm time; the 5 s poll may replace `data` meanwhile. */
+function usePlayAll(connId: string, project: string, setBusy: (k: string) => void, after: () => void | Promise<void>): PlayAll {
+  const { t } = useTranslation('git');
+  const { toast } = useToast();
+  const [progress, setProgress] = useState<PlayAll['progress']>(null);
+  const running = useRef(false);
+  const run = async (key: string, label: string, jobs: Job[]) => {
+    if (running.current) return;
+    const list = jobs.filter(canPlay);
+    if (list.length === 0) return;
+    const ok = await confirmDialog({
+      title: t('ci.playAllConfirm', { count: list.length, name: label }),
+      description: list.map((j) => `• ${j.name}${j.kind === 'bridge' ? ` (${t('ci.trigger')})` : ''}`).join('\n'),
+      confirmLabel: t('ci.playAll'),
+    });
+    if (!ok || running.current) return;
+    running.current = true;
+    const failed: string[] = [];
+    setProgress({ key, done: 0, total: list.length });
+    try {
+      for (let i = 0; i < list.length; i++) {
+        const j = list[i];
+        setBusy(`play-${j.id}`);
+        try {
+          await gitAPI.playJob(connId, project, j.id);
+        } catch (e) {
+          failed.push(`${j.name}: ${extractErr(e, t('ci.actionFailed'))}`);
+        }
+        setProgress({ key, done: i + 1, total: list.length });
+      }
+    } finally {
+      setBusy('');
+      setProgress(null);
+      running.current = false;
+    }
+    const started = list.length - failed.length;
+    if (failed.length) {
+      toast({ title: t('ci.playAllPartial', { ok: started, failed: failed.length }), description: failed.join(' · '), variant: 'destructive' });
+    } else {
+      toast({ title: t('ci.playAllDone', { count: started }) });
+    }
+    await after();
+  };
+  return { progress, run };
+}
+
+/** A Play all button; shows n/total while its run is going. */
+function PlayAllButton({ runKey, label, jobs, playAll, busy }: {
+  runKey: string; label: string; jobs: Job[]; playAll: PlayAll; busy: string;
+}) {
+  const { t } = useTranslation('git');
+  const n = jobs.filter(canPlay).length;
+  const mine = playAll.progress?.key === runKey ? playAll.progress : null;
+  return (
+    <button type="button"
+      className="ml-auto inline-flex shrink-0 items-center gap-1 rounded px-1 text-[10px] normal-case tracking-normal text-violet-600 hover:bg-violet-500/10 hover:text-violet-500 disabled:opacity-50"
+      disabled={!!playAll.progress || !!busy}
+      title={t('ci.playAllTip', { count: n, name: label })}
+      onClick={(e) => { e.stopPropagation(); void playAll.run(runKey, label, jobs); }}>
+      {mine ? <Loader2 className="h-3 w-3 animate-spin" /> : <Play className="h-3 w-3" />}
+      {mine ? t('ci.playAllProgress', { done: mine.done, total: mine.total }) : t('ci.playAllCount', { count: n })}
+    </button>
+  );
+}
+
+/** A stage column's header and jobs: parallel / matrix jobs ("deploy 1/3")
+ *  sit under a group row, like GitLab's job groups. With a write grant, a
+ *  stage or group holding two or more manual jobs gets Play all — not on
+ *  GitHub, whose "manual" (action_required) runs are approved there. */
+function StageJobs({ stage, jobs, canWrite, playAll, busy, renderJob }: {
+  stage: string; jobs: Job[]; canWrite: boolean; playAll: PlayAll; busy: string; renderJob: (j: Job) => React.ReactNode;
+}) {
+  const gh = useGH();
+  const bulk = canWrite && !gh;
+  const groups = groupJobs(jobs);
+  const playable = jobs.filter(canPlay);
+  // The stage button would only repeat a group's when one group holds them all.
+  const stageKey = `stage:${stage}`;
+  // A running Play all keeps its button (with progress) even after the poll
+  // turned the played jobs non-manual.
+  const stageBulk = playAll.progress?.key === stageKey || (bulk && playable.length >= 2 && !groups.some((g) => g.jobs.length > 1 && g.jobs.filter(canPlay).length === playable.length));
+  return (
+    <>
+      <div className="flex items-center gap-1 text-[10px] uppercase tracking-wider text-muted-foreground mb-1.5">
+        <span className="truncate">{stage}</span>
+        {stageBulk && <PlayAllButton runKey={stageKey} label={stage} jobs={jobs} playAll={playAll} busy={busy} />}
+      </div>
+      <div className="space-y-1">
+        {groups.map((g) => g.jobs.length < 2 ? renderJob(g.jobs[0]) : (
+          <div key={`group:${g.name}`} className="space-y-1">
+            <div className="flex items-center gap-1.5 px-0.5 text-[11px] text-muted-foreground">
+              <span className="truncate font-medium text-foreground/80" title={g.name}>{g.name}</span>
+              <span className="shrink-0 rounded bg-muted px-1 text-[9px] tabular-nums">{g.jobs.length}</span>
+              {(playAll.progress?.key === `group:${stage}:${g.name}` || (bulk && g.jobs.filter(canPlay).length >= 2)) && (
+                <PlayAllButton runKey={`group:${stage}:${g.name}`} label={g.name} jobs={g.jobs} playAll={playAll} busy={busy} />
+              )}
+            </div>
+            <div className="space-y-1 border-l pl-1.5">
+              {g.jobs.map((j) => renderJob(j))}
+            </div>
+          </div>
+        ))}
+      </div>
     </>
   );
 }
@@ -576,6 +697,7 @@ function ChildPipelineInline({ connId, project, name, pipelineId, selectedJobId,
     }
   }, [connId, project, pipelineId, t]);
   useEffect(() => { void load(); }, [load]);
+  const playAll = usePlayAll(connId, project, setBusy, load);
   const act = async (key: string, fn: () => Promise<unknown>, okMsg: string) => {
     setBusy(key);
     try {
@@ -613,9 +735,8 @@ function ChildPipelineInline({ connId, project, name, pipelineId, selectedJobId,
         <div className="flex gap-3">
           {data.stages.map((st) => (
             <div key={st} className="w-52 shrink-0">
-              <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1.5">{st}</div>
-              <div className="space-y-1">
-                {data.jobs.filter((j) => j.stage === st).map((j) => {
+              <StageJobs stage={st} jobs={data.jobs.filter((j) => j.stage === st)} canWrite={canWrite} playAll={playAll} busy={busy}
+                renderJob={(j) => {
                   const drill = j.kind === 'bridge' && j.downstream?.sameProject;
                   const clickable = j.kind !== 'bridge' || drill;
                   return (
@@ -631,13 +752,12 @@ function ChildPipelineInline({ connId, project, name, pipelineId, selectedJobId,
                         <span className="shrink-0 rounded bg-sky-500/15 px-1 text-[9px] text-sky-600 dark:text-sky-400">{t('ci.trigger')}</span>
                       )}
                       <span className="text-[10px] text-muted-foreground">{fmtDuration(j.duration)}</span>
-                      <JobActionButtons job={j} canWrite={canWrite} busy={busy}
+                      <JobActionButtons job={j} canWrite={canWrite} busy={busy} locked={!!playAll.progress}
                         onPlay={() => void act(`play-${j.id}`, () => gitAPI.playJob(connId, project, j.id), t('ci.jobStarted', { name: j.name }))}
                         onRerun={() => void act(`retry-${j.id}`, () => rerunJob(connId, project, j), t('ci.jobRetried', { name: j.name }))} />
                     </div>
                   );
-                })}
-              </div>
+                }} />
             </div>
           ))}
         </div>

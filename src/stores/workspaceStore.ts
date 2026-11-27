@@ -52,7 +52,10 @@ export const useWorkspaceStore = create<WorkspaceState>()(
       fetchWorkspaces: async () => {
         set({ isLoading: true, error: null });
         try {
-          let workspaces = await getRepo().workspaces.list();
+          const listed: unknown = await getRepo().workspaces.list();
+          // A non-array here (an HTML page from a wrong backend URL, an
+          // unexpected payload) must not reach the selector's .map().
+          let workspaces = Array.isArray(listed) ? (listed as Workspace[]) : [];
           // Local mode needs a bootstrap workspace so the selector isn't empty
           // on first boot. Synced mode gets one from BE; local doesn't, so we
           // seed a "Personal" workspace here.

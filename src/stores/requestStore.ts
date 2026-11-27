@@ -531,12 +531,106 @@ export const useRequestStore = create<RequestState>()(
           const envState = useEnvironmentStore.getState();
           const activeEnv = envState.activeEnvironment;
 
+          // Values the pre-request script set win over the stored environment:
+          // it runs BEFORE any {{var}} is resolved (as in Postman), so a
+          // signature / timestamp it computes reaches headers, URL and params.
+          const scriptVars: Record<string, string> = {};
           function replaceEnvVars(text: string): string {
-            if (!activeEnv) return text;
             return text.replace(/\{\{(\w+)\}\}/g, (match, varName) => {
-              const envVar = activeEnv.variables.find(v => v.key === varName && v.enabled);
+              if (Object.prototype.hasOwnProperty.call(scriptVars, varName)) return scriptVars[varName];
+              const envVar = activeEnv?.variables.find(v => v.key === varName && v.enabled);
               return envVar ? envVar.value : match;
             });
+          }
+
+          // Persist script-side pm.environment.set() calls back to the active
+          // environment so values survive across requests and sessions.
+          async function persistEnvUpdates(updates: Record<string, string>) {
+            if (!activeEnv || Object.keys(updates).length === 0) return;
+            const existing = activeEnv.variables.slice();
+            Object.entries(updates).forEach(([key, value]) => {
+              const idx = existing.findIndex((v) => v.key === key);
+              if (idx >= 0) {
+                existing[idx] = { ...existing[idx], value };
+              } else {
+                existing.push({ key, value, enabled: true, secret: false });
+              }
+            });
+            await useEnvironmentStore.getState().updateEnvironment(activeEnv.id, { variables: existing });
+          }
+
+          // Environment variables for the scripts (pre-request + tests).
+          const envVariables: Record<string, string> = {};
+          if (activeEnv) {
+            activeEnv.variables.forEach(v => {
+              if (v.enabled) envVariables[v.key] = v.value;
+            });
+          }
+          const scriptHeaderSet: Record<string, string> = {};
+          const scriptHeaderRemoved: string[] = [];
+          const scriptLog = (lines: string[]) => {
+            if (lines.length === 0) return;
+            set((s) => ({
+              tabs: s.tabs.map((t) =>
+                t.id === tabId ? { ...t, consoleOutput: [...(t.consoleOutput || []), ...lines] } : t
+              ),
+            }));
+          };
+
+          if (tab.preRequestScript && tab.preRequestScript.trim() && !local) {
+            // What the script sees as pm.request: the request with the
+            // CURRENT values filled in.
+            const preHeaders: Record<string, string> = {};
+            tab.headers.forEach((h) => { if (h.enabled && h.key) preHeaders[replaceEnvVars(h.key)] = replaceEnvVars(h.value); });
+            try {
+              const preResult = await scriptAPI.execute({
+                script: tab.preRequestScript,
+                type: 'pre-request',
+                context: {
+                  method: tab.method,
+                  url: replaceEnvVars(tab.url),
+                  headers: preHeaders,
+                  body: tab.body?.content ? replaceEnvVars(tab.body.content) : '',
+                  envVars: { ...envVariables },
+                },
+              });
+              const preData = preResult.data as {
+                updatedEnvVars?: Record<string, string>;
+                updatedHeaders?: Record<string, string>;
+                setHeaders?: Record<string, string>;
+                removedHeaders?: string[];
+                consoleOutput?: string[];
+                error?: string;
+              };
+              if (preData.updatedEnvVars) {
+                const changed: Record<string, string> = {};
+                for (const [k, v] of Object.entries(preData.updatedEnvVars)) {
+                  if (envVariables[k] !== v) changed[k] = v;
+                }
+                Object.assign(scriptVars, changed);
+                Object.assign(envVariables, changed);
+                await persistEnvUpdates(changed);
+              }
+              if (preData.setHeaders || preData.removedHeaders) {
+                Object.assign(scriptHeaderSet, preData.setHeaders ?? {});
+                scriptHeaderRemoved.push(...(preData.removedHeaders ?? []));
+              } else if (preData.updatedHeaders) {
+                // Older backend: every header comes back — keep only the
+                // ones the script actually changed.
+                for (const [k, v] of Object.entries(preData.updatedHeaders)) {
+                  if (preHeaders[k] !== v) scriptHeaderSet[k] = v;
+                }
+              }
+              scriptLog([
+                ...(preData.consoleOutput ?? []),
+                ...(preData.error ? [`[error] [pre-request] ${preData.error}`] : []),
+              ]);
+            } catch (err) {
+              // A script failure doesn't block the request, but it is shown.
+              scriptLog([`[error] [pre-request] ${err instanceof Error ? err.message : String(err)}`]);
+            }
+          } else if (tab.preRequestScript && tab.preRequestScript.trim() && local) {
+            scriptLog(['[pre-request] Skipped: scripts require signing in.']);
           }
 
           // Pre-flight env-var check: scan every place a {{var}} can hide
@@ -560,9 +654,10 @@ export const useRequestStore = create<RequestState>()(
             collect(tab.auth.value);
             collect(tab.auth.key);
           }
-          const known = new Set(
-            activeEnv ? activeEnv.variables.filter((v) => v.enabled).map((v) => v.key) : [],
-          );
+          const known = new Set([
+            ...(activeEnv ? activeEnv.variables.filter((v) => v.enabled).map((v) => v.key) : []),
+            ...Object.keys(scriptVars),
+          ]);
           const missing = Array.from(referencedVars).filter((v) => !known.has(v));
           if (missing.length > 0) {
             const envLabel = activeEnv ? `the active environment "${activeEnv.name}"` : 'any environment';
@@ -585,22 +680,6 @@ export const useRequestStore = create<RequestState>()(
               ),
             }));
             return;
-          }
-
-          // Persist script-side pm.environment.set() calls back to the active
-          // environment so values survive across requests and sessions.
-          async function persistEnvUpdates(updates: Record<string, string>) {
-            if (!activeEnv || Object.keys(updates).length === 0) return;
-            const existing = activeEnv.variables.slice();
-            Object.entries(updates).forEach(([key, value]) => {
-              const idx = existing.findIndex((v) => v.key === key);
-              if (idx >= 0) {
-                existing[idx] = { ...existing[idx], value };
-              } else {
-                existing.push({ key, value, enabled: true, secret: false });
-              }
-            });
-            await useEnvironmentStore.getState().updateEnvironment(activeEnv.id, { variables: existing });
           }
 
           const headersObj: Record<string, string> = {};
@@ -813,68 +892,14 @@ export const useRequestStore = create<RequestState>()(
             }
           }
 
-          // Collect environment variables for script context
-          const envVariables: Record<string, string> = {};
-          if (activeEnv) {
-            activeEnv.variables.forEach(v => {
-              if (v.enabled) envVariables[v.key] = v.value;
-            });
+          // Header changes the pre-request script made (it ran before the
+          // headers were built): applied last, over everything else.
+          for (const k of scriptHeaderRemoved) {
+            for (const h of Object.keys(headersObj)) if (h.toLowerCase() === k.toLowerCase()) delete headersObj[h];
           }
-
-          // Execute pre-request script (requires backend; skip in local mode)
-          if (tab.preRequestScript && tab.preRequestScript.trim() && !local) {
-            try {
-              const preResult = await scriptAPI.execute({
-                script: tab.preRequestScript,
-                type: 'pre-request',
-                context: {
-                  method: tab.method,
-                  url: fullUrl,
-                  headers: { ...headersObj },
-                  body: bodyContent,
-                  envVars: envVariables,
-                },
-              });
-              const preData = preResult.data as {
-                updatedEnvVars?: Record<string, string>;
-                updatedHeaders?: Record<string, string>;
-                consoleOutput?: string[];
-              };
-              if (preData.updatedEnvVars) {
-                Object.assign(envVariables, preData.updatedEnvVars);
-                Object.entries(preData.updatedEnvVars).forEach(([key, val]) => {
-                  const varRegex = new RegExp(`\\{\\{${key}\\}\\}`, 'g');
-                  bodyContent = bodyContent.replace(varRegex, val);
-                });
-                await persistEnvUpdates(preData.updatedEnvVars);
-              }
-              if (preData.updatedHeaders) {
-                Object.assign(headersObj, preData.updatedHeaders);
-              }
-              if (preData.consoleOutput && preData.consoleOutput.length > 0) {
-                set((s) => ({
-                  tabs: s.tabs.map((t) =>
-                    t.id === tabId ? { ...t, consoleOutput: [...(t.consoleOutput || []), ...preData.consoleOutput!] } : t
-                  ),
-                }));
-              }
-            } catch {
-              // Pre-request script errors should not prevent sending the request
-            }
-          } else if (tab.preRequestScript && tab.preRequestScript.trim() && local) {
-            set((s) => ({
-              tabs: s.tabs.map((t) =>
-                t.id === tabId
-                  ? {
-                      ...t,
-                      consoleOutput: [
-                        ...(t.consoleOutput || []),
-                        '[pre-request] Skipped: scripts require signing in.',
-                      ],
-                    }
-                  : t,
-              ),
-            }));
+          for (const [k, v] of Object.entries(scriptHeaderSet)) {
+            for (const h of Object.keys(headersObj)) if (h.toLowerCase() === k.toLowerCase()) delete headersObj[h];
+            headersObj[k] = v;
           }
 
           // Save sent request details
@@ -1264,7 +1289,9 @@ export const useRequestStore = create<RequestState>()(
       name: STORE_KEY,
       storage: createJSONStorage(() => requestStoreStorage),
       partialize: (state) => ({
-        tabs: state.tabs.map(tab => ({
+        // Terminal tabs show live shells that die with the page — not persisted in
+        // the main window. A detached window keeps its one tab so ⌘R reconnects it.
+        tabs: state.tabs.filter(tab => IS_STANDALONE_TAB || tab.type !== 'terminal').map(tab => ({
           ...tab,
           // Don't persist transient state
           response: null,

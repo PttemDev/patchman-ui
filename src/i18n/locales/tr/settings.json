@@ -13,7 +13,9 @@
     "appearance": "Görünüm",
     "security": "Güvenlik",
     "editor": "Editör",
-    "gcp": "Google Cloud"
+    "terminal": "Terminal",
+    "gcp": "Google Cloud",
+    "jira": "Jira"
   },
   "proxy": {
     "heading": "Özel Proxy",
@@ -157,8 +159,15 @@
         "rabbitmq": "RabbitMQ",
         "graylog": "Graylog",
         "observability": "Gözlemlenebilirlik (servis haritası)",
-        "gcp": "Google Cloud"
+        "gcp": "Google Cloud",
+        "jira": "Jira (salt okunur)"
       }
+    },
+    "qaSetupAsk": {
+      "title": "AI ajanı CR + QA kurulumunu değiştirmeden önce bana sor",
+      "on": "Açık: ajanlar senin onayını almalı (istemcide sorulur ya da CR + QA Hub → Ayarlar'da seni bekler).",
+      "off": "Kapalı: ajanlar CR + QA kurulum değişikliklerini (bağlantılar, eşikler, zamanlamalar, kanallar, Jira bağlantıları) doğrudan uygular.",
+      "failed": "Kaydedilemedi"
     }
   },
   "data": {
@@ -268,7 +277,8 @@
     "scope": {
       "global": "Her yerde",
       "git": "Git sekmesi",
-      "editor": "Git editörü"
+      "editor": "Git editörü",
+      "terminal": "Terminal"
     },
     "custom": "özel",
     "pressKeys": "Tuşlara bas…",
@@ -279,6 +289,17 @@
     "reset": "Sıfırla",
     "resetOne": "{{chord}} olarak sıfırla",
     "osReserved": "{{chord}} işletim sistemine ayrılmış.",
+    "toggleTerminal": "Terminali göster / gizle",
+    "terminalNewSession": "Yeni terminal oturumu",
+    "terminalCloseSession": "Terminal oturumunu kapat",
+    "terminalNextSession": "Sonraki terminal oturumu",
+    "terminalPrevSession": "Önceki terminal oturumu",
+    "terminalLineEdges": "Satır başı / sonu",
+    "terminalKillLine": "Satırı sil",
+    "terminalWordJump": "Önceki / sonraki kelime",
+    "terminalAcceptSuggestion": "Öneriyi kabul et",
+    "terminalAcceptWord": "Önerinin bir kelimesini kabul et",
+    "terminalReserved": "{{chord}} terminale ait (shell veya satır düzenleme); burada kullanılamaz.",
     "conflict": "{{chord}} şunlara da atanmış: {{names}}. İlk eşleşen çalışır.",
     "browserReserved": "Tarayıcıda bu tuşu tarayıcı yakalayabilir; masaüstü uygulamada sorunsuz çalışır.",
     "footer": "Bu cihazda saklanır. Git sekmesi ve editör kısayolları, o görünüm açıkken genel kısayolların önüne geçer.",
@@ -393,6 +414,24 @@
       }
     }
   },
+  "terminal": {
+    "heading": "Terminal",
+    "description": "Yerleşik terminaller için imleç, yazı tipi ve renkler. Bu cihazda saklanır.",
+    "colorScheme": "Renk şeması",
+    "schemeApp": "Uygulamayla aynı",
+    "cursorStyle": "İmleç stili",
+    "style": {
+      "block": "Blok",
+      "bar": "Çubuk",
+      "underline": "Alt çizgi"
+    },
+    "cursorBlink": "İmleç yanıp sönsün",
+    "cursorColor": "İmleç rengi",
+    "themeColor": "Tema rengi",
+    "custom": "Özel",
+    "useThemeColor": "Tema rengini kullan",
+    "fontSize": "Yazı boyutu"
+  },
   "gcp": {
     "heading": "Google Cloud",
     "description": "Google Cloud araçları için sınırlar. Uygulamada sana ve senin için çalışan yapay zekâ ajanlarına uygulanır.",
@@ -408,5 +447,9 @@
     "errPositive": "İki değer de 0'dan büyük olmalı.",
     "errAskAboveMax": "\"Sor\" değeri en fazla taramadan büyük olamaz.",
     "errCeiling": "En fazla tarama, sunucunun {{gb}} GB sınırını aşamaz."
+  },
+  "jira": {
+    "heading": "Jira",
+    "description": "Jira Cloud ve Data Center bağlantıların. PatchMan Jira'yı yalnızca okur: issue'lar, kabul kriterleri ve aramalar."
   }
 }

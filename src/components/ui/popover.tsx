@@ -6,11 +6,13 @@ const Popover = PopoverPrimitive.Root
 const PopoverTrigger = PopoverPrimitive.Trigger
 const PopoverAnchor = PopoverPrimitive.Anchor
 
+// inPlace renders the content where it is (no portal) — needed inside a
+// dialog, which otherwise treats clicks in the popover as "outside".
 const PopoverContent = React.forwardRef<
   React.ComponentRef<typeof PopoverPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof PopoverPrimitive.Content>
->(({ className, align = "center", sideOffset = 4, ...props }, ref) => (
-  <PopoverPrimitive.Portal>
+  React.ComponentPropsWithoutRef<typeof PopoverPrimitive.Content> & { inPlace?: boolean }
+>(({ className, align = "center", sideOffset = 4, inPlace, ...props }, ref) => {
+  const content = (
     <PopoverPrimitive.Content
       ref={ref}
       align={align}
@@ -21,8 +23,9 @@ const PopoverContent = React.forwardRef<
       )}
       {...props}
     />
-  </PopoverPrimitive.Portal>
-))
+  )
+  return inPlace ? content : <PopoverPrimitive.Portal>{content}</PopoverPrimitive.Portal>
+})
 PopoverContent.displayName = PopoverPrimitive.Content.displayName
 
 export { Popover, PopoverTrigger, PopoverContent, PopoverAnchor }

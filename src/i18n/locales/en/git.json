@@ -72,7 +72,9 @@
     "selectFileContents": "Select a file to view its contents."
   },
   "history": {
-    "loading": "Loading history…"
+    "loading": "Loading history…",
+    "pathFilter": "History of",
+    "clearPath": "Show all"
   },
   "graph": {
     "noCommits": "No commits on this ref.",
@@ -95,7 +97,11 @@
     "switchInline": "Switch to inline diff",
     "switchSideBySide": "Switch to side-by-side diff",
     "inline": "Inline",
-    "sideBySide": "Side by side"
+    "sideBySide": "Side by side",
+    "whitespace": "Whitespace",
+    "showWhitespaceHint": "Whitespace changes are hidden — click to show them",
+    "ignoreWhitespaceHint": "Whitespace changes are shown — click to hide them",
+    "noTextChange": "No text changes (mode or line endings only)"
   },
   "changes": {
     "refreshStatus": "Refresh status",
@@ -105,7 +111,8 @@
     "unstaged": "Changes",
     "untracked": "Untracked",
     "selectFile": "Select a changed file to review and stage hunks.",
-    "noLineDiff": "No line-level diff (new, binary or whole-file change). Use <b>{{action}}</b> above."
+    "noLineDiff": "No line-level diff (new, binary or whole-file change). Use <b>{{action}}</b> above.",
+    "jumpToSource": "Jump to Source"
   },
   "stage": {
     "stageFile": "Stage file",
@@ -425,7 +432,18 @@
     "noDispatchable": "No workflow here can be run by hand — add workflow_dispatch to its on: block.",
     "dispatched": "Workflow started",
     "varsHint_gh": "Variable values stay hidden until you show them, one at a time (each look is recorded). Secrets only list their names — GitHub never returns a secret's value.",
-    "hiddenValue_gh": "value never returned by GitHub"
+    "hiddenValue_gh": "value never returned by GitHub",
+    "playAll": "Run all",
+    "playAllCount_one": "Run {{count}}",
+    "playAllCount_other": "Run all {{count}}",
+    "playAllTip_one": "Run the {{count}} manual job in {{name}}",
+    "playAllTip_other": "Run the {{count}} manual jobs in {{name}}",
+    "playAllConfirm_one": "Run {{count}} manual job in {{name}}?",
+    "playAllConfirm_other": "Run {{count}} manual jobs in {{name}}?",
+    "playAllProgress": "{{done}}/{{total}}",
+    "playAllDone_one": "{{count}} job started",
+    "playAllDone_other": "{{count}} jobs started",
+    "playAllPartial": "{{ok}} started, {{failed}} failed"
   },
   "vcs": {
     "failed": "Git operation failed",
@@ -711,7 +729,113 @@
     "pick_pr": "Pick a pull request.",
     "search_pr": "Search pull requests",
     "changesRequested": "Changes requested: {{names}}",
-    "openOn": "Open on {{provider}}"
+    "openOn": "Open on {{provider}}",
+    "editCommitMessage": "Edit commit message",
+    "squashCommitMessage": "Squash commit message",
+    "mergeCommitMessage": "Merge commit message",
+    "resolveConflicts": "Resolve conflicts",
+    "resolveHint": "{{src}} conflicts with {{dst}}. Resolve it on your local clone: PatchMan checks out {{src}}, merges {{dst}} into it and opens the conflict resolver.",
+    "resolveHintClone": "{{src}} conflicts with {{dst}}. PatchMan clones the project to this computer, checks out {{src}}, merges {{dst}} into it and opens the conflict resolver.",
+    "resolveDirtyTitle": "Commit or stash your changes first",
+    "resolveDirtyDesc": "The local clone has uncommitted changes on {{branch}}. Commit or stash them, then try again.",
+    "resolveOpenedTitle_one": "{{count}} file has conflicts",
+    "resolveOpenedTitle_other": "{{count}} files have conflicts",
+    "resolveOpenedDesc": "Merged {{dst}} into {{src}}. Resolve the conflicts, commit the merge, then Push — the merge request updates and can be merged.",
+    "resolveCleanTitle": "No conflicts left locally",
+    "resolveCleanDesc": "{{dst}} merged into {{src}} cleanly. Push {{src}} to update the merge request.",
+    "resolveFailed": "Could not prepare the conflict resolution",
+    "md": {
+      "write": "Write",
+      "preview": "Preview",
+      "supported": "Markdown supported",
+      "nothing": "Nothing to preview."
+    },
+    "note": {
+      "edited": "edited",
+      "edit": "Edit comment",
+      "delete": "Delete comment",
+      "deleteTitle": "Delete this comment?",
+      "deleteDesc": "It is removed on the server for everyone. This cannot be undone.",
+      "save": "Save comment"
+    },
+    "awards": {
+      "react": "React with :{{name}}:",
+      "add": "Add reaction"
+    },
+    "copy": {
+      "menu": "Copy",
+      "reference": "Reference",
+      "sourceBranch": "Source branch name",
+      "link": "Link",
+      "checkout": "Checkout commands",
+      "done": "Copied: {{what}}",
+      "failed": "Could not copy to the clipboard"
+    },
+    "meta": {
+      "none": "None",
+      "assignees": "Assignees",
+      "reviewers": "Reviewers",
+      "labels": "Labels",
+      "milestone": "Milestone",
+      "mergedBy": "Merged by"
+    },
+    "edit": {
+      "open": "Edit",
+      "title": "Edit !{{iid}}",
+      "title_pr": "Edit #{{iid}}",
+      "titleLabel": "Title",
+      "draft": "Mark as draft",
+      "description": "Description",
+      "targetBranch": "Target branch",
+      "addAssignee": "Add assignee…",
+      "removePerson": "Remove",
+      "addLabel": "Add label…",
+      "removeLabel": "Remove label",
+      "save": "Save changes",
+      "saved": "Saved"
+    },
+    "commits": {
+      "none": "No commits.",
+      "copySha": "Copy commit SHA",
+      "open": "Open commit"
+    },
+    "pipelines": {
+      "none": "No pipelines for this merge request.",
+      "none_pr": "No checks for this pull request.",
+      "status": "Status",
+      "pipeline": "Pipeline",
+      "pipeline_pr": "Checks",
+      "commit": "Commit",
+      "created": "Created",
+      "checks": "All checks"
+    },
+    "files": {
+      "filter": "Filter files…",
+      "count_one": "{{count}} file",
+      "count_other": "{{count}} files",
+      "viewed": "{{done}}/{{total}} viewed",
+      "noMatch": "No file matches.",
+      "markViewed": "Mark as viewed",
+      "viewedLabel": "Viewed"
+    },
+    "mergedBy": "merged by {{name}}",
+    "autoMergeSet": "Set to merge automatically when the pipeline succeeds.",
+    "autoMergeSet_pr": "Auto-merge is on: GitHub merges when the required checks pass.",
+    "autoMergeSetToast": "Set to auto-merge",
+    "cancelAutoMerge": "Cancel auto-merge",
+    "autoMergeCancelled": "Auto-merge cancelled",
+    "cannotMerge": "You are not allowed to merge this",
+    "tabCommits": "Commits",
+    "tabCommitsN_one": "Commits ({{count}})",
+    "tabCommitsN_other": "Commits ({{count}})",
+    "tabPipelines": "Pipelines",
+    "tabPipelines_pr": "Checks",
+    "mergeMethod": "Merge method",
+    "method": {
+      "merge": "Merge commit",
+      "squash": "Squash",
+      "rebase": "Rebase"
+    }
   },
   "tree": {
     "title": "Project",
@@ -725,7 +849,47 @@
     "copyPath": "Copy path",
     "deleteTitle": "Delete {{name}}?",
     "deleteFolderBody": "The folder and everything in it is deleted from the working tree (tracked files show as deleted in Changes).",
-    "deleteFileBody": "The file is deleted from the working tree (a tracked file shows as deleted in Changes)."
+    "deleteFileBody": "The file is deleted from the working tree (a tracked file shows as deleted in Changes).",
+    "showDiff": "Show diff",
+    "rollback": "Rollback",
+    "rollbackTitle": "Roll back {{name}}?",
+    "rollbackBody": "Its changes are discarded and it goes back to the last commit (HEAD).",
+    "rollbackFolderBody": "The changes to its committed files are discarded. New files in it stay.",
+    "rollbackNewBody": "This file is not in the last commit, so it is deleted.",
+    "rolledBack": "{{name}} rolled back",
+    "diffTitle": "Changes in {{path}}",
+    "status": {
+      "modified": "Modified",
+      "added": "Added",
+      "untracked": "New (untracked)",
+      "renamed": "Renamed",
+      "conflicted": "Conflict",
+      "deleted": "Deleted"
+    },
+    "open": "Open",
+    "expand": "Expand",
+    "collapse": "Collapse",
+    "new": "New",
+    "copyPathMenu": "Copy Path / Reference",
+    "copyAbsolute": "Absolute path",
+    "copyRelative": "Path from repository root",
+    "copyName": "File name",
+    "findInFolder": "Find in Folder…",
+    "findInProject": "Find in Project…",
+    "collapseAll": "Collapse all",
+    "revealInFinder": "Reveal in Finder",
+    "gitAdd": "Add",
+    "compareWithBranch": "Compare with Branch",
+    "compareTitle": "Compare {{name}} with",
+    "compareRef": "Branch, tag or commit",
+    "compare": "Compare",
+    "compareDiffTitle": "{{path}}: {{ref}} ↔ working tree",
+    "showHistory": "Show History",
+    "annotate": "Annotate with Git Blame",
+    "addToGitignore": "Add to .gitignore",
+    "staged": "{{name}} added",
+    "alreadyIgnored": "Already in .gitignore",
+    "ignored": "Added {{line}} to .gitignore"
   },
   "workspace": {
     "empty": "Open a file from the project tree.",
@@ -744,7 +908,16 @@
     "changedOnDiskTitle": "{{name}} changed on disk",
     "autoSavePaused": "Auto save is paused for this file so the other change isn't lost. Press ⌘S to overwrite it, or close and reopen the file to load the disk version.",
     "overwriteBody": "Another program changed this file after you opened it. Overwriting replaces that change with your version.",
-    "overwrite": "Overwrite"
+    "overwrite": "Overwrite",
+    "tabClose": "Close",
+    "tabCloseOthers": "Close other tabs",
+    "tabCloseLeft": "Close tabs to the left",
+    "tabCloseRight": "Close tabs to the right",
+    "tabCloseSaved": "Close saved tabs",
+    "tabCloseAll": "Close all tabs",
+    "tabCopyPath": "Copy path",
+    "pathCopied": "Path copied",
+    "closeManyDirtyTitle": "{{count}} files have unsaved changes. Discard them and close?"
   },
   "search": {
     "findInFiles": "Find in Files",

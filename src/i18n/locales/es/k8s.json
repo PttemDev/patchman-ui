@@ -381,7 +381,13 @@
     "showRaw": "Mostrar JSON sin procesar",
     "hideRaw": "Ocultar JSON sin procesar",
     "tailTip": "Líneas a cargar: se aplica con Intro o tras una pausa",
-    "noLinesAtLevel": "No hay líneas en este nivel"
+    "noLinesAtLevel": "No hay líneas en este nivel",
+    "pod": "Pod",
+    "podSwitchTip": "Cambiar a otro pod de la misma carga de trabajo",
+    "podsLoading": "Cargando pods…",
+    "podOpened": "abierto",
+    "podRestarts_one": "{{count}} reinicio",
+    "podRestarts_other": "{{count}} reinicios"
   },
   "events": {
     "loading": "Cargando events…",

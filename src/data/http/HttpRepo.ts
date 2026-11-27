@@ -382,7 +382,8 @@ const httpCapabilities: Capabilities = {
 const workspacesRepo: WorkspacesRepo = {
   async list() {
     const response = await workspacesAPI.list();
-    return (response.data as unknown as Workspace[]) || [];
+    const data = response.data as unknown;
+    return Array.isArray(data) ? (data as Workspace[]) : [];
   },
   async create(input) {
     const response = await workspacesAPI.create(input);

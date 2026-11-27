@@ -110,6 +110,9 @@ export function S3Sidebar() {
   }, [expanded, buckets, loadBuckets]);
 
   const openBucketTab = useCallback((conn: S3Connection, bucket: string) => {
+    // A connection limited to a path starts there (its root is off-limits).
+    const pin = conn.options?.bucket === bucket ? String(conn.options?.prefix ?? '') : '';
+    const prefix = pin && !pin.endsWith('/') ? `${pin}/` : pin;
     addTab(
       {
         type: 's3',
@@ -118,7 +121,7 @@ export function S3Sidebar() {
         url: '',
         s3ConnectionId: conn.id,
         s3Bucket: bucket,
-        s3Prefix: '',
+        s3Prefix: prefix.replace(/^\/+/, ''),
       },
       true,
     );

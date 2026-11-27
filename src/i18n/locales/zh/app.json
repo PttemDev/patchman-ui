@@ -35,7 +35,7 @@
     "closeTab": "关闭当前标签页",
     "goCollections": "转到集合",
     "goHistory": "转到历史",
-    "goQa": "转到 QA",
+    "goQa": "打开 CR + QA Hub",
     "goMock": "转到 Mock 服务器",
     "switchToTab": "切换到：{{name}}",
     "newRequest": "新建请求",
@@ -108,7 +108,14 @@
     "newRequest": "新建请求",
     "settings": "设置",
     "checkUpdates": "检查更新…",
-    "quit": "退出 PatchMan"
+    "quit": "退出 PatchMan",
+    "qaInbox": "QA 收件箱",
+    "installUpdate": "有可用更新 — 安装…",
+    "badge": {
+      "inbox_one": "QA 收件箱有 {{count}} 项",
+      "inbox_other": "QA 收件箱有 {{count}} 项",
+      "update": "有可用更新"
+    }
   },
   "quitConfirm": {
     "title": "退出 PatchMan？",

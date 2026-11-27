@@ -56,7 +56,12 @@
     "testFailed": "Test başarısız",
     "updateFailedAll": "Güncelleme her arka uçta başarısız oldu",
     "createFailedAll": "Oluşturma her arka uçta başarısız oldu",
-    "saveFailed": "Kaydetme başarısız"
+    "saveFailed": "Kaydetme başarısız",
+    "bucket": "Bucket (isteğe bağlı)",
+    "bucketPlaceholder": "my-bucket",
+    "prefix": "Yol (isteğe bağlı)",
+    "prefixPlaceholder": "team/reports/",
+    "pinHint": "Yalnız bir bucket'a ya da yola izni olan anahtarlar için: bağlantı bucket'ları listelemek yerine doğrudan orada açılır."
   },
   "share": {
     "title": "\"{{name}}\" paylaş",

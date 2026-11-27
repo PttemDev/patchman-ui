@@ -198,7 +198,8 @@
       "collab": "工作区与团队",
       "devtools": "开发者工具",
       "sync": "桌面同步",
-      "other": "其他"
+      "other": "其他",
+      "jira": "Jira"
     }
   }
 }

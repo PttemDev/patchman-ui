@@ -13,7 +13,9 @@
     "appearance": "Appearance",
     "security": "Security",
     "editor": "Editor",
-    "gcp": "Google Cloud"
+    "terminal": "Terminal",
+    "gcp": "Google Cloud",
+    "jira": "Jira"
   },
   "proxy": {
     "heading": "Custom Proxy",
@@ -157,8 +159,15 @@
         "rabbitmq": "RabbitMQ",
         "graylog": "Graylog",
         "observability": "Observability (service map)",
-        "gcp": "Google Cloud"
+        "gcp": "Google Cloud",
+        "jira": "Jira (read-only)"
       }
+    },
+    "qaSetupAsk": {
+      "title": "Ask me before an AI agent changes CR + QA setup",
+      "on": "On: agents must get your OK (asked in the client, or left for you in CR + QA Hub → Settings).",
+      "off": "Off: agents apply CR + QA setup changes (links, thresholds, schedules, channels, Jira connections) directly.",
+      "failed": "Could not save"
     }
   },
   "data": {
@@ -268,7 +277,8 @@
     "scope": {
       "global": "Everywhere",
       "git": "Git tab",
-      "editor": "Git editor"
+      "editor": "Git editor",
+      "terminal": "Terminal"
     },
     "custom": "custom",
     "pressKeys": "Press keys…",
@@ -279,6 +289,17 @@
     "reset": "Reset",
     "resetOne": "Reset to {{chord}}",
     "osReserved": "{{chord}} is reserved by the operating system.",
+    "toggleTerminal": "Show / hide terminal",
+    "terminalNewSession": "New terminal session",
+    "terminalCloseSession": "Close terminal session",
+    "terminalNextSession": "Next terminal session",
+    "terminalPrevSession": "Previous terminal session",
+    "terminalLineEdges": "Line start / end",
+    "terminalKillLine": "Delete line",
+    "terminalWordJump": "Previous / next word",
+    "terminalAcceptSuggestion": "Accept suggestion",
+    "terminalAcceptWord": "Accept one word of suggestion",
+    "terminalReserved": "{{chord}} belongs to the terminal (the shell or line editing) and can't be used here.",
     "conflict": "{{chord}} is also bound to: {{names}}. The first match wins.",
     "browserReserved": "In the browser this chord may be taken by the browser; it works reliably in the desktop app.",
     "footer": "Saved on this device. Git tab and editor shortcuts win over the global ones while that view is active.",
@@ -393,6 +414,24 @@
       }
     }
   },
+  "terminal": {
+    "heading": "Terminal",
+    "description": "Cursor, font and colors for the built-in terminals. Saved on this device.",
+    "colorScheme": "Color scheme",
+    "schemeApp": "Same as app",
+    "cursorStyle": "Cursor style",
+    "style": {
+      "block": "Block",
+      "bar": "Bar",
+      "underline": "Underline"
+    },
+    "cursorBlink": "Cursor blink",
+    "cursorColor": "Cursor color",
+    "themeColor": "Theme color",
+    "custom": "Custom",
+    "useThemeColor": "Use theme color",
+    "fontSize": "Font size"
+  },
   "gcp": {
     "heading": "Google Cloud",
     "description": "Limits for Google Cloud tools. They apply to you in the app and to AI agents working for you.",
@@ -408,5 +447,9 @@
     "errPositive": "Both values must be above 0.",
     "errAskAboveMax": "The \"ask\" value can't be above the maximum.",
     "errCeiling": "The maximum can't be above the server's {{gb}} GB."
+  },
+  "jira": {
+    "heading": "Jira",
+    "description": "Your Jira Cloud and Data Center connections. PatchMan only reads Jira: issues, acceptance criteria and searches."
   }
 }

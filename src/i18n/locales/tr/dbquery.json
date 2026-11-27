@@ -147,7 +147,12 @@
     "queryFailed": "Sorgu başarısız",
     "emptyRun": "Sorguyu çalıştırmak için Cmd+Enter'a basın.",
     "emptyPickConnection": "Başlamak için yukarıdan bir bağlantı seçin.",
-    "savedQueryDefault": "Kayıtlı sorgu"
+    "savedQueryDefault": "Kayıtlı sorgu",
+    "runStatement": "İfadeyi çalıştır",
+    "runModesHint": "⌘↵ seçimi ya da imleçteki ifadeyi çalıştırır · ⇧⌘↵ hepsini çalıştırır",
+    "runAll_one": "Tümü ({{count}})",
+    "runAll_other": "Tümü ({{count}})",
+    "runAllTooltip": "Editördeki tüm ifadeleri çalıştırır; her biri ayrı sonuç sekmesinde."
   },
   "results": {
     "truncated": "kısaltıldı",
@@ -178,17 +183,57 @@
     "copyValue": "Değeri kopyala",
     "showAsJson": "JSON olarak göster…",
     "copyAs": "Şu şekilde kopyala…",
-    "copyPlain": "Düz metin",
-    "copyRowJson": "Satırı JSON olarak",
-    "copyRowInsert": "Satırı INSERT olarak",
-    "copyColumnName": "Sütun adı",
+    "copyColumnName": "Kolon adını kopyala",
     "filterByValue": "Bu değere göre filtrele",
     "excludeValue": "Bu değeri hariç tut",
     "filterNull": "NULL filtrele",
     "filterNotNull": "NOT NULL filtrele",
     "openReferenced": "Referans verilen satırı aç…",
     "unfreezeColumn": "Sütunu çöz",
-    "freezeColumn": "Sütunu dondur"
+    "freezeColumn": "Sütunu dondur",
+    "copiedValue": "Kopyalandı",
+    "copiedName": "Kolon adı kopyalandı",
+    "copiedRows_one": "{{count}} satır {{format}} olarak kopyalandı",
+    "copiedRows_other": "{{count}} satır {{format}} olarak kopyalandı",
+    "copiedValues_one": "{{count}} değer kopyalandı",
+    "copiedValues_other": "{{count}} değer kopyalandı",
+    "fmt": {
+      "tsv": "TSV (Excel / Sheets'e yapışır)",
+      "csv": "CSV",
+      "json": "JSON",
+      "markdown": "Markdown tablo",
+      "insert": "SQL INSERT"
+    },
+    "dl": {
+      "csv": "CSV",
+      "json": "JSON",
+      "xlsx": "Excel (.xlsx)"
+    },
+    "selectAllRows": "Tüm satırları seç",
+    "rowSelectHint": "Tıkla: seç · Shift+tık: aralık · ⌘+tık: ekle",
+    "rowsSelected_one": "{{count}} satır seçili",
+    "rowsSelected_other": "{{count}} satır seçili",
+    "copy": "Kopyala",
+    "copyShortcut": "Seçili satırları başlıklarla kopyala (⌘C)",
+    "download": "İndir",
+    "downloadSelected_one": "Seçili {{count}} satırı indir",
+    "downloadSelected_other": "Seçili {{count}} satırı indir",
+    "clearSelection": "Temizle",
+    "copyAllColumnNames": "Tüm kolon adlarını kopyala",
+    "copyColumnValues": "Kolon değerlerini kopyala",
+    "copyColumnIn": "IN (…) listesi olarak kopyala",
+    "sortAsc": "Artan sırala",
+    "sortDesc": "Azalan sırala",
+    "hideColumn": "Kolonu gizle",
+    "copyWhere": "WHERE koşulu olarak kopyala",
+    "copyRowAs": "Satırı kopyala",
+    "copyRowsAs_one": "{{count}} satırı kopyala",
+    "copyRowsAs_other": "{{count}} satırı kopyala",
+    "downloadRow": "Satırı indir",
+    "downloadRows_one": "{{count}} satırı indir",
+    "downloadRows_other": "{{count}} satırı indir",
+    "selectRow": "Satırı seç",
+    "deselectRow": "Seçimi kaldır"
   },
   "chart": {
     "noData": "Grafiklenecek veri yok.",
@@ -802,5 +847,20 @@
     "costTitle": "Bu sorgu {{size}} tarayacak",
     "costBody": "Bu, {{ask}} olan \"önce sor\" sınırının üstünde. BigQuery taranan veriye göre ücretlendirir.",
     "costRun": "Çalıştır"
+  },
+  "completion": {
+    "columnsCount_one": "{{count}} kolon",
+    "columnsCount_other": "{{count}} kolon",
+    "template": "Hazır şablon",
+    "fkJoin": "yabancı anahtarla join",
+    "schema": "şema",
+    "fkCondition": "yabancı anahtar",
+    "expandColumns_one": "{{count}} kolona aç",
+    "expandColumns_other": "{{count}} kolona aç"
+  },
+  "editor": {
+    "runCurrent": "İmleçteki ifadeyi / seçimi çalıştır",
+    "runAll": "Tüm betiği çalıştır",
+    "runThis": "Bu ifadeyi çalıştır"
   }
 }

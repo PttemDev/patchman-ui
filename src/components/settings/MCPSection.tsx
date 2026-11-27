@@ -29,6 +29,7 @@ import { mcpTokensAPI, mcpAPI, getRemoteMcpUrl, type MCPToken, type MCPLocalInfo
 import { isDesktop } from '@/lib/platform';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { MCPPermissionsPanel } from '@/components/settings/MCPPermissionsPanel';
+import { AgentSetupPolicy } from '@/components/settings/AgentSetupPolicy';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -563,6 +564,7 @@ export function MCPSection() {
       </TabsContent>
 
       <TabsContent value="permissions">
+        <AgentSetupPolicy />
         <MCPPermissionsPanel />
       </TabsContent>
 

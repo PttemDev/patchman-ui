@@ -35,7 +35,7 @@
     "closeTab": "Cerrar pestaña actual",
     "goCollections": "Ir a colecciones",
     "goHistory": "Ir al historial",
-    "goQa": "Ir a QA",
+    "goQa": "Abrir CR + QA Hub",
     "goMock": "Ir a servidores mock",
     "switchToTab": "Cambiar a: {{name}}",
     "newRequest": "Nueva solicitud",
@@ -108,7 +108,14 @@
     "newRequest": "Nueva solicitud",
     "settings": "Configuración",
     "checkUpdates": "Buscar actualizaciones…",
-    "quit": "Salir de PatchMan"
+    "quit": "Salir de PatchMan",
+    "qaInbox": "Bandeja de QA",
+    "installUpdate": "Actualización disponible — instalar…",
+    "badge": {
+      "inbox_one": "{{count}} elemento en la bandeja de QA",
+      "inbox_other": "{{count}} elementos en la bandeja de QA",
+      "update": "actualización disponible"
+    }
   },
   "quitConfirm": {
     "title": "¿Salir de PatchMan?",

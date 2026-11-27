@@ -320,7 +320,8 @@
     "errRpsHint": "Peticiones fallidas por segundo en esta llamada",
     "colShare": "Parte",
     "foldedInto": "Plegado en {{name}} en el mapa",
-    "hiddenByFilters": "Oculto por los filtros o la selección de namespaces — sigue contando en los totales"
+    "hiddenByFilters": "Oculto por los filtros o la selección de namespaces — sigue contando en los totales",
+    "open": "Detalle del servicio"
   },
   "table": {
     "from": "Origen",
@@ -331,7 +332,19 @@
     "p95": "p95",
     "sources": "Fuentes",
     "conns": "{{count}} conexiones",
-    "empty": "Sin llamadas."
+    "empty": "Sin llamadas.",
+    "services": "Servicios",
+    "calls": "Llamadas",
+    "unitHint": "Tasa de peticiones por segundo o por minuto",
+    "unitRps": "/s",
+    "unitRpm": "/min",
+    "rpm": "Peticiones/min",
+    "service": "Servicio",
+    "namespace": "Namespace",
+    "kind": "Tipo",
+    "health": "Estado",
+    "noServices": "No hay servicios.",
+    "noCallRates": "Esta fuente indica qué servicio llama a cuál, pero no con qué frecuencia; el tráfico propio de cada servicio está en Servicios."
   },
   "export": {
     "failed": "No se pudo añadir el mapa a una pizarra",
@@ -381,5 +394,58 @@
     "entitySearch": "Un nombre o una búsqueda de entidades: domainType IN ('APM-APPLICATION')",
     "search": "Buscar",
     "noEntities": "No hay entidades."
+  },
+  "serviceDetail": {
+    "failed": "No se pudo cargar el detalle del servicio",
+    "clusterProm": "Prometheus del clúster",
+    "source": "Fuente",
+    "fromMap": "del mapa",
+    "avg": "Media",
+    "summary": "Resumen",
+    "charts": "Rendimiento",
+    "alerts": "Alertas",
+    "noOpenAlerts": "No hay alertas abiertas.",
+    "checks": "Comprobaciones de salud",
+    "endpoints": "Endpoints",
+    "endpoint": "Endpoint",
+    "timeShare": "Parte del tiempo",
+    "errors": "Errores",
+    "errorClass": "Clase de error",
+    "message": "Mensaje",
+    "count": "Cantidad",
+    "lastSeen": "Última vez",
+    "instances": "Instancias",
+    "instance": "Instancia",
+    "more": "Más gráficos",
+    "noData": "No hay datos en este rango.",
+    "noSource": "Ninguna conexión de observabilidad del mapa conoce este servicio, así que no hay detalle que cargar. Añade New Relic, Coroot o Prometheus como fuente.",
+    "empty": "El backend no tiene datos de este servicio en este rango.",
+    "range": {
+      "30m": "30m",
+      "1h": "1h",
+      "6h": "6h",
+      "24h": "24h",
+      "7d": "7d"
+    },
+    "chart": {
+      "throughput": "Tráfico",
+      "latency": "Tiempo de respuesta",
+      "errors": "Tasa de errores",
+      "apdex": "Apdex"
+    },
+    "series": {
+      "requests": "peticiones",
+      "errors": "errores",
+      "avg": "media",
+      "p95": "p95",
+      "p99": "p99",
+      "apdex": "Apdex"
+    },
+    "note": {
+      "family": "Leído de las métricas de {{family}}.",
+      "familyError": "Falló una familia de métricas: {{detail}}",
+      "no_service_requests": "Ninguna métrica muestra peticiones a este servicio en este rango.",
+      "coroot_agent_metrics_only": "Aquí solo hay métricas del node-agent de Coroot; cuentan llamadas por dirección, así que añade la conexión de Coroot para la página de este servicio."
+    }
   }
 }

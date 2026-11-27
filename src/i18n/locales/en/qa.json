@@ -509,7 +509,9 @@
     "saving": "Saving...",
     "update": "Update",
     "create": "Create",
-    "manualHint": "A manual step: the runner skips it; follow it by hand."
+    "manualHint": "A manual step: the runner skips it; follow it by hand.",
+    "jiraKey": "Jira key",
+    "jiraKeyHint": "Links the case to the Jira issue and its MRs in the CR + QA Hub"
   },
   "defectStatus": {
     "open": "Open",
@@ -678,7 +680,8 @@
     "skippedCount": "{{count}} skipped",
     "skippedInline": "skipped",
     "assertExpected": "{{type}}: expected {{expected}}",
-    "assertExpectedGot": "{{type}}: expected {{expected}}, got {{actual}}"
+    "assertExpectedGot": "{{type}}: expected {{expected}}, got {{actual}}",
+    "pickToEdit": "Pick a test case to edit it here, or create a new one."
   },
   "sharedSteps": {
     "editTitle": "Edit Shared Steps",
@@ -810,5 +813,586 @@
     "runTitle": "Run all in “{{name}}”",
     "save": "Save",
     "skippedCount": "skipped (no executable steps): {{count}}"
+  },
+  "hub": {
+    "title": "CR + QA Hub",
+    "subtitle": "Review, test and track in one place: MRs, Jira and test cases",
+    "newTestCase": "New test case",
+    "group": {
+      "test": "Test",
+      "track": "Track",
+      "setup": "Setup",
+      "review": "Review"
+    },
+    "section": {
+      "overview": "Overview",
+      "cases": "Test cases",
+      "plans": "Plans",
+      "runs": "Runs",
+      "load": "Load tests",
+      "defects": "Defects",
+      "requirements": "Requirements",
+      "steps": "Shared steps",
+      "settings": "Settings",
+      "inbox": "Inbox",
+      "radar": "MR Radar",
+      "reviews": "AI reviews",
+      "reports": "Reports",
+      "automation": "Automation"
+    },
+    "sectionHint": {
+      "overview": "coverage, priorities and quick run",
+      "cases": "executable API and manual cases in folders",
+      "plans": "group cases into a plan and run it",
+      "runs": "results of plan and folder runs",
+      "load": "load and performance tests",
+      "defects": "bugs found while testing",
+      "requirements": "what the tests cover",
+      "steps": "step blocks reused across cases",
+      "settings": "links to Jira and Git, connections",
+      "inbox": "what needs you now",
+      "radar": "open MRs of the linked projects with signals",
+      "reviews": "your agent reviews MRs; people approve and post",
+      "reports": "team trends — never per person",
+      "automation": "night run, scheduled runs, channels"
+    },
+    "open": "Open CR + QA Hub",
+    "openHint": "QA now opens as a tab with room for every view",
+    "jumpTo": "Jump to",
+    "classicView": "Classic sidebar view",
+    "classicNote": "Classic view — will be removed in a later release",
+    "backToHub": "Hub",
+    "scope": {
+      "label": "QA space",
+      "hint": "Personal items are yours only; a team workspace shares its QA items with the team",
+      "personal": "Personal",
+      "none": "No team workspaces yet — bind a team to a workspace to share QA items"
+    },
+    "move": {
+      "to": "Move to…",
+      "share": "Share…",
+      "done_one": "Moved to {{target}}",
+      "done_other": "Moved {{count}} items to {{target}}",
+      "failed": "Could not move it"
+    }
+  },
+  "settings": {
+    "links": {
+      "title": "Projects ↔ Jira",
+      "hint": "which Git project's MRs belong to which Jira project",
+      "add": "Link a project",
+      "loading": "Loading links…",
+      "empty": "No linked projects yet. Link a Git project to a Jira project so MRs can be matched to issues.",
+      "gitProject": "Git project",
+      "jiraProject": "Jira project",
+      "keyPattern": "Issue key pattern",
+      "testEnv": "Test environment",
+      "noJira": "Not linked to Jira",
+      "defaultPattern": "PROJECT-123 (default)",
+      "unknownConn": "Unavailable connection",
+      "edit": "Edit link",
+      "delete": "Delete link",
+      "deleteTitle": "Delete the link for {{project}}?",
+      "deleteBody": "MRs of this project will no longer be matched to Jira issues. The project and issues are not touched.",
+      "deleteFailed": "Could not delete the link",
+      "loadFailed": "Could not load links",
+      "saveFailed": "Could not save the link",
+      "addTitle": "Link a project",
+      "editTitle": "Edit link",
+      "dialogHint": "MR title, source branch and description are searched for an issue key of the Jira project.",
+      "gitConnection": "Git connection",
+      "gitProjectPlaceholder": "group/repo, owner/name or project id",
+      "jiraConnection": "Jira connection",
+      "pick": "Pick one",
+      "noGitConns": "No Git connections — add one in the Git tool",
+      "noJiraConns": "No Jira connections — add one below",
+      "keyPatternHint": "Optional regular expression for keys, e.g. MER-\\d+. Empty uses PROJECT-123.",
+      "noTestEnv": "None",
+      "cancel": "Cancel",
+      "save": "Save",
+      "gitProjectHint": "Searched in every Git connection; picking a project also picks its connection."
+    },
+    "radar": {
+      "title": "Radar thresholds",
+      "hint": "empty turns a signal off",
+      "slaHours": "Review SLA (hours)",
+      "slaHint": "Awaiting review: no approval and idle at least this long.",
+      "off": "Off",
+      "largeFiles": "Large MR (files)",
+      "largeHint": "Large: at least this many changed files.",
+      "testPatterns": "Test file patterns",
+      "testPatternsHint": "One glob per line. No tests: source changed but none of these.",
+      "sourcePatterns": "Source file patterns",
+      "sourcePatternsHint": "Optional. Empty = every file that is not a test.",
+      "testStatuses": "Jira test statuses",
+      "testStatusesHint": "Comma-separated. Issues assigned to you in these statuses appear in your inbox.",
+      "mergedDays": "Merged look-back (days)",
+      "digestHour": "Daily summary",
+      "signals": "Signals",
+      "signalsHint": "Turned-off signals are not computed or shown.",
+      "saved": "Radar settings saved",
+      "saveFailed": "Could not save the settings",
+      "reviewGuide": "Team review guide",
+      "reviewGuidePlaceholder": "e.g. Money is always decimal, never float. Any change under payments/ is at least major. Ignore formatting.",
+      "reviewGuideHint": "Your team's conventions, risky areas and severity policy. Given to every AI review and fix check in this QA space."
+    },
+    "mine": {
+      "column": "Your connection",
+      "hint": "Read this link through your own Git / Jira connection, so your reviews, MRs and Jira test queue reach your Inbox.",
+      "useMine": "Use my connection",
+      "title": "Your connection for {{project}}",
+      "body": "The link reads with its own connections, whose tokens belong to their owner. Pick your own connection so the radar knows who you are there. Only you are affected.",
+      "linkDefault": "The link's: {{name}}",
+      "note": "Your connection must reach the same Git project and Jira project."
+    },
+    "webhook": {
+      "body": "GitLab tells PatchMan about MR, pipeline and comment events right away, so Radar and Inbox update without waiting.",
+      "create": "Create webhook secret",
+      "events": "Events: merge requests, pipelines, comments.",
+      "exists": "A webhook secret exists. Making a new one stops the old webhook from working until it is updated in GitLab.",
+      "install": "Create in GitLab",
+      "installFailed": "GitLab refused (Maintainer access is needed) — add the webhook there by hand",
+      "installed": "Webhook created in GitLab",
+      "lastEvent": "Last event {{when}}",
+      "regenerate": "Make a new secret",
+      "secret": "Secret token",
+      "secretOnce": "Shown only now. GitLab sends it in X-Gitlab-Token.",
+      "title": "GitLab webhook",
+      "url": "Webhook URL"
+    }
+  },
+  "radar": {
+    "loading": "Reading the linked projects…",
+    "loadFailed": "Could not load the radar",
+    "noLinks": "No Git projects are linked in this QA space yet. Link a project to a Jira project and the radar shows its open MRs with signals.",
+    "linkProjects": "Link projects",
+    "search": "Search title, branch, author, key…",
+    "allProjects": "All projects",
+    "mine": "Mine",
+    "table": "Table",
+    "board": "Board",
+    "refresh": "Refresh",
+    "updated": "Updated {{when}}",
+    "noneMatch": "No MRs match the filters.",
+    "mergedTitle": "Recently merged — Jira not done",
+    "openRemote": "Open in the browser",
+    "close": "Close",
+    "openSettings": "Open settings",
+    "truncated": "Showing {{shown}} of {{total}} open MRs — the radar reads at most 300 per project.",
+    "mergedTruncated": "More merged MRs exist in the look-back than were checked.",
+    "jiraNotRead": "Jira was not read for this key",
+    "jiraMissing": "This issue key does not exist in Jira",
+    "linkStatus": {
+      "noAccess": "You can't use this link's Git connection",
+      "needsToken": "No token for this Git connection",
+      "error": "Could not read"
+    },
+    "jiraStatus": {
+      "noAccess": "You can't use this link's Jira connection",
+      "error": "Jira could not be read"
+    },
+    "col": {
+      "mr": "Merge request",
+      "author": "Author",
+      "reviewers": "Reviewers",
+      "pipeline": "Pipeline",
+      "jira": "Jira",
+      "updated": "Updated"
+    },
+    "pipeline": {
+      "success": "passed",
+      "failed": "failed",
+      "running": "running",
+      "pending": "pending",
+      "canceled": "canceled",
+      "skipped": "skipped",
+      "manual": "manual",
+      "created": "created"
+    },
+    "column": {
+      "review": "Waiting for review",
+      "stuck": "Stuck",
+      "ready": "Ready to merge",
+      "draft": "Draft"
+    },
+    "signal": {
+      "stuck": {
+        "label": "Stuck",
+        "hint": "conflict, failed pipeline, unresolved threads or needs a rebase"
+      },
+      "unverifiedFixes": {
+        "label": "Unverified fixes",
+        "hint": "findings were posted and new commits came in, but nobody checked the fixes yet"
+      },
+      "awaitingReview": {
+        "label": "Awaiting review",
+        "hint": "no approval and idle longer than the SLA"
+      },
+      "noJira": {
+        "label": "No Jira",
+        "hint": "no issue key of the linked Jira project, or the key does not exist"
+      },
+      "jiraMismatch": {
+        "label": "Jira mismatch",
+        "hint": "Jira done while the MR is open, or MR merged while Jira is not done"
+      },
+      "noTests": {
+        "label": "No tests",
+        "hint": "source files changed but no test file"
+      },
+      "large": {
+        "label": "Large",
+        "hint": "more changed files than the threshold"
+      },
+      "collision": {
+        "label": "Collision",
+        "hint": "another open MR touches the same file"
+      },
+      "aiAssisted": {
+        "label": "Possibly AI",
+        "hint": "a commit carries an AI tool trailer (heuristic)"
+      }
+    },
+    "incomplete_one": "{{count}} MR not fully read — its unread facts show as unknown.",
+    "incomplete_other": "{{count}} MRs not fully read — their unread facts show as unknown.",
+    "notPersonal": "Some links use a connection token that belongs to its owner, so \"Mine\" can't tell your MRs there."
+  },
+  "inbox": {
+    "loading": "Loading your inbox…",
+    "loadFailed": "Could not load the inbox",
+    "noLinks": "Your inbox fills from the linked projects: reviews you owe, your stuck MRs and Jira issues waiting for your test. Link a project to start.",
+    "kind": {
+      "review": "Waiting for your review",
+      "stuck": "Your stuck MRs",
+      "test": "To test (Jira)",
+      "verify": "Fixes to verify"
+    },
+    "updated": "Updated {{when}}",
+    "snoozedCount_one": "{{count}} snoozed",
+    "snoozedCount_other": "{{count}} snoozed",
+    "testOff": "Jira test queue is off — set test statuses",
+    "jiraTruncated": "more Jira issues than shown",
+    "enableNotifications": "Enable notifications",
+    "empty": "Nothing needs you right now.",
+    "monitoring_one": "Watching {{count}} linked project.",
+    "monitoring_other": "Watching {{count}} linked projects.",
+    "open": "Open",
+    "openJira": "Jira",
+    "snooze": "Snooze",
+    "snoozeFor": {
+      "h1": "For 1 hour",
+      "h4": "For 4 hours",
+      "tomorrow": "Until tomorrow 09:00",
+      "week": "For a week"
+    },
+    "snoozed": "Snoozed",
+    "snoozeFailed": "Could not snooze",
+    "snoozeNote": "A snoozed MR comes back when it gets a new commit.",
+    "notify": {
+      "title_one": "{{count}} new item in your QA inbox",
+      "title_other": "{{count}} new items in your QA inbox"
+    },
+    "digest": {
+      "title": "Today in your QA inbox",
+      "body": "{{review}} to review · {{stuck}} stuck · {{test}} to test"
+    },
+    "jiraSkipped_one": "{{count}} Jira connection left out of your test queue",
+    "jiraSkipped_other": "{{count}} Jira connections left out of your test queue",
+    "jiraSkippedHint": "Its token belongs to its owner, so \"assigned to me\" would be the owner. Add your own Jira connection.",
+    "notPersonal": "Your reviews and MRs on {{projects}} are not listed: the Git connection uses its owner's token, not your account. Link those projects with your own connection (or GitLab account) to see them here."
+  },
+  "drawer": {
+    "mr": "MR",
+    "review": "AI review",
+    "tests": "Tests"
+  },
+  "review": {
+    "approve": "Approve",
+    "approverNote": "The MR's author, its reviewers and the review's owner can approve findings. Posting uses your own Git credentials; nothing is posted without a person.",
+    "copied": "Copied",
+    "copy": "Copy",
+    "copyCommand": "Copy command",
+    "copyPrompt": "Copy prompt",
+    "decideFailed": "Could not save the decision",
+    "discard": "Discard",
+    "discardBody": "The review is kept in the history as discarded; your agent can review this commit again.",
+    "discardTitle": "Discard this review?",
+    "edit": "Edit",
+    "findingBody": "Finding text",
+    "findingTitle": "Finding title",
+    "hiddenCount_one": "{{count}} minor/nit hidden",
+    "hiddenCount_other": "{{count}} minor/nit hidden",
+    "inProgress": "An agent is reviewing this commit (claimed {{when}}).",
+    "launchFailed": "Could not start the terminal — copy the command instead",
+    "loadFailed": "Could not load reviews",
+    "loading": "Loading the review…",
+    "noFindings": "The agent found no problems.",
+    "olderOnly": "The review below is for an older commit; review the current head again.",
+    "postApproved_one": "Post {{count}} approved",
+    "postApproved_other": "Post {{count}} approved",
+    "postConfirmBody": "The approved findings and the summary are posted on {{mr}} as comments under your name.",
+    "postConfirmTitle_one": "Post {{count}} finding?",
+    "postConfirmTitle_other": "Post {{count}} findings?",
+    "postFailed": "Could not post",
+    "postFailedSome_one": "{{count}} could not be posted — see the finding",
+    "postFailedSome_other": "{{count}} could not be posted — see the findings",
+    "posted_one": "Posted {{count}} finding",
+    "posted_other": "Posted {{count}} findings",
+    "postedGeneral": "posted as a general comment",
+    "reject": "Reject",
+    "runInTerminal": "Run in terminal",
+    "saveEdit": "Save",
+    "showAll": "Show minor and nit",
+    "staleNote": "The MR got newer commits after this review. Its findings may not match the diff; review again.",
+    "title": "AI review",
+    "withAgent": "Review with my agent",
+    "withAgentHint": "Your own agent (Claude Code with the PatchMan MCP) reviews the MR on your machine and submits a draft here. PatchMan never sends code to an AI service itself.",
+    "severity": {
+      "blocker": "blocker",
+      "major": "major",
+      "minor": "minor",
+      "nit": "nit"
+    },
+    "status": {
+      "pending": "pending",
+      "approved": "approved",
+      "rejected": "rejected",
+      "posted": "posted"
+    },
+    "reviewStatus": {
+      "claimed": "in progress",
+      "draft": "draft",
+      "posted": "posted",
+      "discarded": "discarded",
+      "stale": "stale"
+    }
+  },
+  "reviews": {
+    "claimedByYou": "claimed by you",
+    "noneYet": "No reviews yet.",
+    "queue": "Review queue",
+    "queueEmpty": "Every open MR has a review at its current commit.",
+    "reason": {
+      "reviewer": "you review",
+      "mine": "your MR",
+      "open": "open"
+    },
+    "recent": "Recent reviews",
+    "reviewWithAgent": "Review with agent",
+    "workQueue": "Work my queue with my agent",
+    "workQueueHint": "Your agent goes through the MRs you review and your own, one by one, and submits drafts for you to approve.",
+    "verifyKind_one": "check {{count}} fix",
+    "verifyKind_other": "check {{count}} fixes",
+    "verifyWithAgent": "Verify with my agent"
+  },
+  "mrTests": {
+    "automated": "automated",
+    "byJira": "by Jira key",
+    "byMR": "by MR",
+    "cases": "Linked test cases",
+    "draftHint": "Your agent reads the Jira acceptance criteria and the diff and creates draft test cases linked to this MR. You review and activate them in Test cases.",
+    "draftWithAgent": "Draft tests with my agent",
+    "loadFailed": "Could not load the MR tests",
+    "manual": "manual",
+    "noCases": "No test cases are linked to this MR yet — draft them with your agent, or set the Jira key on a case.",
+    "noEnv": "No environment",
+    "noRuns": "No runs yet.",
+    "postBody": {
+      "mr": "The run result is posted on {{mr}} as a comment under your name.",
+      "jira": "The run result is added as a comment on {{key}} with the Jira connection."
+    },
+    "postJira": "Comment on Jira",
+    "postMR": "Post to MR",
+    "postTitle": {
+      "mr": "Post the result to the MR?",
+      "jira": "Comment the result on Jira?"
+    },
+    "posted": "Posted",
+    "ran": "Ran: {{passed}} passed, {{failed}} failed, {{skipped}} manual skipped",
+    "result": "{{passed}} passed · {{failed}} failed",
+    "run_one": "Run {{count}} test",
+    "run_other": "Run {{count}} tests",
+    "runFailed": "Could not run the tests",
+    "runs": "Runs",
+    "title": "Tests for this MR",
+    "draftsNote_one": "{{count}} case is a draft or inactive and is not run — review and activate it in Test cases first.",
+    "draftsNote_other": "{{count}} cases are drafts or inactive and are not run — review and activate them in Test cases first."
+  },
+  "defectJira": {
+    "body": "Creates a Jira issue from “{{title}}” with its description and steps to reproduce.",
+    "create": "Create in Jira",
+    "created": "Created {{key}}",
+    "failed": "Could not create the Jira issue",
+    "issueType": "Issue type",
+    "linked": "Jira issue",
+    "title": "Create in Jira"
+  },
+  "reports": {
+    "aiFindings": "AI review findings",
+    "aiHint_one": "{{count}} review in the period",
+    "aiHint_other": "{{count}} reviews in the period",
+    "days_one": "{{count}} day",
+    "days_other": "{{count}} days",
+    "defects": "Open defects",
+    "defectsSub": "{{closed}} closed · {{created}} new in the period",
+    "failed": "failed",
+    "leadHint": "hours from opening to merge",
+    "leadTime": "Lead time (median)",
+    "leadTrend": "Lead time",
+    "loadFailed": "Could not load reports",
+    "loading": "Loading reports…",
+    "median": "median",
+    "noReviews": "No AI reviews in the period.",
+    "noRuns": "No test runs in the period.",
+    "noSnapshot": "No radar data yet — it is collected once a day when someone opens Radar or Inbox.",
+    "openMrs": "Open MRs",
+    "p90": "p90 {{h}} h",
+    "passRate": "Test pass rate",
+    "passed": "passed",
+    "radarHint": "open MRs by signal, per day",
+    "radarTrend": "Signals over time",
+    "runs_one": "{{count}} run",
+    "runs_other": "{{count}} runs",
+    "stuckNow": "{{count}} stuck now",
+    "teamOnly": "Team-level numbers for this QA space. No per-person breakdown.",
+    "testTrend": "Test results per day"
+  },
+  "automation": {
+    "channels": {
+      "add": "Add channel",
+      "body": "Slack or Teams incoming webhooks get MR events (from the GitLab webhook) and the daily digest.",
+      "deleteTitle": "Delete this channel?",
+      "dialogHint": "Create an incoming webhook in Slack or Teams and paste its URL. It is stored encrypted and never shown again.",
+      "events": "Events",
+      "kind": "Service",
+      "name": "Name",
+      "none": "No channels yet.",
+      "sendFailed": "Could not send",
+      "sent": "Test message sent",
+      "test": "Send test",
+      "title": "Notification channels",
+      "url": "Incoming webhook URL",
+      "urlHint": "Slack: hooks.slack.com · Teams: *.webhook.office.com or a Power Automate workflow URL."
+    },
+    "days": "Days",
+    "enabled": "Enabled",
+    "everyDay": "every day",
+    "time": "Time",
+    "event": {
+      "mr_opened": "MR opened",
+      "pipeline_failed": "Pipeline failed",
+      "mr_approved": "MR approved",
+      "mr_merged": "MR merged",
+      "digest": "Daily digest"
+    },
+    "night": {
+      "body": "Your own agent works your review queue at night on your machine: reviews MRs waiting for you, drafts missing tests, submits drafts. Nothing is posted until someone approves in the morning.",
+      "copyCron": "Copy cron line",
+      "install": "Schedule on this Mac",
+      "installFailed": "Could not schedule",
+      "installed": "Night run scheduled",
+      "log": "Log: {{path}}",
+      "on": "scheduled",
+      "remove": "Remove schedule",
+      "title": "Night run",
+      "update": "Update schedule",
+      "webNote": "In the browser: add the cron line to your crontab, or schedule it from the PatchMan desktop app.",
+      "prompt": "Prompt",
+      "server": "PatchMan MCP server name in your Claude Code",
+      "toolsHint": "Only these tools are pre-approved: {{tools}}. The agent reads MR and Jira text other people wrote, so nothing else is allowed headless.",
+      "serverLocal": "patchman-local — this device (desktop app)",
+      "serverRemote": "patchman — PatchMan server",
+      "serverCustom": "Other…"
+    },
+    "schedules": {
+      "add": "Add schedule",
+      "body": "The server runs a test folder or plan on a schedule (no AI). Results show in Runs and Reports.",
+      "deleteTitle": "Delete this schedule?",
+      "dialogHint": "Creating the schedule approves its runs. It runs with your access to the folder or plan.",
+      "folder": "Folder",
+      "kind": "What",
+      "last": "last {{status}} {{when}}",
+      "name": "Name",
+      "namePlaceholder": "Nightly smoke",
+      "none": "No scheduled runs yet.",
+      "plan": "Plan",
+      "ranNow": "Run finished",
+      "runNow": "Run now",
+      "target": "Folder / plan",
+      "title": "Scheduled test runs",
+      "tz": "Times are in {{tz}}."
+    },
+    "day": {
+      "1": "Mon",
+      "2": "Tue",
+      "3": "Wed",
+      "4": "Thu",
+      "5": "Fri",
+      "6": "Sat",
+      "7": "Sun"
+    }
+  },
+  "picker": {
+    "search": "Search…",
+    "none": "Nothing found",
+    "loadFailed": "Could not load the list",
+    "useTyped": "Use “{{value}}”",
+    "typeToSearch": "Showing the first results — type to search."
+  },
+  "pending": {
+    "title_one": "{{count}} setup change from your agent",
+    "title_other": "{{count}} setup changes from your agent",
+    "body": "An AI agent asked for these over MCP. Nothing changes until you apply them; applying sends the change as you.",
+    "anAgent": "An agent",
+    "apply": "Apply",
+    "reject": "Reject",
+    "applied": "Applied",
+    "applyFailed": "Could not apply the change",
+    "banner_one": "{{count}} setup change from your agent is waiting for you in Settings",
+    "banner_other": "{{count}} setup changes from your agent are waiting for you in Settings"
+  },
+  "agentRun": {
+    "run": "Run with my agent",
+    "runAgain": "Run again",
+    "starting": "Starting…",
+    "running": "running",
+    "done": "done",
+    "stop": "Stop",
+    "openTab": "Open in terminal tab",
+    "close": "Close",
+    "webNote": "In the browser: copy the command and run it in a terminal where Claude Code has the PatchMan MCP. The desktop app runs it here."
+  },
+  "verify": {
+    "title": "Fix check",
+    "openCount_one": "{{count}} posted finding waiting for a check after new commits",
+    "openCount_other": "{{count}} posted findings waiting for a check after new commits",
+    "inProgress": "An agent is checking the fixes (started {{when}})",
+    "withAgent": "Verify fixes with my agent",
+    "withAgentHint": "Your agent reads the posted findings and only the changes since that review, then says per finding: fixed, not fixed, partly or obsolete. Nothing is sent until you apply it.",
+    "verdict": {
+      "fixed": "fixed",
+      "not_fixed": "not fixed",
+      "partly": "partly",
+      "obsolete": "obsolete"
+    },
+    "appliedState": {
+      "resolved": "resolved",
+      "replied": "replied"
+    },
+    "resolveVerified_one": "Resolve verified ({{count}})",
+    "resolveVerified_other": "Resolve verified ({{count}})",
+    "replyOpen_one": "Reply on not fixed ({{count}})",
+    "replyOpen_other": "Reply on not fixed ({{count}})",
+    "resolveConfirmTitle_one": "Reply and resolve {{count}} thread?",
+    "resolveConfirmTitle_other": "Reply and resolve {{count}} threads?",
+    "replyConfirmTitle_one": "Reply on {{count}} thread?",
+    "replyConfirmTitle_other": "Reply on {{count}} threads?",
+    "applyConfirmBody": "The replies go to {{mr}} under your own name, with the agent's evidence.",
+    "applied_one": "{{count}} reply sent",
+    "applied_other": "{{count}} replies sent",
+    "appliedFailed_one": "{{count}} failed",
+    "appliedFailed_other": "{{count}} failed",
+    "applyFailed": "Could not apply the fix check",
+    "applyNote": "GitLab threads of verified findings are resolved; on GitHub only the reply is posted."
   }
 }

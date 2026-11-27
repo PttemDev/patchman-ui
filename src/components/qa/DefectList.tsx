@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
+import { DefectJiraDialog } from '@/components/qahub/DefectJiraDialog';
 import {
   Search,
   Bug,
@@ -10,6 +11,7 @@ import {
   RotateCcw,
   ChevronDown,
   Pencil,
+  Ticket,
   Trash2,
 } from 'lucide-react';
 import { getRepo } from '@/data';
@@ -280,6 +282,7 @@ function DefectCard({
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [statusUpdating, setStatusUpdating] = useState(false);
+  const [jiraOpen, setJiraOpen] = useState(false);
 
   const statusCfg = STATUS_CONFIG[defect.status] || STATUS_CONFIG.open;
   const priorityCfg = PRIORITY_CONFIG[defect.priority] || PRIORITY_CONFIG.P2;
@@ -312,6 +315,7 @@ function DefectCard({
 
   return (
     <div className="group rounded-lg border bg-card overflow-hidden">
+      {jiraOpen && <DefectJiraDialog defect={defect} onClose={() => setJiraOpen(false)} onCreated={() => onChanged()} />}
       <div
         role="button"
         tabIndex={0}
@@ -327,6 +331,7 @@ function DefectCard({
         <div className="flex items-start gap-2">
           <StatusIcon className={`h-3.5 w-3.5 shrink-0 mt-0.5 ${statusCfg.color}`} />
           <span className="text-xs font-medium flex-1 leading-snug">{defect.title}</span>
+          {defect.jiraKey && <span className="shrink-0 rounded bg-muted px-1 font-mono text-[10px]" title={t('defectJira.linked')}>{defect.jiraKey}</span>}
           {confirmDelete ? (
             <div className="flex gap-0.5 shrink-0" onClick={(e) => e.stopPropagation()}>
               <Button
@@ -352,6 +357,11 @@ function DefectCard({
               className="flex gap-0.5 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
               onClick={(e) => e.stopPropagation()}
             >
+              {!defect.jiraKey && (
+                <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => setJiraOpen(true)} title={t('defectJira.title')} aria-label={t('defectJira.title')}>
+                  <Ticket className="h-2.5 w-2.5" />
+                </Button>
+              )}
               <Button variant="ghost" size="icon" className="h-5 w-5" onClick={onEdit}>
                 <Pencil className="h-2.5 w-2.5" />
               </Button>

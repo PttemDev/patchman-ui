@@ -1,11 +1,19 @@
 import { Fragment, useMemo, useState } from 'react';
+import { MarkdownView } from '@/components/notes/MarkdownView';
 import { useTranslation } from 'react-i18next';
-import { Check, CornerDownRight, MessageSquarePlus, RotateCcw } from 'lucide-react';
+import { Check, CornerDownRight, MessageSquarePlus, Pencil, RotateCcw, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
+import { confirmDialog } from '@/components/ui/confirm';
 import { cn } from '@/lib/utils';
-import type { GitFileDiff, GitMRDiscussion } from '@/types';
+import type { GitFileDiff, GitMRDiscussion, GitMRNote } from '@/types';
+import { MarkdownEditor } from './GitMRMarkdown';
 import { timeAgo } from './util';
+
+/** Edit / delete one of your own comments (GitLab-style). */
+export interface NoteActions {
+  onEditNote?: (discussionId: string, noteId: number, body: string) => Promise<void>;
+  onDeleteNote?: (discussionId: string, noteId: number) => Promise<void>;
+}
 
 // One file of an MR as a unified diff with old / new line numbers, inline
 // threads under their lines, and a "+" on every line to start a comment
@@ -33,7 +41,7 @@ function parseUnified(patch: string): Row[] {
 
 const keyFor = (r: LineRef) => (r.newLine != null ? `n${r.newLine}` : `o${r.oldLine}`);
 
-export function GitMRDiff({ file, threads, canComment, onComment, onReply, onResolve }: {
+export function GitMRDiff({ file, threads, canComment, onComment, onReply, onResolve, onEditNote, onDeleteNote }: NoteActions & {
   file: GitFileDiff;
   threads: GitMRDiscussion[];
   canComment: boolean;
@@ -89,7 +97,7 @@ export function GitMRDiff({ file, threads, canComment, onComment, onReply, onRes
                 <tr>
                   <td colSpan={4} className="border-y bg-muted/30 px-3 py-2 font-sans">
                     <div className="space-y-2">
-                      {lineThreads.map((d) => <Thread key={d.id} d={d} canReply={canComment} onReply={onReply} onResolve={onResolve} />)}
+                      {lineThreads.map((d) => <Thread key={d.id} d={d} canReply={canComment} onReply={onReply} onResolve={onResolve} onEditNote={onEditNote} onDeleteNote={onDeleteNote} />)}
                       {composer === k && (
                         <Composer
                           onCancel={() => setComposer(null)}
@@ -108,7 +116,7 @@ export function GitMRDiff({ file, threads, canComment, onComment, onReply, onRes
   );
 }
 
-export function Thread({ d, canReply, onReply, onResolve }: {
+export function Thread({ d, canReply, onReply, onResolve, onEditNote, onDeleteNote }: NoteActions & {
   d: GitMRDiscussion;
   canReply: boolean;
   onReply: (discussionId: string, body: string) => Promise<void>;
@@ -126,14 +134,8 @@ export function Thread({ d, canReply, onReply, onResolve }: {
       ) : (
         <>
           {d.notes.map((n, i) => (
-            <div key={n.id} className={cn('px-3 py-2', i > 0 && 'border-t')}>
-              <div className="mb-0.5 flex items-center gap-2">
-                {n.avatarUrl ? <img src={n.avatarUrl} alt="" className="h-4 w-4 rounded-full" /> : <span className="flex h-4 w-4 items-center justify-center rounded-full bg-muted text-[9px]">{n.author.slice(0, 1)}</span>}
-                <span className="font-medium">{n.author}</span>
-                <span className="text-[10px] text-muted-foreground">@{n.username} · {timeAgo(n.createdAt)}</span>
-              </div>
-              <p className="whitespace-pre-wrap break-words">{n.body}</p>
-            </div>
+            <NoteRow key={n.id} n={n} first={i === 0} discussionId={d.id}
+              onEditNote={canReply ? onEditNote : undefined} onDeleteNote={canReply ? onDeleteNote : undefined} />
           ))}
           <div className="flex items-center gap-2 border-t px-3 py-1.5">
             {canReply && !replying && (
@@ -158,26 +160,96 @@ export function Thread({ d, canReply, onReply, onResolve }: {
   );
 }
 
-export function Composer({ onSubmit, onCancel, immediate }: { onSubmit: (body: string) => Promise<void>; onCancel?: () => void; immediate?: boolean }) {
+/** One comment: author line, markdown body, and edit / delete on your own. */
+function NoteRow({ n, first, discussionId, onEditNote, onDeleteNote }: NoteActions & { n: GitMRNote; first: boolean; discussionId: string }) {
   const { t } = useTranslation('git');
-  const [body, setBody] = useState('');
+  const [editing, setEditing] = useState(false);
+  // Pending review comments have negative ids: local only, never sent.
+  const mine = !!n.canEdit && n.id > 0;
+  return (
+    <div className={cn('group/note px-3 py-2', !first && 'border-t')}>
+      <div className="mb-0.5 flex items-center gap-2">
+        {n.avatarUrl ? <img src={n.avatarUrl} alt="" className="h-4 w-4 rounded-full" /> : <span className="flex h-4 w-4 items-center justify-center rounded-full bg-muted text-[9px]">{n.author.slice(0, 1)}</span>}
+        <span className="font-medium">{n.author}</span>
+        <span className="text-[10px] text-muted-foreground">@{n.username} · {timeAgo(n.createdAt)}{n.edited && ` · ${t('mr.note.edited')}`}</span>
+        {mine && !editing && (
+          <span className="ml-auto flex gap-0.5 opacity-0 transition-opacity focus-within:opacity-100 group-hover/note:opacity-100">
+            {onEditNote && (
+              <button type="button" className="rounded p-0.5 text-muted-foreground hover:bg-accent hover:text-foreground" title={t('mr.note.edit')} aria-label={t('mr.note.edit')} onClick={() => setEditing(true)}>
+                <Pencil className="h-3 w-3" />
+              </button>
+            )}
+            {onDeleteNote && (
+              <button type="button" className="rounded p-0.5 text-muted-foreground hover:bg-accent hover:text-destructive" title={t('mr.note.delete')} aria-label={t('mr.note.delete')}
+                onClick={async () => { if (await confirmDialog({ title: t('mr.note.deleteTitle'), description: t('mr.note.deleteDesc'), destructive: true })) await onDeleteNote(discussionId, n.id); }}>
+                <Trash2 className="h-3 w-3" />
+              </button>
+            )}
+          </span>
+        )}
+      </div>
+      {editing && onEditNote ? (
+        <Composer initial={n.body} submitLabel={t('mr.note.save')} onCancel={() => setEditing(false)}
+          onSubmit={async (b) => { await onEditNote(discussionId, n.id, b); setEditing(false); }} />
+      ) : (
+        /* GitLab / GitHub comments are markdown (links, headings, code). */
+        <MarkdownView markdown={n.body} className="md-compact break-words" />
+      )}
+    </div>
+  );
+}
+
+export function Composer({ onSubmit, onCancel, immediate, initial = '', submitLabel }: {
+  onSubmit: (body: string) => Promise<void>;
+  onCancel?: () => void;
+  immediate?: boolean;
+  initial?: string;
+  submitLabel?: string;
+}) {
+  const { t } = useTranslation('git');
+  const [body, setBody] = useState(initial);
   const [busy, setBusy] = useState(false);
   const send = async () => {
     if (!body.trim()) return;
     setBusy(true);
-    try { await onSubmit(body.trim()); setBody(''); } finally { setBusy(false); }
+    // A failed submit keeps the text; the caller already reported the error.
+    try { await onSubmit(body.trim()); setBody(''); } catch { /* reported by the caller */ } finally { setBusy(false); }
   };
   return (
     <div className="space-y-1.5">
-      <Textarea autoFocus value={body} onChange={(e) => setBody(e.target.value)} placeholder={t('mr.commentPlaceholder')}
-        onKeyDown={(e) => { if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') { e.preventDefault(); void send(); } }}
-        className="min-h-[64px] text-xs" />
+      <MarkdownEditor autoFocus value={body} onChange={setBody} onSubmit={() => void send()} placeholder={t('mr.commentPlaceholder')} />
       <div className="flex justify-end gap-2">
         {onCancel && <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={onCancel}>{t('vcs.cancel')}</Button>}
-        <Button size="sm" className="h-7 text-xs" disabled={busy || !body.trim()} onClick={() => void send()}>
-          {immediate ? t('mr.reply') : t('mr.comment')}
+        <Button size="sm" className="h-7 text-xs" disabled={busy || !body.trim() || body.trim() === initial.trim()} onClick={() => void send()}>
+          {submitLabel ?? (immediate ? t('mr.reply') : t('mr.comment'))}
         </Button>
       </div>
+    </div>
+  );
+}
+
+/** GitLab system notes mix markdown, raw HTML lists ("added 2 commits <ul><li>…")
+ *  and root-relative links. Shown as plain text: no link can navigate the app away. */
+function systemNoteLines(body: string): string[] {
+  return body
+    .replace(/<\/li>|<br\s*\/?>/gi, '\n')
+    .replace(/<[^>]+>/g, '')
+    .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1')
+    .replace(/\*\*|`/g, '')
+    .split('\n').map((l) => l.trim()).filter(Boolean);
+}
+
+/** A system note ("added 1 commit", "approved this merge request") on the timeline. */
+export function SystemNote({ n }: { n: GitMRNote }) {
+  const [head, ...rest] = systemNoteLines(n.body);
+  return (
+    <div className="flex items-start gap-2 px-1 text-[11px] text-muted-foreground">
+      <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-muted-foreground/50" />
+      <span className="min-w-0 flex-1 break-words">
+        <span className="font-medium text-foreground">{n.author}</span> {head}
+        <span className="ml-1 text-[10px]">· {timeAgo(n.createdAt)}</span>
+        {rest.map((l, i) => <span key={i} className="block truncate pl-2 font-mono text-[10px]" title={l}>{l}</span>)}
+      </span>
     </div>
   );
 }

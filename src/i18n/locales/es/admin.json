@@ -198,7 +198,8 @@
       "collab": "Espacios de trabajo y equipos",
       "devtools": "Herramientas de desarrollo",
       "sync": "Sincronización de escritorio",
-      "other": "Otros"
+      "other": "Otros",
+      "jira": "Jira"
     }
   }
 }

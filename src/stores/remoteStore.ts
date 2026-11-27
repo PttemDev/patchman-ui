@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { evaluateCompat, type CompatVerdict, type IncompatReason } from '@/lib/apiCompat';
+import { isDesktop } from '@/lib/platform';
 
 // Remote backend manager. The app talks to ONE active remote backend for
 // sign-in and shared data. Historically that URL was baked in via
@@ -51,7 +52,32 @@ const STORAGE_KEY = 'patchman_remotes';
 
 /** The baked-in backend URL, resolved fresh (never frozen into storage). */
 export function builtinRemoteUrl(): string {
-  return (import.meta.env.VITE_API_URL as string | undefined) || '/api';
+  const baked = (import.meta.env.VITE_API_URL as string | undefined) || '/api';
+  if (baked.startsWith('/') && isDesktop()) return desktopBuiltinFallback() ?? baked;
+  return baked;
+}
+
+/**
+ * A desktop build whose baked-in URL is relative (the open-source build) can't
+ * reach a backend with it. Builds that share one bundle identifier share their
+ * storage, so another PatchMan build on this machine may already have signed
+ * in to a backend through ITS built-in remote and left a session for it. Use
+ * the backend that the cached server config was last fetched from, so both
+ * builds talk to the same backend with the same session. Ignored when it is
+ * one of the user-added remotes (that one is reached through its own entry),
+ * and absent on a fresh install, where the connect gate asks for a URL.
+ */
+export function desktopBuiltinFallback(): string | null {
+  const backend = getCachedServerConfig().backend;
+  if (!backend || !/^https?:\/\//i.test(backend)) return null;
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    const remotes = raw ? ((JSON.parse(raw) as Partial<Persisted>).remotes ?? []) : [];
+    if (Array.isArray(remotes) && remotes.some((r) => r && r.url === backend)) return null;
+  } catch {
+    /* unreadable storage — the cached backend alone is enough */
+  }
+  return backend;
 }
 
 /** Trim a trailing slash but leave a bare relative "/api" intact. */

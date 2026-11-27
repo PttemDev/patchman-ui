@@ -43,7 +43,7 @@ export function GitFindInFiles({ repoId, open, onOpenChange, initial, onOpenHit 
   repoId: string;
   open: boolean;
   onOpenChange: (o: boolean) => void;
-  initial?: { q: string; word?: boolean; caseSensitive?: boolean };
+  initial?: { q: string; word?: boolean; caseSensitive?: boolean; mask?: string };
   onOpenHit: (path: string, line: number) => void;
 }) {
   const { t } = useTranslation('git');
@@ -63,6 +63,7 @@ export function GitFindInFiles({ repoId, open, onOpenChange, initial, onOpenHit 
   useEffect(() => {
     if (!open) return;
     setQ(initial?.q ?? ''); setWord(!!initial?.word); setCase(!!initial?.caseSensitive); setSel(0);
+    if (initial?.mask !== undefined) setMask(initial.mask);
   }, [open, initial]);
 
   useEffect(() => {

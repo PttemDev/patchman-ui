@@ -21,13 +21,33 @@ import {
   ContextMenuSubTrigger,
   ContextMenuTrigger,
 } from '@/components/ui/context-menu';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
-import { ArrowDown, ArrowUp, Filter, PinIcon } from 'lucide-react';
+import { ArrowDown, ArrowUp, Copy, Download, Filter, PinIcon, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import type { DBQueryResult, DBSchemaColumn } from '@/types';
+import { toast } from '@/components/ui/use-toast';
+import type { DBKind, DBQueryResult, DBSchemaColumn } from '@/types';
 import { CellRenderer } from './CellRenderer';
 import { DBColumnStats } from './DBColumnStats';
 import { stringifyValue, shortColumnType } from './formatters';
+import {
+  cellText,
+  downloadRows,
+  formatRows,
+  guessSourceTable,
+  inList,
+  whereCondition,
+  type CopyFormat,
+  type DownloadFormat,
+  type RowObj,
+} from './resultFormats';
 import { DBJsonModal, canShowAsJson } from './DBJsonModal';
 import {
   columnFingerprint,
@@ -36,6 +56,36 @@ import {
 
 const EMPTY_PREFS = { hidden: [], order: [], pinned: [], widths: {} } as const;
 const ROW_ESTIMATE = 33; // px — starting guess; measured per row at runtime
+const GUTTER = 44; // px — row-number / row-selection column
+
+const COPY_FORMATS: CopyFormat[] = ['tsv', 'csv', 'json', 'markdown', 'insert'];
+const DOWNLOAD_FORMATS: DownloadFormat[] = ['csv', 'json', 'xlsx'];
+
+// execCommand fallback for webviews that refuse navigator.clipboard
+// (no permission / not a secure context). Focus goes back where it was so
+// the next ⌘C still reaches the table.
+function legacyCopy(text: string): boolean {
+  const prev = document.activeElement as HTMLElement | null;
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.setAttribute('readonly', '');
+  ta.style.position = 'fixed';
+  ta.style.opacity = '0';
+  document.body.appendChild(ta);
+  ta.select();
+  let ok = false;
+  try { ok = document.execCommand('copy'); } catch { ok = false; }
+  document.body.removeChild(ta);
+  prev?.focus({ preventScroll: true });
+  return ok;
+}
+
+function copyText(text: string, message: string) {
+  const done = () => toast({ title: message, duration: 1500 });
+  const fallback = () => { if (legacyCopy(text)) done(); };
+  if (!navigator.clipboard?.writeText) { fallback(); return; }
+  navigator.clipboard.writeText(text).then(done, fallback);
+}
 
 interface DBResultTableProps {
   result: DBQueryResult;
@@ -43,6 +93,8 @@ interface DBResultTableProps {
   onPickCell?: (rowIndex: number, colName: string, value: unknown) => void;
   onPickRow?: (rowIndex: number) => void;
   onOpenFK?: (col: string, value: unknown) => void;
+  /** Connection kind — picks identifier quoting for SQL copy formats. */
+  dbKind?: DBKind;
 }
 
 // DBResultTable is the table view. It composes:
@@ -54,7 +106,7 @@ interface DBResultTableProps {
 // View-level concerns (chart, explain, summary, inspectors) live in
 // DBResultPanel which composes this component.
 export function DBResultTable({
-  result, onAddFilter, onPickCell, onPickRow, onOpenFK,
+  result, onAddFilter, onPickCell, onPickRow, onOpenFK, dbKind,
 }: DBResultTableProps) {
   const { t } = useTranslation('dbquery');
   // Defensive — BE returns null columns when a cursor materialized
@@ -70,6 +122,8 @@ export function DBResultTable({
   const prefs = stored ?? EMPTY_PREFS;
   const setWidth = useDBColumnPrefsStore((s) => s.setWidth);
   const togglePinned = useDBColumnPrefsStore((s) => s.togglePinned);
+  const setHidden = useDBColumnPrefsStore((s) => s.setHidden);
+  const sourceTable = useMemo(() => guessSourceTable(result.statementText), [result.statementText]);
 
   // Effective column order: persisted order first (where columns still
   // exist), then any new columns at the end. Pinned columns float to
@@ -105,6 +159,17 @@ export function DBResultTable({
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   // Single, delegated context-menu target + the "show as JSON" modal.
   const [menuCell, setMenuCell] = useState<{ rowIndex: number; colName: string } | null>(null);
+  const [menuHeader, setMenuHeader] = useState<string | null>(null);
+  // Row selection (data indexes) + the anchor for shift-click ranges
+  // (a display position, so ranges follow the current sort/filter).
+  const [selected, setSelected] = useState<Set<number>>(() => new Set());
+  const [anchor, setAnchor] = useState<number | null>(null);
+  const [focusCell, setFocusCell] = useState<{ row: number; col: string } | null>(null);
+  useEffect(() => {
+    setSelected(new Set());
+    setAnchor(null);
+    setFocusCell(null);
+  }, [result.queryId, result.offset]);
   const [jsonModal, setJsonModal] = useState<{ value: unknown; colName: string } | null>(null);
 
   const columns = useMemo<ColumnDef<Record<string, unknown>>[]>(() => {
@@ -126,7 +191,7 @@ export function DBResultTable({
               <button
                 type="button"
                 onClick={(e) => column.toggleSorting(undefined, e.shiftKey)}
-                className="flex items-center gap-1 flex-1 min-w-0 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider hover:text-foreground"
+                className="flex items-center gap-1 flex-1 min-w-0 text-left text-xs font-semibold text-muted-foreground hover:text-foreground"
                 title={t('table.sortTitle')}
               >
                 <span className="truncate">{name}</span>
@@ -202,7 +267,7 @@ export function DBResultTable({
   // Sticky-left offsets for pinned columns.
   const stickyLeftMap = useMemo(() => {
     const map: Record<string, number> = {};
-    let acc = 0;
+    let acc = GUTTER;
     for (const c of effectiveOrder) {
       if (!prefs.pinned.includes(c)) break;
       if (prefs.hidden.includes(c)) continue;
@@ -235,21 +300,105 @@ export function DBResultTable({
     ? totalSize - virtualRows[virtualRows.length - 1].end
     : 0;
 
-  // Delegated right-click: figure out which cell was targeted (via data-*
-  // attributes) and stash it so the single ContextMenuContent below can
-  // render the right actions. Runs in the capture phase so the target is
-  // set before Radix opens the menu in the bubble phase.
+  // Rows in display order (sort + filter applied) that are selected.
+  const visibleColIds = visibleLeafCols.map((c) => c.id);
+  const selectedRows = (): RowObj[] => rows.filter((r) => selected.has(r.index)).map((r) => r.original);
+
+  const selectRow = useCallback((displayPos: number, e: { shiftKey: boolean; metaKey: boolean; ctrlKey: boolean }) => {
+    const target = rows[displayPos];
+    if (!target) return;
+    const additive = e.metaKey || e.ctrlKey;
+    setSelected((prev) => {
+      if (e.shiftKey && anchor != null) {
+        const next = additive ? new Set(prev) : new Set<number>();
+        const [a, b] = anchor < displayPos ? [anchor, displayPos] : [displayPos, anchor];
+        for (let i = a; i <= b; i++) if (rows[i]) next.add(rows[i].index);
+        return next;
+      }
+      if (additive) {
+        const next = new Set(prev);
+        if (next.has(target.index)) next.delete(target.index); else next.add(target.index);
+        return next;
+      }
+      if (prev.size === 1 && prev.has(target.index)) return new Set();
+      return new Set([target.index]);
+    });
+    if (!e.shiftKey) setAnchor(displayPos);
+  }, [rows, anchor]);
+
+  const selectAll = useCallback(() => {
+    setSelected((prev) => (prev.size === rows.length ? new Set() : new Set(rows.map((r) => r.index))));
+  }, [rows]);
+
+  const copyRows = useCallback((fmt: CopyFormat, list: RowObj[]) => {
+    if (list.length === 0) return;
+    copyText(
+      formatRows(fmt, visibleColIds, list, { kind: dbKind, table: sourceTable }),
+      t('table.copiedRows', { count: list.length, format: t(`table.fmt.${fmt}`) }),
+    );
+  }, [visibleColIds, dbKind, sourceTable, t]);
+
+  // Cmd/Ctrl+C copies the selected rows (TSV with header — pastes cleanly
+  // into a spreadsheet) or the focused cell; Cmd/Ctrl+A selects every row.
+  // Inputs and a real text selection keep the browser's own behaviour.
+  const onKeyDown = useCallback((e: React.KeyboardEvent) => {
+    const el = e.target as HTMLElement;
+    if (el.closest('input, textarea, [contenteditable="true"]')) return;
+    const mod = e.metaKey || e.ctrlKey;
+    if (e.key === 'Escape' && selected.size > 0) {
+      setSelected(new Set());
+      return;
+    }
+    if (!mod) return;
+    const key = e.key.toLowerCase();
+    if (key === 'a') {
+      e.preventDefault();
+      setSelected(new Set(rows.map((r) => r.index)));
+      return;
+    }
+    if (key === 'c') {
+      if ((window.getSelection()?.toString() ?? '') !== '') return;
+      if (selected.size > 0) {
+        e.preventDefault();
+        copyRows('tsv', selectedRows());
+      } else if (focusCell) {
+        e.preventDefault();
+        copyText(cellText(data[focusCell.row]?.[focusCell.col]), t('table.copiedValue'));
+      }
+    }
+  }, [selected, rows, focusCell, data, copyRows, t]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Delegated right-click: figure out which cell or header was targeted
+  // (via data-* attributes) and stash it so the single ContextMenuContent
+  // below can render the right actions. Runs in the capture phase so the
+  // target is set before Radix opens the menu in the bubble phase.
   const handleContextMenu = useCallback((e: React.MouseEvent) => {
-    const td = (e.target as HTMLElement).closest('td[data-col]') as HTMLElement | null;
+    const el = e.target as HTMLElement;
+    // Right-click selects nothing and shows no browser menu text-selection.
+    window.getSelection()?.removeAllRanges();
+    const th = el.closest('th[data-colhead]') as HTMLElement | null;
+    if (th) {
+      setMenuCell(null);
+      setMenuHeader(th.dataset.colhead ?? null);
+      return;
+    }
+    setMenuHeader(null);
+    const td = el.closest('td[data-col]') as HTMLElement | null;
     if (!td) { setMenuCell(null); return; }
     const rowIndex = Number(td.dataset.row);
     const colName = td.dataset.col ?? '';
     if (Number.isNaN(rowIndex) || !colName) { setMenuCell(null); return; }
     setMenuCell({ rowIndex, colName });
+    setFocusCell({ row: rowIndex, col: colName });
   }, []);
 
   const menuValue = menuCell ? data[menuCell.rowIndex]?.[menuCell.colName] : undefined;
   const menuRowObj = menuCell ? data[menuCell.rowIndex] : undefined;
+  // Row actions on a right-clicked row act on the whole selection when
+  // that row is part of it, otherwise on the row alone.
+  const menuRows: RowObj[] = menuCell
+    ? (selected.has(menuCell.rowIndex) ? selectedRows() : (menuRowObj ? [menuRowObj] : []))
+    : [];
 
   // Edge case: server returned a result with zero columns + zero rows
   // (e.g. a Mongo query that hit a non-existent collection). Render a
@@ -267,22 +416,34 @@ export function DBResultTable({
     );
   }
 
-  const colCount = visibleLeafCols.length || 1;
+  const colCount = (visibleLeafCols.length || 1) + 1;
+  const allSelected = rows.length > 0 && selected.size === rows.length;
 
   return (
-    <div className="h-full flex flex-col overflow-hidden">
+    <div className="h-full flex flex-col overflow-hidden relative">
+      {selected.size > 0 && (
+        <SelectionBar
+          count={selected.size}
+          onCopy={(fmt) => copyRows(fmt, selectedRows())}
+          onDownload={(fmt) => downloadRows(fmt, visibleColIds, selectedRows(), 'selection')}
+          onClear={() => setSelected(new Set())}
+        />
+      )}
       <ContextMenu>
         <ContextMenuTrigger asChild>
           <div
             ref={scrollRef}
-            className="flex-1 overflow-auto relative"
+            tabIndex={0}
+            className="flex-1 overflow-auto relative outline-none"
             onContextMenuCapture={handleContextMenu}
+            onKeyDown={onKeyDown}
           >
             <table
               className="border-collapse text-xs"
-              style={{ width: table.getTotalSize(), tableLayout: 'fixed' }}
+              style={{ width: table.getTotalSize() + GUTTER, tableLayout: 'fixed' }}
             >
               <colgroup>
+                <col style={{ width: GUTTER }} />
                 {visibleLeafCols.map((col) => (
                   <col key={col.id} style={{ width: col.getSize() }} />
                 ))}
@@ -290,12 +451,34 @@ export function DBResultTable({
               <thead className="sticky top-0 bg-background z-20">
                 {table.getHeaderGroups().map((hg) => (
                   <tr key={hg.id}>
+                    <th
+                      rowSpan={2}
+                      style={{ width: GUTTER, position: 'sticky', left: 0, zIndex: 26 }}
+                      className="border-b border-r bg-background p-0 align-middle"
+                    >
+                      <button
+                        type="button"
+                        onClick={selectAll}
+                        title={t('table.selectAllRows')}
+                        aria-label={t('table.selectAllRows')}
+                        className={cn(
+                          'w-full h-full min-h-[48px] flex items-center justify-center text-[10px] text-muted-foreground hover:bg-accent/50',
+                          allSelected && 'text-primary',
+                        )}
+                      >
+                        <span className={cn(
+                          'h-3 w-3 rounded-[3px] border',
+                          allSelected ? 'bg-primary border-primary' : selected.size > 0 ? 'bg-primary/40 border-primary' : 'border-muted-foreground/50',
+                        )} />
+                      </button>
+                    </th>
                     {hg.headers.map((header) => {
                       const id = header.column.id;
                       const isPinned = prefs.pinned.includes(id);
                       return (
                         <th
                           key={header.id}
+                          data-colhead={id}
                           style={{
                             width: header.getSize(),
                             ...(isPinned ? {
@@ -305,7 +488,7 @@ export function DBResultTable({
                             } : {}),
                           }}
                           className={cn(
-                            'relative border-b border-r px-2 py-1.5 text-left align-top overflow-hidden bg-background',
+                            'relative border-b border-r px-2 py-1.5 text-left align-top overflow-hidden bg-background select-none',
                             isPinned && 'shadow-[2px_0_4px_-2px_rgba(0,0,0,0.15)]',
                           )}
                         >
@@ -400,18 +583,32 @@ export function DBResultTable({
                     )}
                     {virtualRows.map((vr) => {
                       const row = rows[vr.index];
+                      const isSel = selected.has(row.index);
                       return (
                         <tr
                           key={row.id}
                           data-index={vr.index}
                           ref={rowVirtualizer.measureElement}
-                          className="hover:bg-accent/30 group"
+                          className={cn('group', isSel ? 'bg-primary/10' : 'hover:bg-accent/30')}
                           onDoubleClick={() => onPickRow?.(row.index)}
                         >
+                          <td
+                            style={{ width: GUTTER, position: 'sticky', left: 0, zIndex: 6 }}
+                            className={cn(
+                              'border-b border-r px-1 py-1 text-right align-top font-mono text-[10px] tabular-nums cursor-pointer select-none',
+                              isSel ? 'bg-primary/20 text-primary' : 'bg-muted/40 text-muted-foreground group-hover:text-foreground',
+                            )}
+                            title={t('table.rowSelectHint')}
+                            onMouseDown={(e) => { if (e.shiftKey) e.preventDefault(); }}
+                            onClick={(e) => selectRow(vr.index, e)}
+                          >
+                            {(result.offset ?? 0) + row.index + 1}
+                          </td>
                           {row.getVisibleCells().map((cell) => {
                             const id = cell.column.id;
                             const isPinned = prefs.pinned.includes(id);
                             const v = cell.getValue();
+                            const isFocus = focusCell?.row === row.index && focusCell.col === id;
                             return (
                               <td
                                 key={cell.id}
@@ -426,12 +623,32 @@ export function DBResultTable({
                                   } : {}),
                                 }}
                                 className={cn(
-                                  'border-b border-r px-2 py-1 align-top whitespace-pre-wrap break-words overflow-hidden cursor-pointer',
-                                  isPinned && 'bg-background group-hover:bg-accent/30',
+                                  'group/cell relative border-b border-r px-2 py-1 align-top whitespace-pre-wrap break-words overflow-hidden cursor-pointer',
+                                  isPinned && (isSel ? 'bg-accent' : 'bg-background group-hover:bg-accent/30'),
+                                  isFocus && 'outline outline-1 -outline-offset-1 outline-primary',
                                 )}
-                                onClick={() => onPickCell?.(row.index, id, v)}
+                                onMouseDown={(e) => { if (e.shiftKey || e.metaKey || e.ctrlKey) e.preventDefault(); }}
+                                onClick={(e) => {
+                                  if (e.shiftKey || e.metaKey || e.ctrlKey) { selectRow(vr.index, e); return; }
+                                  setFocusCell({ row: row.index, col: id });
+                                  setAnchor(vr.index);
+                                  onPickCell?.(row.index, id, v);
+                                }}
                               >
                                 {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                                <button
+                                  type="button"
+                                  tabIndex={-1}
+                                  title={t('table.copyValue')}
+                                  aria-label={t('table.copyValue')}
+                                  className="absolute top-0.5 right-0.5 hidden group-hover/cell:flex items-center justify-center h-5 w-5 rounded border bg-background/95 text-muted-foreground hover:text-foreground shadow-sm"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    copyText(cellText(v), t('table.copiedValue'));
+                                  }}
+                                >
+                                  <Copy className="h-3 w-3" />
+                                </button>
                               </td>
                             );
                           })}
@@ -449,14 +666,33 @@ export function DBResultTable({
             </table>
           </div>
         </ContextMenuTrigger>
-        <ContextMenuContent className="w-56">
-          {menuCell ? (
+        <ContextMenuContent className="w-60">
+          {menuHeader ? (
+            <HeaderMenu
+              colName={menuHeader}
+              visibleCols={visibleColIds}
+              values={rows.map((r) => r.original[menuHeader])}
+              dbKind={dbKind}
+              isPinned={prefs.pinned.includes(menuHeader)}
+              onSort={(desc) => table.getColumn(menuHeader)?.toggleSorting(desc, false)}
+              onTogglePinned={() => togglePinned(fp, menuHeader)}
+              onHide={() => setHidden(fp, [...prefs.hidden, menuHeader])}
+            />
+          ) : menuCell ? (
             <CellMenu
               colName={menuCell.colName}
               value={menuValue}
-              row={menuRowObj ?? {}}
-              allColNames={allColNames}
+              rows={menuRows}
+              dbKind={dbKind}
               isPinned={prefs.pinned.includes(menuCell.colName)}
+              isRowSelected={selected.has(menuCell.rowIndex)}
+              onCopyRows={(fmt) => copyRows(fmt, menuRows)}
+              onDownloadRows={(fmt) => downloadRows(fmt, visibleColIds, menuRows, menuRows.length > 1 ? 'selection' : 'row')}
+              onToggleRow={() => setSelected((prev) => {
+                const next = new Set(prev);
+                if (next.has(menuCell.rowIndex)) next.delete(menuCell.rowIndex); else next.add(menuCell.rowIndex);
+                return next;
+              })}
               onAddFilter={onAddFilter}
               onOpenFK={onOpenFK}
               onTogglePinned={() => togglePinned(fp, menuCell.colName)}
@@ -478,42 +714,159 @@ export function DBResultTable({
   );
 }
 
+function SelectionBar({
+  count, onCopy, onDownload, onClear,
+}: {
+  count: number;
+  onCopy: (fmt: CopyFormat) => void;
+  onDownload: (fmt: DownloadFormat) => void;
+  onClear: () => void;
+}) {
+  const { t } = useTranslation('dbquery');
+  return (
+    // Floats over the grid instead of pushing it down: a bar that shifts the
+    // rows would move the next shift-click onto a different row.
+    <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-40 flex items-center gap-1.5 px-2 py-1 rounded-md border bg-popover shadow-lg text-xs whitespace-nowrap">
+      <span className="font-medium">{t('table.rowsSelected', { count })}</span>
+      <button
+        type="button"
+        onClick={() => onCopy('tsv')}
+        className="inline-flex items-center gap-1 rounded px-1.5 py-0.5 hover:bg-accent"
+        title={t('table.copyShortcut')}
+      >
+        <Copy className="h-3 w-3" /> {t('table.copy')}
+        <span className="text-[10px] text-muted-foreground">⌘C</span>
+      </button>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <button type="button" className="inline-flex items-center gap-1 rounded px-1.5 py-0.5 hover:bg-accent">
+            {t('table.copyAs')}
+          </button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="start">
+          {COPY_FORMATS.map((f) => (
+            <DropdownMenuItem key={f} onClick={() => onCopy(f)}>{t(`table.fmt.${f}`)}</DropdownMenuItem>
+          ))}
+        </DropdownMenuContent>
+      </DropdownMenu>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <button type="button" className="inline-flex items-center gap-1 rounded px-1.5 py-0.5 hover:bg-accent">
+            <Download className="h-3 w-3" /> {t('table.download')}
+          </button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="start">
+          <DropdownMenuLabel className="text-[11px]">{t('table.downloadSelected', { count })}</DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          {DOWNLOAD_FORMATS.map((f) => (
+            <DropdownMenuItem key={f} onClick={() => onDownload(f)}>{t(`table.dl.${f}`)}</DropdownMenuItem>
+          ))}
+        </DropdownMenuContent>
+      </DropdownMenu>
+      <button
+        type="button"
+        onClick={onClear}
+        className="inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-muted-foreground hover:text-foreground hover:bg-accent"
+        title="Esc"
+      >
+        <X className="h-3 w-3" /> {t('table.clearSelection')}
+      </button>
+    </div>
+  );
+}
+
+function HeaderMenu({
+  colName, visibleCols, values, dbKind, isPinned, onSort, onTogglePinned, onHide,
+}: {
+  colName: string;
+  visibleCols: string[];
+  values: unknown[];
+  dbKind?: DBKind;
+  isPinned: boolean;
+  onSort: (desc: boolean) => void;
+  onTogglePinned: () => void;
+  onHide: () => void;
+}) {
+  const { t } = useTranslation('dbquery');
+  return (
+    <>
+      <ContextMenuItem onClick={() => copyText(colName, t('table.copiedName'))}>{t('table.copyColumnName')}</ContextMenuItem>
+      <ContextMenuItem onClick={() => copyText(visibleCols.join(', '), t('table.copiedName'))}>{t('table.copyAllColumnNames')}</ContextMenuItem>
+      <ContextMenuItem onClick={() => copyText(values.map(cellText).join('\n'), t('table.copiedValues', { count: values.length }))}>
+        {t('table.copyColumnValues')}
+      </ContextMenuItem>
+      {dbKind !== 'mongo' && (
+        <ContextMenuItem onClick={() => copyText(`${colName} IN ${inList(values, dbKind)}`, t('table.copiedValues', { count: values.length }))}>
+          {t('table.copyColumnIn')}
+        </ContextMenuItem>
+      )}
+      <ContextMenuSeparator />
+      <ContextMenuItem onClick={() => onSort(false)}>{t('table.sortAsc')}</ContextMenuItem>
+      <ContextMenuItem onClick={() => onSort(true)}>{t('table.sortDesc')}</ContextMenuItem>
+      <ContextMenuSeparator />
+      <ContextMenuItem onClick={onTogglePinned}>
+        {isPinned ? t('table.unfreezeColumn') : t('table.freezeColumn')}
+      </ContextMenuItem>
+      <ContextMenuItem onClick={onHide}>{t('table.hideColumn')}</ContextMenuItem>
+    </>
+  );
+}
+
 function CellMenu({
-  colName, value, onAddFilter, onTogglePinned, isPinned, row, allColNames, onOpenFK, onShowJson,
+  colName, value, rows, dbKind, isPinned, isRowSelected,
+  onCopyRows, onDownloadRows, onToggleRow, onAddFilter, onTogglePinned, onOpenFK, onShowJson,
 }: {
   colName: string;
   value: unknown;
+  rows: RowObj[];
+  dbKind?: DBKind;
+  isPinned: boolean;
+  isRowSelected: boolean;
+  onCopyRows: (fmt: CopyFormat) => void;
+  onDownloadRows: (fmt: DownloadFormat) => void;
+  onToggleRow: () => void;
   onAddFilter?: (col: string, op: '=' | '!=' | 'LIKE' | 'IS NULL' | 'IS NOT NULL', value: unknown) => void;
   onTogglePinned: () => void;
-  isPinned: boolean;
-  row: Record<string, unknown>;
-  allColNames: string[];
   onOpenFK?: (col: string, value: unknown) => void;
   onShowJson: () => void;
 }) {
   const { t } = useTranslation('dbquery');
-  const text = value == null ? 'NULL' : typeof value === 'object' ? JSON.stringify(value) : String(value);
-  const copy = (s: string) => navigator.clipboard.writeText(s).catch(() => {/* ignore */});
-  const insertSql = (() => {
-    const cs = allColNames.map((c) => `"${c}"`).join(', ');
-    const vs = allColNames.map((c) => sqlLiteral(row[c])).join(', ');
-    return `INSERT INTO "<table>" (${cs}) VALUES (${vs});`;
-  })();
+  const n = rows.length;
   return (
     <>
-      <ContextMenuItem onClick={() => copy(text)}>{t('table.copyValue')}</ContextMenuItem>
+      <ContextMenuItem onClick={() => copyText(cellText(value), t('table.copiedValue'))}>
+        {t('table.copyValue')}
+        <span className="ml-auto text-[10px] text-muted-foreground">⌘C</span>
+      </ContextMenuItem>
+      <ContextMenuItem onClick={() => copyText(colName, t('table.copiedName'))}>{t('table.copyColumnName')}</ContextMenuItem>
+      {dbKind !== 'mongo' && (
+        <ContextMenuItem onClick={() => copyText(whereCondition(colName, value, dbKind), t('table.copiedValue'))}>
+          {t('table.copyWhere')}
+        </ContextMenuItem>
+      )}
       {canShowAsJson(value) && (
         <ContextMenuItem onClick={onShowJson}>{t('table.showAsJson')}</ContextMenuItem>
       )}
+      <ContextMenuSeparator />
       <ContextMenuSub>
-        <ContextMenuSubTrigger>{t('table.copyAs')}</ContextMenuSubTrigger>
+        <ContextMenuSubTrigger>{n > 1 ? t('table.copyRowsAs', { count: n }) : t('table.copyRowAs')}</ContextMenuSubTrigger>
         <ContextMenuSubContent>
-          <ContextMenuItem onClick={() => copy(text)}>{t('table.copyPlain')}</ContextMenuItem>
-          <ContextMenuItem onClick={() => copy(JSON.stringify(row, null, 2))}>{t('table.copyRowJson')}</ContextMenuItem>
-          <ContextMenuItem onClick={() => copy(insertSql)}>{t('table.copyRowInsert')}</ContextMenuItem>
-          <ContextMenuItem onClick={() => copy(colName)}>{t('table.copyColumnName')}</ContextMenuItem>
+          {COPY_FORMATS.filter((f) => f !== 'insert' || dbKind !== 'mongo').map((f) => (
+            <ContextMenuItem key={f} onClick={() => onCopyRows(f)}>{t(`table.fmt.${f}`)}</ContextMenuItem>
+          ))}
         </ContextMenuSubContent>
       </ContextMenuSub>
+      <ContextMenuSub>
+        <ContextMenuSubTrigger>{n > 1 ? t('table.downloadRows', { count: n }) : t('table.downloadRow')}</ContextMenuSubTrigger>
+        <ContextMenuSubContent>
+          {DOWNLOAD_FORMATS.map((f) => (
+            <ContextMenuItem key={f} onClick={() => onDownloadRows(f)}>{t(`table.dl.${f}`)}</ContextMenuItem>
+          ))}
+        </ContextMenuSubContent>
+      </ContextMenuSub>
+      <ContextMenuItem onClick={onToggleRow}>
+        {isRowSelected ? t('table.deselectRow') : t('table.selectRow')}
+      </ContextMenuItem>
       {onAddFilter && value != null && (
         <>
           <ContextMenuSeparator />
@@ -550,14 +903,6 @@ function CellMenu({
       </ContextMenuItem>
     </>
   );
-}
-
-function sqlLiteral(v: unknown): string {
-  if (v === null || v === undefined) return 'NULL';
-  if (typeof v === 'number' || typeof v === 'bigint') return String(v);
-  if (typeof v === 'boolean') return v ? 'TRUE' : 'FALSE';
-  if (typeof v === 'object') return `'${JSON.stringify(v).replace(/'/g, "''")}'::jsonb`;
-  return `'${String(v).replace(/'/g, "''")}'`;
 }
 
 function rowToObject(cols: string[]) {

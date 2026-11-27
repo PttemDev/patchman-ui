@@ -1,4 +1,4 @@
-import { CloudCog, Plus, X, Code, Copy as CopyIcon, Pencil, Files, XCircle, ArrowRightFromLine, Database, Radio, HardDrive, GitBranch, Wrench, ExternalLink, Shapes, NotebookText, LayoutDashboard, Rabbit, Waypoints, ScrollText, Puzzle } from 'lucide-react';
+import { CloudCog, Plus, X, Code, Copy as CopyIcon, Pencil, Files, XCircle, ArrowRightFromLine, Database, Radio, HardDrive, GitBranch, Wrench, ExternalLink, Shapes, NotebookText, LayoutDashboard, Rabbit, Waypoints, ScrollText, Puzzle, ClipboardCheck } from 'lucide-react';
 import { toolDef } from '@/components/devtools/registry';
 import { useTranslation } from 'react-i18next';
 import { useState, useCallback, useEffect, useRef, Fragment } from 'react';
@@ -34,6 +34,8 @@ import { K8sIcon } from '@/components/icons/K8sIcon';
 import { TabBody } from './TabBody';
 import { detachTab, focusDetachedWindow } from '@/lib/detach/DetachController';
 import type { Tab } from '@/types';
+import { TerminalTabGlyph } from '@/components/terminal/ProgramIcon';
+import { renameSession, useTerminalSessions } from '@/components/terminal/terminalSessions';
 
 const methodColors: Record<string, string> = {
   GET: 'text-green-500',
@@ -46,7 +48,7 @@ const methodColors: Record<string, string> = {
 };
 
 /** The small type glyph shown in a (live or detached-placeholder) tab slot. */
-function tabGlyph(tab: Pick<Tab, 'type' | 'toolKind' | 'method'>) {
+function tabGlyph(tab: Pick<Tab, 'type' | 'toolKind' | 'method' | 'terminalSessionId'>) {
   switch (tab.type) {
     case 'db':
       return <Database className="h-3 w-3 text-cyan-500 shrink-0" />;
@@ -76,8 +78,12 @@ function tabGlyph(tab: Pick<Tab, 'type' | 'toolKind' | 'method'>) {
       return <CloudCog className="h-3 w-3 text-sky-500 shrink-0" />;
     case 'servicemap':
       return <Waypoints className="h-3 w-3 text-violet-500 shrink-0" />;
+    case 'qahub':
+      return <ClipboardCheck className="h-3 w-3 text-primary shrink-0" />;
     case 'plugin':
       return <Puzzle className="h-3 w-3 text-fuchsia-500 shrink-0" />;
+    case 'terminal':
+      return <TerminalTabGlyph sessionId={tab.terminalSessionId} />;
     case 'tool': {
       const ToolIcon = toolDef(tab.toolKind)?.icon ?? Wrench;
       return <ToolIcon className="h-3 w-3 text-violet-400 shrink-0" />;
@@ -240,12 +246,19 @@ export function RequestPanel() {
 
   const handleDoubleClick = (tabId: string, currentName: string) => {
     setEditingTabId(tabId);
-    setEditingName(currentName || t('tab.newRequest'));
+    // A terminal tab edits its session's own name (empty = the automatic title),
+    // so committing untouched doesn't freeze the title that follows the command.
+    const term = tabs.find((x) => x.id === tabId && x.type === 'terminal');
+    const session = term && useTerminalSessions.getState().sessions.find((s) => s.id === term.terminalSessionId);
+    setEditingName(term ? (session?.name ?? '') : currentName || t('tab.newRequest'));
   };
 
   const commitRename = () => {
     const name = editingName.trim();
-    if (editingTabId && name) {
+    const term = tabs.find((x) => x.id === editingTabId && x.type === 'terminal');
+    if (term?.terminalSessionId) {
+      renameSession(term.terminalSessionId, name); // the tab title mirrors it (terminalView)
+    } else if (editingTabId && name) {
       updateTab(editingTabId, { name });
       // Renaming a whiteboard tab renames the board itself (which in turn
       // re-syncs the tab title) — keeps the two names in lockstep.
@@ -348,8 +361,12 @@ export function RequestPanel() {
                           ? 'Google Cloud'
                           : tab.type === 'servicemap'
                           ? t('tab.detail.servicemap')
+                          : tab.type === 'qahub'
+                          ? t('tab.detail.qahub')
                           : tab.type === 'plugin'
                           ? t('tab.detail.plugin')
+                          : tab.type === 'terminal'
+                          ? t('tab.detail.terminal', { cwd: useTerminalSessions.getState().sessions.find((s) => s.id === tab.terminalSessionId)?.cwd ?? '' })
                           : `${tab.method} ${tab.url || t('tab.detail.noUrl')}`;
               return (
                 <ContextMenu key={tab.id}>
@@ -404,6 +421,7 @@ export function RequestPanel() {
                           autoFocus
                           className="flex-1 min-w-0 bg-transparent border-b border-primary outline-none text-xs px-0.5"
                           value={editingName}
+                          placeholder={tab.type === 'terminal' ? tab.name : undefined}
                           onChange={(e) => setEditingName(e.target.value)}
                           onBlur={commitRename}
                           onKeyDown={(e) => {
@@ -465,10 +483,13 @@ export function RequestPanel() {
                       {t('tab.newTab')}
                       <ContextMenuShortcut>⌘T</ContextMenuShortcut>
                     </ContextMenuItem>
-                    <ContextMenuItem onSelect={() => cloneTab(tab.id)}>
-                      <Files className="h-3.5 w-3.5 mr-2" />
-                      {t('tab.cloneTab')}
-                    </ContextMenuItem>
+                    {/* A terminal tab is a view of one live shell: no copies. */}
+                    {tab.type !== 'terminal' && (
+                      <ContextMenuItem onSelect={() => cloneTab(tab.id)}>
+                        <Files className="h-3.5 w-3.5 mr-2" />
+                        {t('tab.cloneTab')}
+                      </ContextMenuItem>
+                    )}
                     <ContextMenuItem onSelect={() => detachTab(tab.id)}>
                       <ExternalLink className="h-3.5 w-3.5 mr-2" />
                       {t('tab.detachTab')}

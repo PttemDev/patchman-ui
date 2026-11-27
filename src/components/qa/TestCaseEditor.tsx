@@ -1,10 +1,10 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, type ReactNode } from 'react';
 import { useTranslation, Trans } from 'react-i18next';
 import type { TFunction } from 'i18next';
 import {
   Plus, Trash2, History, RotateCcw, Eye, ChevronDown, ChevronUp,
   Send, ShieldCheck, Variable, Clock, Play, Check, Info,
-  CheckCircle2, XCircle, AlertTriangle, ListChecks,
+  CheckCircle2, XCircle, AlertTriangle, ListChecks, Users,
 } from 'lucide-react';
 import { testCasesAPI, testCaseVersionsAPI } from '@/services/api';
 import { parseCurlAsRecord } from '@/lib/parseCurl';
@@ -35,6 +35,8 @@ import { VariableInput, VariableTextarea, RuntimeVarsProvider } from '@/componen
 import { useAuthStore } from '@/stores/authStore';
 import { activeRunEnv, runErrorResult, runtimeVarsBefore } from './stepVars';
 import type { TestCase, TestStep, TestCaseVersion, TestExecutionResult } from '@/types';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { QAMoveSubmenu } from '@/components/qahub/QAScope';
 
 // ── Shared constants ──
 
@@ -299,6 +301,8 @@ interface TestCaseEditorProps {
   onSaved: () => void;
   /** Folder a NEW case is filed in (null/undefined = root). Ignored on edit. */
   folderId?: string | null;
+  /** 'panel': render inline (CR + QA Hub's right pane) instead of a dialog. */
+  variant?: 'dialog' | 'panel';
 }
 
 export function TestCaseEditor({
@@ -307,7 +311,10 @@ export function TestCaseEditor({
   testCase,
   onSaved,
   folderId,
+  variant = 'dialog',
 }: TestCaseEditorProps) {
+  const panel = variant === 'panel';
+  const me = useAuthStore((s) => s.user?.id);
   const { t } = useTranslation('qa');
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -315,6 +322,7 @@ export function TestCaseEditor({
   const [status, setStatus] = useState('draft');
   const [type, setType] = useState('functional');
   const [tags, setTags] = useState('');
+  const [jiraKey, setJiraKey] = useState('');
   const [steps, setSteps] = useState<TestStep[]>([]);
   const [expandedSteps, setExpandedSteps] = useState<Set<number>>(new Set());
   const [headerExpanded, setHeaderExpanded] = useState<Set<number>>(new Set());
@@ -334,6 +342,7 @@ export function TestCaseEditor({
       // manual/automated; show them as functional rather than an empty select.
       setType(CASE_TYPES.includes(testCase.type) ? testCase.type : 'functional');
       setTags(Array.isArray(testCase.tags) ? testCase.tags.join(', ') : '');
+      setJiraKey(testCase.jiraKey ?? '');
       const parsed = Array.isArray(testCase.steps) ? testCase.steps : [];
       setSteps(parsed.length > 0 ? parsed : []);
       setExpandedSteps(new Set(parsed.map((_, i) => i)));
@@ -344,6 +353,7 @@ export function TestCaseEditor({
       setStatus('draft');
       setType('functional');
       setTags('');
+      setJiraKey('');
       setSteps([]);
       setExpandedSteps(new Set());
     }
@@ -518,6 +528,7 @@ export function TestCaseEditor({
         tags: tags.split(',').map((t) => t.trim()).filter(Boolean),
         steps,
         status,
+        jiraKey: jiraKey.trim().toUpperCase(),
       };
 
       if (testCase) {
@@ -552,6 +563,7 @@ export function TestCaseEditor({
           tags: tags.split(',').map((t) => t.trim()).filter(Boolean),
           steps,
           status: testCase.status || 'draft',
+          jiraKey: jiraKey.trim().toUpperCase(),
         });
         onSaved();
       } catch {
@@ -998,14 +1010,20 @@ export function TestCaseEditor({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl !grid-rows-[auto_1fr_auto] max-h-[85vh] overflow-hidden">
-        <DialogHeader className="shrink-0">
-          <DialogTitle>{testCase ? t('caseEditor.editTitle') : t('caseEditor.newTitle')}</DialogTitle>
-          <DialogDescription>
-            {t('caseEditor.dialogDescription')}
-          </DialogDescription>
-        </DialogHeader>
+    <EditorShell panel={panel} open={open} onOpenChange={onOpenChange}>
+        {panel ? (
+          <div className="shrink-0 space-y-0.5 border-b pb-3">
+            <h3 className="text-sm font-semibold">{testCase ? t('caseEditor.editTitle') : t('caseEditor.newTitle')}</h3>
+            <p className="text-xs text-muted-foreground">{t('caseEditor.dialogDescription')}</p>
+          </div>
+        ) : (
+          <DialogHeader className="shrink-0">
+            <DialogTitle>{testCase ? t('caseEditor.editTitle') : t('caseEditor.newTitle')}</DialogTitle>
+            <DialogDescription>
+              {t('caseEditor.dialogDescription')}
+            </DialogDescription>
+          </DialogHeader>
+        )}
 
         <ScrollArea className="overflow-auto pr-2 -mr-2">
           <div className="grid gap-3 py-2">
@@ -1063,6 +1081,11 @@ export function TestCaseEditor({
                 <Label className="text-[10px]">{t('caseEditor.tagsLabel')}</Label>
                 <Input value={tags} onChange={(e) => setTags(e.target.value)}
                   placeholder={t('caseEditor.tagsPlaceholder')} className="h-7 text-[10px]" />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-[10px]" title={t('caseEditor.jiraKeyHint')}>{t('caseEditor.jiraKey')}</Label>
+                <Input value={jiraKey} onChange={(e) => setJiraKey(e.target.value.toUpperCase())}
+                  placeholder="MER-123" className="h-7 font-mono text-[10px]" />
               </div>
             </div>
 
@@ -1203,6 +1226,23 @@ export function TestCaseEditor({
               {t('common:delete')}
             </Button>
           ) : <div />}
+          {testCase && (!testCase.userId || testCase.userId === me) && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" className="mr-auto h-7 gap-1 text-xs text-muted-foreground">
+                  <Users className="h-3 w-3" /> {t('hub.move.share')}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start">
+                <QAMoveSubmenu
+                  kind="case"
+                  id={testCase.id}
+                  currentWorkspaceId={testCase.workspaceId}
+                  onMoved={() => { onSaved(); onOpenChange(false); }}
+                />
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
           <div className="flex gap-2">
             <Button variant="outline" size="sm" className="h-7 text-xs" onClick={() => onOpenChange(false)}>
               {t('common:cancel')}
@@ -1224,6 +1264,30 @@ export function TestCaseEditor({
             </Button>
           </div>
         </DialogFooter>
+    </EditorShell>
+  );
+}
+
+// The editor's frame: a dialog, or (CR + QA Hub) an inline panel that fills
+// its column.
+function EditorShell({ panel, open, onOpenChange, children }: {
+  panel: boolean;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  children: ReactNode;
+}) {
+  if (panel) {
+    if (!open) return null;
+    return (
+      <div className="grid h-full max-h-[calc(100vh-15rem)] min-h-0 grid-rows-[auto_1fr_auto] gap-3 overflow-hidden rounded-lg border bg-card p-4">
+        {children}
+      </div>
+    );
+  }
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-2xl !grid-rows-[auto_1fr_auto] max-h-[85vh] overflow-hidden">
+        {children}
       </DialogContent>
     </Dialog>
   );

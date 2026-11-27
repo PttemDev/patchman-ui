@@ -19,6 +19,7 @@ import {
   ArrowUpFromLine,
   Check,
   Maximize2,
+  RefreshCw,
 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { gitAPI, type DBScope } from '@/services/api';
@@ -63,7 +64,7 @@ import { GitFindInFiles, GitSearchEverywhere } from './GitSearchDialogs';
 import { GitFolderMenu, RecentFolderList, openGitFolder, pickGitFolder } from './GitFolderMenu';
 import { useGitRecentFoldersStore } from '@/stores/gitRecentFoldersStore';
 import { GIT_KEYMAP, shortcutHint, useScopedKeymap } from '@/lib/keymap';
-import type { GitRefs } from '@/types';
+import type { GitHistoryOpResult, GitRefs, GitStatus } from '@/types';
 import type { Tab, GitRepoSummary, GitBranch, GitCommit, GitFileDiff } from '@/types';
 
 type Mode = 'history' | 'browse' | 'changes' | 'mrs' | 'ci';
@@ -184,6 +185,10 @@ export function GitPanel({ tab }: { tab: Tab }) {
   // JetBrains-style VCS surface for a local clone (GIT_IDE_PLAN P1).
   const [refs, setRefs] = useState<GitRefs | null>(null);
   const [refsKey, setRefsKey] = useState(0);
+  // Git status per path for tab colours, and files with unsaved edits (the
+  // tree shows both). Re-read after every save / git action (refsKey).
+  const [vcsStatus, setVcsStatus] = useState<Record<string, string>>({});
+  const [unsavedPaths, setUnsavedPaths] = useState<string[]>([]);
   const [branchPopupOpen, setBranchPopupOpen] = useState(false);
   const [updateOpen, setUpdateOpen] = useState(false);
   const [remotesOpen, setRemotesOpen] = useState(false);
@@ -375,6 +380,22 @@ export function GitPanel({ tab }: { tab: Tab }) {
   const editorDirtyRef = useRef(false);
   const changesDirtyRef = useRef(false);
   const handleEditorDirty = useCallback((d: boolean) => { editorDirtyRef.current = d; }, []);
+  const localRepoIdForStatus = localRepo?.id;
+  useEffect(() => {
+    if (!localRepoIdForStatus) { setVcsStatus({}); return; }
+    let cancelled = false;
+    gitAPI.status(localRepoIdForStatus).then((res) => {
+      if (cancelled) return;
+      const st = res.data as GitStatus;
+      const m: Record<string, string> = {};
+      for (const e of st.staged ?? []) m[e.path] = e.status === 'untracked' ? 'added' : e.status;
+      for (const e of st.unstaged ?? []) if (!m[e.path] || e.status !== 'modified') m[e.path] = m[e.path] === 'added' ? 'added' : e.status;
+      for (const p of st.untracked ?? []) m[p] = 'untracked';
+      for (const p of st.conflicted ?? []) m[p] = 'conflicted';
+      setVcsStatus(m);
+    }).catch(() => { if (!cancelled) setVcsStatus({}); });
+    return () => { cancelled = true; };
+  }, [localRepoIdForStatus, refsKey, reloadKey]);
   const handleChangesDirty = useCallback((d: boolean) => { changesDirtyRef.current = d; }, []);
   // Auto save on: the workspace editor hands us a flush, so leaving the
   // editor saves instead of asking to discard (it still asks if a save fails).
@@ -491,13 +512,31 @@ export function GitPanel({ tab }: { tab: Tab }) {
   }, [localRepo, openFile, toast, t]);
 
   const [findOpen, setFindOpen] = useState(false);
-  const [findInitial, setFindInitial] = useState<{ q: string; word?: boolean; caseSensitive?: boolean } | undefined>();
+  const [findInitial, setFindInitial] = useState<{ q: string; word?: boolean; caseSensitive?: boolean; mask?: string } | undefined>();
+  // File tree → Git → Show History / Annotate.
+  const [historyPath, setHistoryPath] = useState('');
+  const [annotateReq, setAnnotateReq] = useState<{ path: string; seq: number } | undefined>();
+  // Files to re-read from disk after a rollback.
+  const [reloadReq, setReloadReq] = useState<{ paths: string[]; seq: number } | undefined>();
+  const reloadFromDisk = useCallback((paths: string[]) => setReloadReq((r) => ({ paths, seq: (r?.seq ?? 0) + 1 })), []);
   const [everywhere, setEverywhere] = useState<null | 'all' | 'files' | 'symbols' | 'actions'>(null);
   const findUsages = useCallback((word: string) => { setFindInitial({ q: word, word: true, caseSensitive: true }); setFindOpen(true); }, []);
   const closeFile = useCallback((p: string) => {
     const files = (tab.gitOpenFiles ?? []).filter((x) => x !== p);
     const i = (tab.gitOpenFiles ?? []).indexOf(p);
     updateTab(tab.id, { gitOpenFiles: files, gitActiveFile: tab.gitActiveFile === p ? files[Math.max(0, i - 1)] ?? '' : tab.gitActiveFile });
+  }, [tab.id, tab.gitOpenFiles, tab.gitActiveFile, updateTab]);
+  const closeFiles = useCallback((paths: string[]) => {
+    const drop = new Set(paths);
+    const all = tab.gitOpenFiles ?? [];
+    const files = all.filter((x) => !drop.has(x));
+    let activeFile = tab.gitActiveFile ?? '';
+    if (drop.has(activeFile)) {
+      // The nearest kept tab to the left of the closed active one, else the first.
+      const i = all.indexOf(activeFile);
+      activeFile = [...all.slice(0, i)].reverse().find((x) => !drop.has(x)) ?? files[0] ?? '';
+    }
+    updateTab(tab.id, { gitOpenFiles: files, gitActiveFile: activeFile });
   }, [tab.id, tab.gitOpenFiles, tab.gitActiveFile, updateTab]);
   const onTreeChanged = useCallback((from?: string, to?: string) => {
     const files = tab.gitOpenFiles ?? [];
@@ -541,9 +580,12 @@ export function GitPanel({ tab }: { tab: Tab }) {
   // ── clone ───────────────────────────────────────────────────────────
   const touchRecent = useGitRecentFoldersStore((s) => s.touch);
   const recentCount = useGitRecentFoldersStore((s) => s.folders.length);
-  const handleClone = useCallback(async () => {
-    if (!conn || !selectedRepo) return;
+  // Clones the selected project (or reuses the tree the BE already has) and
+  // returns it; null when it failed (a toast already said why).
+  const cloneSelected = useCallback(async (): Promise<{ id: string; connectionId: string } | null> => {
+    if (!conn || !selectedRepo) return null;
     setCloning(true);
+    let out: { id: string; connectionId: string } | null = null;
     try {
       const accessToken = await gitOpsToken(conn.id);
       const repoId = crypto.randomUUID();
@@ -561,12 +603,62 @@ export function GitPanel({ tab }: { tab: Tab }) {
       await loadLocalRepos();
       // The BE answers an existing tree of this project instead of cloning
       // again — open that one.
-      updateTab(tab.id, { gitRepoId: row?.id || repoId, gitView: 'changes' });
+      out = { id: row?.id || repoId, connectionId: row?.connectionId || conn.id };
     } catch (err) {
       toast({ title: t('clone.failedTitle'), description: extractErr(err, t('errors.clone')), variant: 'destructive' });
     }
     setCloning(false);
-  }, [conn, selectedRepo, toast, loadLocalRepos, tab.id, updateTab, t, touchRecent]);
+    return out;
+  }, [conn, selectedRepo, toast, loadLocalRepos, t, touchRecent]);
+
+  const handleClone = useCallback(async () => {
+    const r = await cloneSelected();
+    if (r) updateTab(tab.id, { gitRepoId: r.id, gitView: 'changes' });
+  }, [cloneSelected, tab.id, updateTab]);
+
+  // MR "Resolve conflicts": GitLab/GitHub can't resolve conflicts through
+  // their APIs, so do what a developer does — on the local clone (cloned
+  // here when missing) check out the source branch, bring it up to date,
+  // merge the target branch into it, and open the resolver on the
+  // conflicts. Committing the merge and pushing updates the MR.
+  const [resolvingMR, setResolvingMR] = useState(false);
+  const resolveMRConflicts = useCallback(async (src: string, dst: string) => {
+    if (!desktop) return;
+    setResolvingMR(true);
+    try {
+      const repo = localRepo ? { id: localRepo.id, connectionId: localRepo.connectionId } : await cloneSelected();
+      if (!repo) return;
+      const st = (await gitAPI.status(repo.id)).data as GitStatus;
+      if ((st.staged?.length ?? 0) + (st.unstaged?.length ?? 0) + (st.conflicted?.length ?? 0) > 0) {
+        toast({ title: t('mr.resolveDirtyTitle'), description: t('mr.resolveDirtyDesc', { branch: st.branch }), variant: 'destructive' });
+        updateTab(tab.id, { gitRepoId: repo.id, gitView: 'changes' });
+        return;
+      }
+      let accessToken = '';
+      try { accessToken = await gitOpsToken(repo.connectionId); } catch { /* public repo */ }
+      await gitAPI.fetch(repo.id, { accessToken, remote: 'origin' });
+      await gitAPI.checkout(repo.id, { accessToken, ref: `origin/${src}` });
+      // An existing local branch may be behind the MR: catch it up first.
+      const up = (await gitAPI.merge(repo.id, { accessToken, ref: `origin/${src}` })).data as GitHistoryOpResult;
+      const res = up?.conflicts
+        ? up
+        : (await gitAPI.merge(repo.id, { accessToken, ref: `origin/${dst}` })).data as GitHistoryOpResult;
+      updateTab(tab.id, { gitRepoId: repo.id, gitRef: src, gitView: 'changes' });
+      if (res?.conflicts) {
+        toast({
+          title: t('mr.resolveOpenedTitle', { count: res.state?.conflicted.length ?? 0 }),
+          description: t('mr.resolveOpenedDesc', { src, dst }),
+        });
+      } else {
+        toast({ title: t('mr.resolveCleanTitle'), description: t('mr.resolveCleanDesc', { src, dst }) });
+      }
+      afterOp();
+    } catch (err) {
+      toast({ title: t('mr.resolveFailed'), description: extractErr(err, t('mr.resolveFailed')), variant: 'destructive' });
+    } finally {
+      setResolvingMR(false);
+    }
+  }, [desktop, localRepo, cloneSelected, toast, t, updateTab, tab.id, afterOp]);
 
   // A folder that auto-matched a connection unusable here (CI/CD then said
   // "Connection not found") is moved, once, to a usable connection on the
@@ -668,7 +760,12 @@ export function GitPanel({ tab }: { tab: Tab }) {
           </button>
           <span className="text-[11px] font-medium text-muted-foreground">{t('header.project')}</span>
           {/* Repo picker (searchable) */}
-          <Popover open={repoPickerOpen} onOpenChange={(o) => { if (connId || (desktop && recentCount > 0)) setRepoPickerOpen(o); }}>
+          <Popover open={repoPickerOpen} onOpenChange={(o) => {
+            if (!(connId || (desktop && recentCount > 0))) return;
+            setRepoPickerOpen(o);
+            // A list that failed (VPN was off, network blip) loads again on open.
+            if (o && connId && !reposLoading && (reposError || repos.length === 0)) void loadRepos(connId, repoSearch);
+          }}>
             <PopoverTrigger asChild>
               <Button
                 variant="outline"
@@ -687,16 +784,30 @@ export function GitPanel({ tab }: { tab: Tab }) {
                   value={repoSearch}
                   onChange={(e) => handleRepoSearch(e.target.value)}
                   placeholder={t('repoPicker.searchPlaceholder')}
-                  className="h-9 border-0 pl-8 text-xs focus-visible:ring-0"
+                  className="h-9 border-0 pl-8 pr-8 text-xs focus-visible:ring-0"
                   autoFocus
                 />
-                {reposLoading && <Loader2 className="absolute right-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 animate-spin text-muted-foreground" />}
+                {reposLoading ? (
+                  <Loader2 className="absolute right-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 animate-spin text-muted-foreground" />
+                ) : connId && (
+                  <button type="button" onClick={() => void loadRepos(connId, repoSearch)}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    title={t('common:refresh')} aria-label={t('common:refresh')}>
+                    <RefreshCw className="h-3.5 w-3.5" />
+                  </button>
+                )}
               </div>
               <div className="max-h-[300px] overflow-auto py-1">
                 {reposError ? (
                   <div className="flex items-start gap-2 m-2 p-2 rounded bg-destructive/10 text-destructive text-xs">
                     <AlertTriangle className="h-3.5 w-3.5 shrink-0 mt-0.5" />
-                    <span className="min-w-0 break-words">{reposError}</span>
+                    <span className="min-w-0 flex-1 break-words">{reposError}</span>
+                    {connId && (
+                      <button type="button" onClick={() => void loadRepos(connId, repoSearch)} disabled={reposLoading}
+                        className="shrink-0 underline underline-offset-2 hover:no-underline">
+                        {t('common:retry')}
+                      </button>
+                    )}
                   </div>
                 ) : repos.length === 0 ? (
                   <div className="px-3 py-6 text-center text-xs text-muted-foreground">
@@ -1073,7 +1184,17 @@ export function GitPanel({ tab }: { tab: Tab }) {
                   onOpen={openFile}
                   onPrompt={setNamePrompt}
                   onChanged={onTreeChanged}
-                  reloadKey={reloadKey}
+                  unsaved={unsavedPaths}
+                  compareRef={currentBranch?.upstream || refs?.local.find((b) => b.name === 'main' || b.name === 'master')?.name || 'HEAD'}
+                  onShowHistory={(path) => { setHistoryPath(path); updateTab(tab.id, { gitView: 'history' }); }}
+                  onAnnotate={(path) => { openFile(path); setAnnotateReq((r) => ({ path, seq: (r?.seq ?? 0) + 1 })); }}
+                  onFindInFolder={(dir) => { setFindInitial({ q: '', mask: dir ? `${dir}/**` : '' }); setFindOpen(true); }}
+                  onReverted={(path) => {
+                    // Open files (or files under the folder) re-read from disk.
+                    reloadFromDisk([path]);
+                    setRefsKey((k) => k + 1);
+                  }}
+                  reloadKey={reloadKey + refsKey}
                 />
               </div>
             )}
@@ -1106,12 +1227,33 @@ export function GitPanel({ tab }: { tab: Tab }) {
                 useLocal={useLocal}
                 localRepoId={localRepo?.id ?? ''}
                 refsBySha={refsBySha}
+                pathFilter={historyPath || undefined}
+                onClearPath={() => setHistoryPath('')}
               />
             )}
             {mode === 'browse' && editable && localRepo ? (
               <GitWorkspaceEditor
                 key={`ws-${localRepo.id}`}
                 reveal={reveal}
+                annotate={annotateReq}
+                vcsStatus={vcsStatus}
+                reload={reloadReq}
+                onDirtyPaths={setUnsavedPaths}
+                onShowHistory={(p) => { setHistoryPath(p); updateTab(tab.id, { gitView: 'history' }); }}
+                onRollback={async (p) => {
+                  const name = p.split('/').pop() ?? p;
+                  const isNew = vcsStatus[p] === 'untracked' || vcsStatus[p] === 'added';
+                  const ok = await confirmDialog({ title: t('tree.rollbackTitle', { name }), description: isNew ? t('tree.rollbackNewBody') : t('tree.rollbackBody'), destructive: true, confirmLabel: t('tree.rollback') });
+                  if (!ok || !localRepo) return;
+                  try {
+                    if (vcsStatus[p]) await gitAPI.fsOp(localRepo.id, { op: 'rollback', path: p });
+                    if (isNew) closeFile(p); else reloadFromDisk([p]);
+                    setRefsKey((k) => k + 1);
+                    toast({ title: t('tree.rolledBack', { name }) });
+                  } catch (err) {
+                    toast({ title: t('tree.failed'), description: extractErr(err, t('tree.failed')), variant: 'destructive' });
+                  }
+                }}
                 onGotoDefinition={(w, p, l) => void gotoDefinition(w, p, l)}
                 onFindUsages={findUsages}
                 onCaret={(p, l) => { caretRef.current = { path: p, line: l }; }}
@@ -1120,6 +1262,8 @@ export function GitPanel({ tab }: { tab: Tab }) {
                 active={tab.gitActiveFile}
                 onActivate={(p) => updateTab(tab.id, { gitActiveFile: p })}
                 onClose={closeFile}
+                onCloseMany={closeFiles}
+                onReorder={(files) => updateTab(tab.id, { gitOpenFiles: files })}
                 onDirtyChange={handleEditorDirty}
                 registerFlush={registerFlush}
                 onSaved={(o) => {
@@ -1162,13 +1306,17 @@ export function GitPanel({ tab }: { tab: Tab }) {
                 currentBranch={refs?.current}
                 defaultBranch={localRepo?.defaultBranch || selectedRepo?.defaultBranch}
                 onCheckedOut={(b) => { afterOp(); onCheckedOut(b); }}
+                onResolveConflicts={desktop && selectedRepo ? resolveMRConflicts : undefined}
+                resolving={resolvingMR}
+                hasLocalClone={!!localRepo}
               />
             )}
             {mode === 'ci' && !folderMode && (
               <GitCIPanel provider={conn?.provider} connId={connId} project={project} gitRef={gitRef} canWrite={!!conn && (!conn.shared || conn.grantRole === 'write')} />
             )}
             {mode === 'changes' && useLocal && localRepo && (
-              <GitChangesPanel key={`changes-${localRepo.id}-${reloadKey}`} repoId={localRepo.id} connectionId={localRepo.connectionId} onChanged={() => { void loadLocalRepos(); setRefsKey((k) => k + 1); }} onDirtyChange={handleChangesDirty} />
+              <GitChangesPanel key={`changes-${localRepo.id}-${reloadKey}`} repoId={localRepo.id} connectionId={localRepo.connectionId} onChanged={() => { void loadLocalRepos(); setRefsKey((k) => k + 1); }} onDirtyChange={handleChangesDirty}
+                onOpenFile={(p) => { updateTab(tab.id, { gitView: 'browse' }); openFile(p); }} />
             )}
           </div>
         </div>
@@ -1204,7 +1352,7 @@ function ToolbarBtn({ icon: Icon, spin, label, count, countClass, title, disable
 
 // ── History (commit DAG + commit detail) ─────────────────────────────────────
 function HistoryView({
-  connId, project, gitRef, useLocal, localRepoId, refsBySha,
+  connId, project, gitRef, useLocal, localRepoId, refsBySha, pathFilter, onClearPath,
 }: {
   connId: string;
   project: string;
@@ -1212,6 +1360,9 @@ function HistoryView({
   useLocal: boolean;
   localRepoId: string;
   refsBySha: Record<string, GitRef[]>;
+  /** Only commits touching this file / folder (file tree → Show History). */
+  pathFilter?: string;
+  onClearPath?: () => void;
 }) {
   const { t } = useTranslation('git');
   const [commits, setCommits] = useState<GitCommit[]>([]);
@@ -1241,7 +1392,7 @@ function HistoryView({
     setSelected(null);
     try {
       if (useLocal && localRepoId) {
-        const res = await gitAPI.log(localRepoId, { ref: gitRef || undefined, limit: 200 });
+        const res = await gitAPI.log(localRepoId, { ref: gitRef || undefined, limit: 200, path: pathFilter || undefined });
         if (seq !== loadSeq.current) return;
         setCommits((res.data as GitCommit[]) ?? []);
         setNextPage(null);
@@ -1261,7 +1412,7 @@ function HistoryView({
       if (seq === loadSeq.current) setLoading(false);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [connId, project, gitRef, useLocal, localRepoId]);
+  }, [connId, project, gitRef, useLocal, localRepoId, pathFilter]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -1280,6 +1431,14 @@ function HistoryView({
   }, [connId, project, gitRef, nextPage, t]);
 
   return (
+    <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
+    {pathFilter && (
+      <div className="flex shrink-0 items-center gap-2 border-b bg-muted/30 px-3 py-1 text-xs">
+        <span className="text-muted-foreground">{t('history.pathFilter')}</span>
+        <span className="min-w-0 truncate font-mono">{pathFilter}</span>
+        <button type="button" className="ml-auto rounded px-1.5 text-muted-foreground hover:bg-accent hover:text-foreground" onClick={onClearPath}>{t('history.clearPath')}</button>
+      </div>
+    )}
     <div ref={splitRef} className="flex-1 min-h-0 flex overflow-hidden">
       <div className={cn('min-h-0 overflow-auto', selected ? 'shrink-0' : 'flex-1')} style={selected ? { width: `${listPct}%` } : undefined}>
         {loading ? (
@@ -1347,6 +1506,7 @@ function HistoryView({
           </DialogContent>
         </Dialog>
       )}
+    </div>
     </div>
   );
 }

@@ -17,6 +17,8 @@ import { useSidebarStore } from '@/stores/sidebarStore';
 import { useAppStartupNotices } from '@/hooks/useAppStartupNotices';
 import { ImpersonationBanner } from '@/components/admin/ImpersonationBanner';
 import { PluginDevBanner } from '@/components/plugins/PluginDevBanner';
+import { TerminalCloseConfirm } from '@/components/terminal/TerminalCloseConfirm';
+import { isDesktop } from '@/lib/platform';
 
 export function AppLayout() {
   const { t } = useTranslation('layout');
@@ -57,6 +59,16 @@ export function AppLayout() {
     });
     window.addEventListener('patchman:toggle-sidebar', handler);
     return () => window.removeEventListener('patchman:toggle-sidebar', handler);
+  }, []);
+
+  // Show (never hide) the sidebar: the terminal's show/hide shortcut.
+  useEffect(() => {
+    const handler = () => {
+      setSidebarVisible(true);
+      try { localStorage.setItem('patchman_sidebar_visible', 'true'); } catch { /* ignore */ }
+    };
+    window.addEventListener('patchman:show-sidebar', handler);
+    return () => window.removeEventListener('patchman:show-sidebar', handler);
   }, []);
 
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
@@ -156,6 +168,7 @@ export function AppLayout() {
         <div className="fixed inset-0 z-50 cursor-col-resize" />
       )}
       <Toaster />
+      {isDesktop() && <TerminalCloseConfirm />}
     </div>
   );
 }

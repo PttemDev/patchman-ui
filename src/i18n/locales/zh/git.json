@@ -72,7 +72,9 @@
     "selectFileContents": "选择一个文件以查看其内容。"
   },
   "history": {
-    "loading": "正在加载历史…"
+    "loading": "正在加载历史…",
+    "pathFilter": "历史：",
+    "clearPath": "显示全部"
   },
   "graph": {
     "noCommits": "此 ref 上没有 commit。",
@@ -95,7 +97,11 @@
     "switchInline": "切换到内联 diff",
     "switchSideBySide": "切换到并排 diff",
     "inline": "内联",
-    "sideBySide": "并排"
+    "sideBySide": "并排",
+    "whitespace": "空白",
+    "showWhitespaceHint": "空白更改已隐藏 — 点击显示",
+    "ignoreWhitespaceHint": "正在显示空白更改 — 点击隐藏",
+    "noTextChange": "文本无变化（仅权限或行尾）"
   },
   "changes": {
     "refreshStatus": "刷新状态",
@@ -105,7 +111,8 @@
     "unstaged": "更改",
     "untracked": "Untracked",
     "selectFile": "选择一个已更改的文件以审阅并 stage hunk。",
-    "noLineDiff": "没有行级 diff（新增、二进制或整个文件更改）。请使用上方的 <b>{{action}}</b>。"
+    "noLineDiff": "没有行级 diff（新增、二进制或整个文件更改）。请使用上方的 <b>{{action}}</b>。",
+    "jumpToSource": "跳转到源代码"
   },
   "stage": {
     "stageFile": "Stage 文件",
@@ -425,7 +432,18 @@
     "noDispatchable": "这里没有可手动运行的工作流——请在 on: 块中添加 workflow_dispatch。",
     "dispatched": "工作流已启动",
     "varsHint_gh": "变量值在你查看前保持隐藏，每次一个（每次查看都会记录）。密钥只列出名称——GitHub 从不返回密钥的值。",
-    "hiddenValue_gh": "GitHub 从不返回该值"
+    "hiddenValue_gh": "GitHub 从不返回该值",
+    "playAll": "全部运行",
+    "playAllCount_one": "运行 {{count}} 个",
+    "playAllCount_other": "全部运行 {{count}} 个",
+    "playAllTip_one": "运行 {{name}} 中的 {{count}} 个手动作业",
+    "playAllTip_other": "运行 {{name}} 中的 {{count}} 个手动作业",
+    "playAllConfirm_one": "运行 {{name}} 中的 {{count}} 个手动作业？",
+    "playAllConfirm_other": "运行 {{name}} 中的 {{count}} 个手动作业？",
+    "playAllProgress": "{{done}}/{{total}}",
+    "playAllDone_one": "已启动 {{count}} 个作业",
+    "playAllDone_other": "已启动 {{count}} 个作业",
+    "playAllPartial": "{{ok}} 个已启动，{{failed}} 个失败"
   },
   "vcs": {
     "failed": "Git 操作失败",
@@ -711,7 +729,113 @@
     "pick_pr": "选择一个拉取请求。",
     "search_pr": "搜索拉取请求",
     "changesRequested": "请求修改：{{names}}",
-    "openOn": "在 {{provider}} 上打开"
+    "openOn": "在 {{provider}} 上打开",
+    "editCommitMessage": "编辑提交信息",
+    "squashCommitMessage": "压缩提交信息",
+    "mergeCommitMessage": "合并提交信息",
+    "resolveConflicts": "解决冲突",
+    "resolveHint": "{{src}} 与 {{dst}} 存在冲突。在本地克隆中解决：PatchMan 切换到 {{src}}，将 {{dst}} 合并进来并打开冲突解决器。",
+    "resolveHintClone": "{{src}} 与 {{dst}} 存在冲突。PatchMan 会把项目克隆到这台电脑，切换到 {{src}}，将 {{dst}} 合并进来并打开冲突解决器。",
+    "resolveDirtyTitle": "请先提交或暂存你的更改",
+    "resolveDirtyDesc": "本地克隆的 {{branch}} 上有未提交的更改。请提交或暂存后重试。",
+    "resolveOpenedTitle_one": "{{count}} 个文件有冲突",
+    "resolveOpenedTitle_other": "{{count}} 个文件有冲突",
+    "resolveOpenedDesc": "已将 {{dst}} 合并到 {{src}}。解决冲突、提交合并，然后推送——合并请求会更新并可以合并。",
+    "resolveCleanTitle": "本地已无冲突",
+    "resolveCleanDesc": "{{dst}} 已顺利合并到 {{src}}。推送 {{src}} 以更新合并请求。",
+    "resolveFailed": "无法准备冲突解决",
+    "md": {
+      "write": "编写",
+      "preview": "预览",
+      "supported": "支持 Markdown",
+      "nothing": "没有可预览的内容。"
+    },
+    "note": {
+      "edited": "已编辑",
+      "edit": "编辑评论",
+      "delete": "删除评论",
+      "deleteTitle": "删除这条评论？",
+      "deleteDesc": "将在服务器上为所有人删除，且无法撤销。",
+      "save": "保存评论"
+    },
+    "awards": {
+      "react": "用 :{{name}}: 回应",
+      "add": "添加回应"
+    },
+    "copy": {
+      "menu": "复制",
+      "reference": "引用",
+      "sourceBranch": "源分支名",
+      "link": "链接",
+      "checkout": "检出命令",
+      "done": "已复制：{{what}}",
+      "failed": "无法复制到剪贴板"
+    },
+    "meta": {
+      "none": "无",
+      "assignees": "指派人",
+      "reviewers": "审查者",
+      "labels": "标签",
+      "milestone": "里程碑",
+      "mergedBy": "合并者"
+    },
+    "edit": {
+      "open": "编辑",
+      "title": "编辑 !{{iid}}",
+      "title_pr": "编辑 #{{iid}}",
+      "titleLabel": "标题",
+      "draft": "标记为草稿",
+      "description": "描述",
+      "targetBranch": "目标分支",
+      "addAssignee": "添加指派人…",
+      "removePerson": "移除",
+      "addLabel": "添加标签…",
+      "removeLabel": "移除标签",
+      "save": "保存更改",
+      "saved": "已保存"
+    },
+    "commits": {
+      "none": "没有提交。",
+      "copySha": "复制提交 SHA",
+      "open": "打开提交"
+    },
+    "pipelines": {
+      "none": "此合并请求没有流水线。",
+      "none_pr": "此拉取请求没有检查。",
+      "status": "状态",
+      "pipeline": "流水线",
+      "pipeline_pr": "检查",
+      "commit": "提交",
+      "created": "创建时间",
+      "checks": "所有检查"
+    },
+    "files": {
+      "filter": "筛选文件…",
+      "count_one": "{{count}} 个文件",
+      "count_other": "{{count}} 个文件",
+      "viewed": "已查看 {{done}}/{{total}}",
+      "noMatch": "没有匹配的文件。",
+      "markViewed": "标记为已查看",
+      "viewedLabel": "已查看"
+    },
+    "mergedBy": "由 {{name}} 合并",
+    "autoMergeSet": "流水线成功后将自动合并。",
+    "autoMergeSet_pr": "已开启自动合并：必需检查通过后 GitHub 将合并。",
+    "autoMergeSetToast": "已设置自动合并",
+    "cancelAutoMerge": "取消自动合并",
+    "autoMergeCancelled": "已取消自动合并",
+    "cannotMerge": "你无权合并此项",
+    "tabCommits": "提交",
+    "tabCommitsN_one": "提交 ({{count}})",
+    "tabCommitsN_other": "提交 ({{count}})",
+    "tabPipelines": "流水线",
+    "tabPipelines_pr": "检查",
+    "mergeMethod": "合并方式",
+    "method": {
+      "merge": "合并提交",
+      "squash": "压缩合并",
+      "rebase": "变基合并"
+    }
   },
   "tree": {
     "title": "项目",
@@ -725,7 +849,47 @@
     "copyPath": "复制路径",
     "deleteTitle": "删除 {{name}}？",
     "deleteFolderBody": "文件夹及其所有内容将从工作区删除（已跟踪的文件在“更改”中显示为已删除）。",
-    "deleteFileBody": "文件将从工作区删除（已跟踪的文件在“更改”中显示为已删除）。"
+    "deleteFileBody": "文件将从工作区删除（已跟踪的文件在“更改”中显示为已删除）。",
+    "showDiff": "显示差异",
+    "rollback": "回滚",
+    "rollbackTitle": "回滚 {{name}}？",
+    "rollbackBody": "将丢弃其更改并恢复到最后一次提交（HEAD）。",
+    "rollbackFolderBody": "将丢弃其中已提交文件的更改。其中的新文件会保留。",
+    "rollbackNewBody": "此文件不在最后一次提交中，因此会被删除。",
+    "rolledBack": "已回滚 {{name}}",
+    "diffTitle": "{{path}} 的更改",
+    "status": {
+      "modified": "已修改",
+      "added": "已添加",
+      "untracked": "新文件（未跟踪）",
+      "renamed": "已重命名",
+      "conflicted": "冲突",
+      "deleted": "已删除"
+    },
+    "open": "打开",
+    "expand": "展开",
+    "collapse": "折叠",
+    "new": "新建",
+    "copyPathMenu": "复制路径/引用",
+    "copyAbsolute": "绝对路径",
+    "copyRelative": "相对仓库根目录的路径",
+    "copyName": "文件名",
+    "findInFolder": "在文件夹中查找…",
+    "findInProject": "在项目中查找…",
+    "collapseAll": "全部折叠",
+    "revealInFinder": "在访达中显示",
+    "gitAdd": "添加",
+    "compareWithBranch": "与分支比较",
+    "compareTitle": "将 {{name}} 与以下比较",
+    "compareRef": "分支、标签或提交",
+    "compare": "比较",
+    "compareDiffTitle": "{{path}}：{{ref}} ↔ 工作区",
+    "showHistory": "显示历史",
+    "annotate": "使用 Git Blame 注释",
+    "addToGitignore": "添加到 .gitignore",
+    "staged": "已添加 {{name}}",
+    "alreadyIgnored": "已在 .gitignore 中",
+    "ignored": "已将 {{line}} 添加到 .gitignore"
   },
   "workspace": {
     "empty": "从项目树中打开一个文件。",
@@ -744,7 +908,16 @@
     "changedOnDiskTitle": "{{name}} 已在磁盘上更改",
     "autoSavePaused": "为避免丢失其他更改，此文件的自动保存已暂停。按 ⌘S 覆盖，或关闭后重新打开文件以加载磁盘上的版本。",
     "overwriteBody": "在你打开此文件后，另一个程序更改了它。覆盖会用你的版本替换那次更改。",
-    "overwrite": "覆盖"
+    "overwrite": "覆盖",
+    "tabClose": "关闭",
+    "tabCloseOthers": "关闭其他标签页",
+    "tabCloseLeft": "关闭左侧标签页",
+    "tabCloseRight": "关闭右侧标签页",
+    "tabCloseSaved": "关闭已保存的标签页",
+    "tabCloseAll": "关闭所有标签页",
+    "tabCopyPath": "复制路径",
+    "pathCopied": "已复制路径",
+    "closeManyDirtyTitle": "{{count}} 个文件有未保存的更改。放弃并关闭？"
   },
   "search": {
     "findInFiles": "在文件中查找",
