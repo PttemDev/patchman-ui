@@ -1,22 +1,26 @@
 import type { Monaco } from '@monaco-editor/react';
+import type * as MonacoType from 'monaco-editor';
+import i18n from '@/i18n';
 import { useDBConnectionStore } from '@/stores/dbConnectionStore';
-import type { DBKind } from '@/types';
+import type { DBKind, DBSchemaTable } from '@/types';
+import { splitStatements } from './sqlStatements';
+import {
+  caretContext,
+  joinSuggestions,
+  onConditions,
+  qualifierBefore,
+  resolveQualifier,
+  sanitize,
+  tableRefs,
+} from './sqlCompletion';
+import { quoteIdentIfNeeded } from './resultFormats';
 
-// One completion-provider disposable per (language, connection_id).
-// We re-key on connection id so two tabs against different connections
-// can each surface their own schema without cross-pollination.
-const registered = new Map<string, () => void>();
-
-const SQL_KEYWORDS = [
-  'SELECT', 'FROM', 'WHERE', 'GROUP BY', 'ORDER BY', 'HAVING',
-  'JOIN', 'LEFT JOIN', 'RIGHT JOIN', 'INNER JOIN', 'FULL JOIN', 'ON',
-  'AS', 'AND', 'OR', 'NOT', 'IN', 'LIKE', 'ILIKE', 'IS NULL', 'IS NOT NULL',
-  'BETWEEN', 'EXISTS', 'CASE', 'WHEN', 'THEN', 'ELSE', 'END',
-  'LIMIT', 'OFFSET', 'WITH', 'UNION', 'INTERSECT', 'EXCEPT',
-  'EXPLAIN', 'SHOW', 'DESCRIBE',
-  'COUNT', 'SUM', 'AVG', 'MIN', 'MAX', 'COALESCE', 'NULLIF', 'CAST',
-  'DATE_TRUNC', 'NOW', 'CURRENT_DATE', 'CURRENT_TIMESTAMP', 'INTERVAL',
-];
+// Monaco completion providers are global per language, so there is ONE
+// provider per language and each DB editor's model is bound to its
+// connection. Two tabs on different connections never see each other's
+// tables, and an unbound SQL/JS editor gets no DB suggestions at all.
+const providers = new Map<string, MonacoType.IDisposable>();
+const bindings = new Map<string, { connectionId: string; kind: DBKind }>();
 
 const MONGO_OPS = [
   'find', 'findOne', 'aggregate', 'count', 'countDocuments',
@@ -46,21 +50,51 @@ const MONGO_OPERATORS = [
 const MONGO_SHELL_HELPERS = ['getSiblingDB', 'getCollection'];
 
 /**
- * registerDBCompletion wires a Monaco completion provider for the
- * connection's SQL or Mongo language using the FE-side schema cache.
- * Subsequent calls with the same key are no-ops (the prior provider
- * remains active) — schemas are watched out-of-band via the store and
- * suggestions pick them up live.
+ * bindDBCompletion points an editor model at a connection; call it again
+ * when the tab switches connection. Schemas are read from the store on
+ * every request, so a schema refresh shows up without re-binding.
  */
-export function registerDBCompletion(monaco: Monaco, connectionId: string, kind: DBKind) {
-  const lang = kind === 'mongo' ? 'javascript' : 'sql';
-  const key = `${lang}:${connectionId}`;
-  if (registered.has(key)) return;
+export function bindDBCompletion(monaco: Monaco, model: MonacoType.editor.ITextModel | null, connectionId: string, kind: DBKind) {
+  if (!model) return;
+  const lang = kind === 'mongo' ? 'mongosh' : 'sql';
+  if (kind === 'mongo') {
+    ensureMongoshLanguage(monaco);
+    if (model.getLanguageId() !== 'mongosh') monaco.editor.setModelLanguage(model, 'mongosh');
+  }
+  ensureProvider(monaco, lang);
+  const uri = model.uri.toString();
+  if (!bindings.has(uri)) model.onWillDispose(() => bindings.delete(uri));
+  bindings.set(uri, { connectionId, kind });
+}
 
+// Mongo editors use 'mongosh': JavaScript colouring without the TypeScript
+// worker's diagnostics, which flag shell syntax such as `use merchant` (the
+// backend runs it) as errors.
+let mongoshRegistered = false;
+function ensureMongoshLanguage(monaco: Monaco) {
+  if (mongoshRegistered) return;
+  mongoshRegistered = true;
+  monaco.languages.register({ id: 'mongosh' });
+  // @ts-expect-error -- monaco ships this module without type declarations
+  void import('monaco-editor/esm/vs/basic-languages/javascript/javascript.js').then((m: { language: unknown; conf: unknown }) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    monaco.languages.setMonarchTokensProvider('mongosh', m.language as any);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    monaco.languages.setLanguageConfiguration('mongosh', m.conf as any);
+  }).catch(() => { /* plain text colouring */ });
+}
+
+function ensureProvider(monaco: Monaco, lang: string) {
+  if (providers.has(lang)) return;
   const disposable = monaco.languages.registerCompletionItemProvider(lang, {
     triggerCharacters: ['.', ' ', '('],
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     provideCompletionItems: (model: any, position: any) => {
+      // Only editors bound to a DB connection get DB suggestions — other
+      // SQL/JS editors (request scripts, notes) are left alone.
+      const binding = bindings.get(model.uri.toString());
+      if (!binding) return { suggestions: [] };
+      const { connectionId, kind } = binding;
       const word = model.getWordUntilPosition(position);
       const range = {
         startLineNumber: position.lineNumber,
@@ -71,7 +105,7 @@ export function registerDBCompletion(monaco: Monaco, connectionId: string, kind:
       const schemas = useDBConnectionStore.getState().schemas;
       const schema = schemas[connectionId];
 
-      const suggestions: ReturnType<Monaco['languages']['CompletionItemKind'] extends infer _ ? never : never>[] = [];
+
       // Use a more permissive type — Monaco's types are exported from
       // the editor package which we don't import directly here.
       const out: {
@@ -111,7 +145,7 @@ export function registerDBCompletion(monaco: Monaco, connectionId: string, kind:
         // 6) `db.$`                              → DB names + collections in default DB
         // Order below mirrors that priority — the first match wins.
 
-        const siblingCollMatch = /db\.getSiblingDB\(\s*['"]([^'"]+)['"]\s*\)\.[a-zA-Z0-9_\-]+\.$/.exec(linePrefix);
+        const siblingCollMatch = /db\.getSiblingDB\(\s*['"]([^'"]+)['"]\s*\)\.[a-zA-Z0-9_-]+\.$/.exec(linePrefix);
         if (siblingCollMatch) {
           MONGO_OPS.forEach((op) => out.push({
             label: op,
@@ -141,7 +175,7 @@ export function registerDBCompletion(monaco: Monaco, connectionId: string, kind:
 
         if (!handled) {
           // db.<a>.<b>.$ — `a` is a DB name (multi-DB only), `b` is collection
-          const threeDot = /^|.*[\s(=,]?db\.([a-zA-Z0-9_\-]+)\.([a-zA-Z0-9_\-]+)\.$/.exec(linePrefix);
+          const threeDot = /^|.*[\s(=,]?db\.([a-zA-Z0-9_-]+)\.([a-zA-Z0-9_-]+)\.$/.exec(linePrefix);
           if (threeDot && isMultiDB && dbs.has(threeDot[1])) {
             MONGO_OPS.forEach((op) => out.push({
               label: op,
@@ -157,7 +191,7 @@ export function registerDBCompletion(monaco: Monaco, connectionId: string, kind:
 
         if (!handled) {
           // db.<dbname>.$ — collections in that DB (multi-DB)
-          const dbDot = /(?:^|[\s(=,])db\.([a-zA-Z0-9_\-]+)\.$/.exec(linePrefix);
+          const dbDot = /(?:^|[\s(=,])db\.([a-zA-Z0-9_-]+)\.$/.exec(linePrefix);
           if (dbDot && isMultiDB && dbs.has(dbDot[1])) {
             collectionsIn(dbDot[1]).forEach((t) => out.push({
               label: t.name,
@@ -173,7 +207,7 @@ export function registerDBCompletion(monaco: Monaco, connectionId: string, kind:
 
         if (!handled) {
           // db.<coll>.$ — collection in default DB, suggest ops
-          const collDot = /(?:^|[\s(=,])db\.([a-zA-Z0-9_\-]+)\.$/.exec(linePrefix);
+          const collDot = /(?:^|[\s(=,])db\.([a-zA-Z0-9_-]+)\.$/.exec(linePrefix);
           if (collDot && !isMultiDB) {
             MONGO_OPS.forEach((op) => out.push({
               label: op,
@@ -279,75 +313,13 @@ export function registerDBCompletion(monaco: Monaco, connectionId: string, kind:
           handled = true;
         }
       } else {
-        // SQL — sort priority via leading digit in sortText:
-        //   '0' = primary suggestions for this context (top of list)
-        //   '1' = secondary
-        //   '2' = noisy fallback
-        // We also handle "table." → list only that table's columns.
-        const lineToCursor = model.getLineContent(position.lineNumber).slice(0, position.column - 1);
-        const fullText: string = model.getValue();
-        const offset: number = model.getOffsetAt(position);
-        const stmt = currentStatement(fullText.slice(0, offset));
-        const ctx = sqlContext(stmt);
-
-        // `tablename.` qualifier — narrow to that single table's columns.
-        const qualMatch = /(?:^|[\s(,=])([a-zA-Z_][\w]*)\.$/.exec(lineToCursor);
-        if (qualMatch && schema) {
-          const target = qualMatch[1].toLowerCase();
-          const t = schema.tables.find((x) => x.name.toLowerCase() === target);
-          if (t) {
-            t.columns.forEach((c) => out.push({
-              label: c.name,
-              kind: monaco.languages.CompletionItemKind.Field,
-              insertText: c.name,
-              detail: `${t.name}.${c.type}`,
-              sortText: '0' + c.name,
-              range,
-            }));
-            return { suggestions: out as any };
-          }
-        }
-
-        const tablePri = ctx === 'after-from' || ctx === 'after-join' ? '0' : ctx === 'default' ? '1' : '2';
-        const columnPri = ctx === 'after-from' || ctx === 'after-join' ? '2' : '0';
-        const keywordPri = ctx === 'default' ? '0' : '3';
-
-        SQL_KEYWORDS.forEach((kw) => out.push({
-          label: kw,
-          kind: monaco.languages.CompletionItemKind.Keyword,
-          insertText: kw,
-          sortText: keywordPri + kw,
-          range,
-        }));
-        schema?.tables.forEach((t) => {
-          const qualified = t.schema && t.schema !== 'public' ? `${t.schema}.${t.name}` : t.name;
-          out.push({
-            label: qualified,
-            kind: monaco.languages.CompletionItemKind.Class,
-            insertText: qualified,
-            detail: 'table',
-            sortText: tablePri + qualified,
-            range,
-          });
-          t.columns.forEach((c) => {
-            out.push({
-              label: c.name,
-              kind: monaco.languages.CompletionItemKind.Field,
-              insertText: c.name,
-              detail: `${t.name}.${c.type}`,
-              sortText: columnPri + c.name,
-              range,
-            });
-          });
-        });
+        return { suggestions: sqlItems(monaco, model, position, range, schema?.tables ?? [], kind) };
       }
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return { suggestions: out as any };
-      void suggestions;
     },
   });
-
-  registered.set(key, () => disposable.dispose());
+  providers.set(lang, disposable);
 }
 
 // mongoObjectContext walks `textToCursor` and detects whether the cursor
@@ -390,8 +362,8 @@ function mongoObjectContext(text: string): {
   }
   // Walk left from the `(` to grab the op name and chain back to db/coll.
   const head = text.slice(0, lastUnbalancedBraceParenIdx);
-  const callMatch = /(?:db|getCollection\([^)]*\))(?:\.getSiblingDB\(\s*['"]([^'"]+)['"]\s*\))?(?:\.([a-zA-Z0-9_\-]+))?(?:\.([a-zA-Z0-9_\-]+))?\.([a-zA-Z]+)\s*$/.exec(head)
-    || /db(?:\.getSiblingDB\(\s*['"]([^'"]+)['"]\s*\))?(?:\.([a-zA-Z0-9_\-]+))?(?:\.([a-zA-Z0-9_\-]+))?\.([a-zA-Z]+)\s*$/.exec(head);
+  const callMatch = /(?:db|getCollection\([^)]*\))(?:\.getSiblingDB\(\s*['"]([^'"]+)['"]\s*\))?(?:\.([a-zA-Z0-9_-]+))?(?:\.([a-zA-Z0-9_-]+))?\.([a-zA-Z]+)\s*$/.exec(head)
+    || /db(?:\.getSiblingDB\(\s*['"]([^'"]+)['"]\s*\))?(?:\.([a-zA-Z0-9_-]+))?(?:\.([a-zA-Z0-9_-]+))?\.([a-zA-Z]+)\s*$/.exec(head);
   if (!callMatch) {
     return { insideObject: true };
   }
@@ -410,66 +382,235 @@ function mongoObjectContext(text: string): {
   return { insideObject: true, database, collection, op };
 }
 
-type SqlContext = 'after-from' | 'after-join' | 'select-list' | 'after-where' | 'default';
+// ── SQL ────────────────────────────────────────────────────────────────
 
-// currentStatement slices `text` to the portion belonging to the active
-// SQL statement (the chars after the most recent unquoted `;`).
-function currentStatement(text: string): string {
-  // Cheap approximation: ignore semicolons inside single/double quotes.
-  let inS = false, inD = false, last = -1;
-  for (let i = 0; i < text.length; i++) {
-    const ch = text[i];
-    if (ch === "'" && !inD) inS = !inS;
-    else if (ch === '"' && !inS) inD = !inD;
-    else if (ch === ';' && !inS && !inD) last = i;
-  }
-  return last >= 0 ? text.slice(last + 1) : text;
+const SQL_FUNCTIONS = [
+  'COUNT', 'SUM', 'AVG', 'MIN', 'MAX', 'COALESCE', 'NULLIF', 'CAST', 'LOWER', 'UPPER',
+  'TRIM', 'LENGTH', 'SUBSTRING', 'CONCAT', 'ROUND', 'ABS', 'NOW', 'DATE_TRUNC', 'EXTRACT',
+  'ROW_NUMBER', 'RANK', 'DENSE_RANK', 'LAG', 'LEAD', 'STRING_AGG', 'ARRAY_AGG', 'JSON_AGG',
+];
+
+// After a complete table reference: the clauses that can follow it.
+const AFTER_TABLE_KEYWORDS = [
+  'WHERE', 'JOIN', 'LEFT JOIN', 'INNER JOIN', 'RIGHT JOIN', 'FULL JOIN', 'CROSS JOIN',
+  'GROUP BY', 'ORDER BY', 'LIMIT', 'HAVING', 'UNION', 'UNION ALL', 'AS', 'ON',
+];
+
+// DataGrip-style live templates at the start of a statement.
+const SQL_SNIPPETS: Array<{ label: string; body: string; doc: string }> = [
+  { label: 'sel', body: 'SELECT * FROM ${1:table}${0}', doc: 'SELECT * FROM …' },
+  { label: 'selw', body: 'SELECT * FROM ${1:table} WHERE ${2:condition}${0}', doc: 'SELECT * FROM … WHERE …' },
+  { label: 'selc', body: 'SELECT COUNT(*) FROM ${1:table}${0}', doc: 'SELECT COUNT(*) FROM …' },
+  { label: 'ins', body: 'INSERT INTO ${1:table} (${2:columns}) VALUES (${3:values})${0}', doc: 'INSERT INTO … VALUES …' },
+  { label: 'upd', body: 'UPDATE ${1:table} SET ${2:column} = ${3:value} WHERE ${4:condition}${0}', doc: 'UPDATE … SET … WHERE …' },
+  { label: 'del', body: 'DELETE FROM ${1:table} WHERE ${2:condition}${0}', doc: 'DELETE FROM … WHERE …' },
+];
+
+interface Item {
+  label: string;
+  kind: number;
+  insertText: string;
+  insertTextRules?: number;
+  filterText?: string;
+  detail?: string;
+  documentation?: string;
+  sortText?: string;
+  range: { startLineNumber: number; endLineNumber: number; startColumn: number; endColumn: number };
 }
 
-// sqlContext returns where the cursor sits relative to the most recent
-// SQL clause keyword in the current statement.
-function sqlContext(stmt: string): SqlContext {
-  // Pad with a space so word-boundary matches at start work.
-  const u = ' ' + stmt.toUpperCase() + ' ';
-  const tableCtx: Array<[string, SqlContext]> = [
-    [' FROM ', 'after-from'],
-    [' UPDATE ', 'after-from'],
-    [' INTO ', 'after-from'],
-    [' JOIN ', 'after-join'],
-    [' LEFT JOIN ', 'after-join'],
-    [' RIGHT JOIN ', 'after-join'],
-    [' INNER JOIN ', 'after-join'],
-    [' FULL JOIN ', 'after-join'],
-  ];
-  const colCtx: Array<[string, SqlContext]> = [
-    [' WHERE ', 'after-where'],
-    [' ON ', 'after-where'],
-    [' AND ', 'after-where'],
-    [' OR ', 'after-where'],
-    [' GROUP BY ', 'after-where'],
-    [' ORDER BY ', 'after-where'],
-    [' HAVING ', 'after-where'],
-    [' SET ', 'after-where'],
-  ];
-  let bestIdx = -1;
-  let bestCtx: SqlContext = 'default';
-  for (const [kw, c] of [...tableCtx, ...colCtx]) {
-    const i = u.lastIndexOf(kw);
-    if (i > bestIdx) { bestIdx = i; bestCtx = c; }
-  }
-  if (bestIdx >= 0) return bestCtx;
-  // SELECT … (no FROM yet) → cursor is in the select list, prefer columns.
-  if (/\bSELECT\b/.test(u)) return 'select-list';
-  return 'default';
-}
+function sqlItems(
+  monaco: Monaco,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  model: any,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  position: any,
+  range: Item['range'],
+  tables: DBSchemaTable[],
+  kind: DBKind,
+): Item[] {
+  const K = monaco.languages.CompletionItemKind;
+  const SNIPPET = monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet;
+  const t = (key: string, opts?: Record<string, unknown>) => i18n.t(`dbquery:completion.${key}`, opts);
+  const full: string = model.getValue();
+  const offset: number = model.getOffsetAt(position);
 
-/** Tear down a provider, e.g. when a connection is deleted. */
-export function disposeDBCompletion(connectionId: string, kind: DBKind) {
-  const lang = kind === 'mongo' ? 'javascript' : 'sql';
-  const key = `${lang}:${connectionId}`;
-  const off = registered.get(key);
-  if (off) {
-    off();
-    registered.delete(key);
+  // The statement fragment around the caret: from the `;` before it to
+  // the `;` after it (a just-started statement counts as its own).
+  let fragStart = 0;
+  let fragEnd = full.length;
+  for (const st of splitStatements(full)) {
+    if (st.stop <= offset && full[st.stop - 1] === ';') fragStart = st.stop;
+    else if (st.stop > offset) { fragEnd = st.stop; break; }
   }
+  const before = full.slice(fragStart, offset);
+  const stmt = full.slice(fragStart, fragEnd);
+  const refs = tableRefs(stmt, tables);
+  const linePrefix: string = model.getLineContent(position.lineNumber).slice(0, position.column - 1);
+
+  const ident = (s: string) => quoteIdentIfNeeded(s, kind);
+  const schemaNames = new Set(tables.map((x) => x.schema ?? ''));
+  const showSchema = (s?: string) => !!s && schemaNames.size > 1 && s !== 'public' && s !== 'dbo';
+  const tableText = (x: DBSchemaTable) => (showSchema(x.schema) ? `${ident(x.schema!)}.${ident(x.name)}` : ident(x.name));
+  const out: Item[] = [];
+  const pad = (n: number) => String(n).padStart(4, '0');
+
+  // Inside a string literal: nothing useful to suggest.
+  if ((sanitize(before).match(/'/g)?.length ?? 0) % 2 === 1) return [];
+
+  // `alias.` / `table.` / `schema.` / `schema.table.`
+  const qual = qualifierBefore(linePrefix);
+  if (qual) {
+    const target = resolveQualifier(qual, refs, tables);
+    if (target.kind === 'columns') {
+      target.table.columns.forEach((c, i) => out.push({
+        label: c.name,
+        kind: K.Field,
+        insertText: ident(c.name),
+        filterText: c.name,
+        detail: `${c.type} · ${target.table.name}`,
+        sortText: '0' + pad(i),
+        range,
+      }));
+    } else if (target.kind === 'tables') {
+      target.tables.forEach((x) => out.push({
+        label: x.name,
+        kind: K.Class,
+        insertText: ident(x.name),
+        filterText: x.name,
+        detail: t('columnsCount', { count: x.columns.length }),
+        sortText: '0' + x.name,
+        range,
+      }));
+    }
+    return out;
+  }
+
+  const ctx = caretContext(before);
+  const keywords = (list: string[], pri: string) => list.forEach((kw) => out.push({
+    label: kw, kind: K.Keyword, insertText: kw, sortText: pri + kw, range,
+  }));
+
+  if (ctx === 'start') {
+    SQL_SNIPPETS.forEach((sn) => out.push({
+      label: sn.label,
+      kind: K.Snippet,
+      insertText: sn.body,
+      insertTextRules: SNIPPET,
+      detail: sn.doc,
+      documentation: t('template'),
+      sortText: '0' + sn.label,
+      range,
+    }));
+    keywords(['SELECT', 'WITH', 'INSERT INTO', 'UPDATE', 'DELETE FROM', 'EXPLAIN', 'SHOW', 'CREATE', 'ALTER', 'DROP'], '1');
+    return out;
+  }
+
+  if (ctx === 'table') {
+    // JOIN → whole join clauses along foreign keys, DataGrip-style.
+    if (/\bjoin\s+[\w$."`[\]]*$/i.test(sanitize(before))) {
+      joinSuggestions(refs, tables, tableText, ident).forEach((j, i) => out.push({
+        label: j.text,
+        kind: K.Reference,
+        insertText: j.text,
+        filterText: j.target.name,
+        detail: t('fkJoin'),
+        sortText: '0' + pad(i),
+        range,
+      }));
+    }
+    tables.forEach((x) => out.push({
+      label: tableText(x),
+      kind: K.Class,
+      insertText: tableText(x),
+      filterText: x.name,
+      detail: [showSchema(x.schema) ? '' : x.schema, t('columnsCount', { count: x.columns.length })].filter(Boolean).join(' · '),
+      sortText: '1' + x.name,
+      range,
+    }));
+    refs.filter((r) => !r.table).forEach((r) => out.push({
+      label: r.name, kind: K.Class, insertText: r.name, detail: 'CTE', sortText: '0' + r.name, range,
+    }));
+    if (schemaNames.size > 1) {
+      [...schemaNames].filter(Boolean).forEach((sc) => out.push({
+        label: sc, kind: K.Module, insertText: ident(sc), detail: t('schema'), sortText: '2' + sc, range,
+      }));
+    }
+    return out;
+  }
+
+  if (ctx === 'join-on') {
+    onConditions(refs, ident).forEach((cond, i) => out.push({
+      label: cond, kind: K.Reference, insertText: cond, detail: t('fkCondition'), sortText: '0' + pad(i), range,
+    }));
+  }
+
+  // Right after `FROM t x ` / `JOIN t x `: the next clause is the likely word.
+  const afterTableRef = /\b(?:from|join)\s+[\w$."`[\]]+(?:\s+(?:as\s+)?[\w$"`[\]]+)?\s+\w*$/i.test(sanitize(before))
+    && !/\b(?:where|on|and|or|by|having|set)\s+\w*$/i.test(sanitize(before));
+  if (afterTableRef) keywords(AFTER_TABLE_KEYWORDS, '0');
+
+  // Columns of the tables in this statement first; a name that exists in
+  // two of them is inserted qualified (o.id) so the query stays valid.
+  const inScope = refs.filter((r) => r.table);
+  if (inScope.length > 0) {
+    const seen = new Map<string, number>();
+    inScope.forEach((r) => r.table!.columns.forEach((c) => seen.set(c.name.toLowerCase(), (seen.get(c.name.toLowerCase()) ?? 0) + 1)));
+    inScope.forEach((r, ri) => {
+      const q = r.alias ?? ident(r.name);
+      r.table!.columns.forEach((c, ci) => {
+        const ambiguous = (seen.get(c.name.toLowerCase()) ?? 0) > 1;
+        out.push({
+          label: ambiguous ? `${q}.${c.name}` : c.name,
+          kind: K.Field,
+          insertText: ambiguous ? `${q}.${ident(c.name)}` : ident(c.name),
+          filterText: c.name,
+          detail: `${c.type} · ${r.alias ? `${r.alias} → ` : ''}${r.table!.name}`,
+          sortText: '1' + pad(ri) + pad(ci),
+          range,
+        });
+      });
+      // Alias / table name itself, for typing `o.` next.
+      out.push({ label: q, kind: K.Variable, insertText: q, detail: r.table!.name, sortText: '2' + q, range });
+      // `o.*` → every column spelled out (DataGrip "expand *").
+      if (ctx === 'select-list') {
+        const cols = r.table!.columns.map((c) => (inScope.length > 1 ? `${q}.${ident(c.name)}` : ident(c.name))).join(', ');
+        out.push({
+          label: `${q}.*`,
+          kind: K.Snippet,
+          insertText: cols,
+          filterText: `${q}.*`,
+          detail: t('expandColumns', { count: r.table!.columns.length }),
+          sortText: '2' + q + '*',
+          range,
+        });
+      }
+    });
+  } else {
+    // SELECT list typed before FROM: every column is a candidate.
+    let n = 0;
+    for (const x of tables) {
+      for (const c of x.columns) {
+        if (n++ > 3000) break;
+        out.push({
+          label: c.name, kind: K.Field, insertText: ident(c.name), filterText: c.name,
+          detail: `${c.type} · ${x.name}`, sortText: '3' + c.name, range,
+        });
+      }
+    }
+  }
+
+  SQL_FUNCTIONS.forEach((fn) => out.push({
+    label: fn,
+    kind: K.Function,
+    insertText: `${fn}($0)`,
+    insertTextRules: SNIPPET,
+    sortText: '4' + fn,
+    range,
+  }));
+  keywords([
+    'FROM', 'WHERE', 'AND', 'OR', 'NOT', 'IN', 'LIKE', 'ILIKE', 'IS NULL', 'IS NOT NULL', 'BETWEEN',
+    'EXISTS', 'CASE', 'WHEN', 'THEN', 'ELSE', 'END', 'AS', 'DISTINCT', 'GROUP BY', 'ORDER BY',
+    'HAVING', 'LIMIT', 'OFFSET', 'ASC', 'DESC', 'JOIN', 'LEFT JOIN', 'INNER JOIN', 'ON', 'UNION',
+  ], '5');
+  return out;
 }

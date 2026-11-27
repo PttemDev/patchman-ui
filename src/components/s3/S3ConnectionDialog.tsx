@@ -132,6 +132,10 @@ export function S3ConnectionDialog({ open, onOpenChange, editing, onSaved }: S3C
   const [showToken, setShowToken] = useState(false);
   const [forcePathStyle, setForcePathStyle] = useState(false);
   const [insecureSkipVerify, setInsecureSkipVerify] = useState(false);
+  // Limit the connection to one bucket / path (keys with a path-based policy
+  // can't list buckets or the bucket root).
+  const [pinBucket, setPinBucket] = useState('');
+  const [pinPrefix, setPinPrefix] = useState('');
   const [advanced, setAdvanced] = useState(false);
 
   const scopes = availableDBScopes();
@@ -160,6 +164,8 @@ export function S3ConnectionDialog({ open, onOpenChange, editing, onSaved }: S3C
       setAccessKeyId(editing.accessKeyId ?? '');
       setForcePathStyle(editing.forcePathStyle);
       setInsecureSkipVerify(editing.insecureSkipVerify);
+      setPinBucket(String(editing.options?.bucket ?? ''));
+      setPinPrefix(String(editing.options?.prefix ?? ''));
       const stored = editing.primaryScope
         ? (editing.primaryScope as DBScope)
         : undefined;
@@ -172,6 +178,8 @@ export function S3ConnectionDialog({ open, onOpenChange, editing, onSaved }: S3C
       setAccessKeyId('');
       setForcePathStyle(false);
       setInsecureSkipVerify(false);
+      setPinBucket('');
+      setPinPrefix('');
       setScope(scopes.includes('remote') ? 'remote' : 'local');
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -203,6 +211,12 @@ export function S3ConnectionDialog({ open, onOpenChange, editing, onSaved }: S3C
       forcePathStyle,
       insecureSkipVerify,
       primaryScope: scope,
+      // Other options (KMS key, …) are kept; bucket / prefix are replaced.
+      options: {
+        ...(editing?.options ?? {}),
+        bucket: pinBucket.trim(),
+        prefix: pinBucket.trim() ? pinPrefix.trim().replace(/^\/+/, '') : '',
+      },
     };
     // Secret only travels when freshly typed — on edit a blank field means
     // "keep the stored one".
@@ -380,6 +394,18 @@ export function S3ConnectionDialog({ open, onOpenChange, editing, onSaved }: S3C
                 <span className="text-xs">{t('dialog.forcePathStyle')}</span>
               </label>
             </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label className="text-xs">{t('dialog.bucket')}</Label>
+              <Input value={pinBucket} onChange={(e) => setPinBucket(e.target.value)} placeholder={t('dialog.bucketPlaceholder')} autoComplete="off" data-1p-ignore />
+            </div>
+            <div>
+              <Label className="text-xs">{t('dialog.prefix')}</Label>
+              <Input value={pinPrefix} onChange={(e) => setPinPrefix(e.target.value)} placeholder={t('dialog.prefixPlaceholder')} disabled={!pinBucket.trim()} autoComplete="off" data-1p-ignore className="font-mono" />
+            </div>
+            <p className="col-span-2 -mt-1 text-[10px] text-muted-foreground">{t('dialog.pinHint')}</p>
           </div>
 
           <div>

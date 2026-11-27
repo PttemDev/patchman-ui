@@ -65,7 +65,8 @@ import { DBQueryParamsBar } from './DBQueryParamsBar';
 import { DBSaveQueryDialog, type SaveQueryPayload } from './DBSaveQueryDialog';
 import { DBExamplesDialog } from './DBExamplesDialog';
 import { formatQuery } from './queryFormatter';
-import { registerDBCompletion } from './monacoDBCompletion';
+import { bindDBCompletion } from './monacoDBCompletion';
+import { splitStatements, statementAt } from './sqlStatements';
 import { pushFilterClause, quoteIdent, quoteQualified, substituteQueryParams } from './queryParamUtils';
 import { useDBLocalSavedQueriesStore } from '@/stores/dbLocalSavedQueriesStore';
 import { useDBRemoteSavedQueriesStore } from '@/stores/dbRemoteSavedQueriesStore';
@@ -195,6 +196,13 @@ export function DBQueryPanel({ tab }: DBQueryPanelProps) {
   // /cancel endpoint (best-effort — the BE may not have registered the
   // query yet, in which case the abort alone is what stops "Running…").
   const abortRef = useRef<AbortController | null>(null);
+  // The text the last run executed (the statement at the caret, a
+  // selection, or the whole script). Paging and auto-refresh re-run THIS,
+  // not the whole editor.
+  const lastRunRef = useRef('');
+  const editorRef = useRef<MonacoType.editor.IStandaloneCodeEditor | null>(null);
+  const monacoRef = useRef<Monaco | null>(null);
+  const [editorReady, setEditorReady] = useState(0);
 
   // Live elapsed timer — ticks once a second while a query is running.
   const [elapsedMs, setElapsedMs] = useState(0);
@@ -226,6 +234,7 @@ export function DBQueryPanel({ tab }: DBQueryPanelProps) {
     if (!conn || running) return;
     const raw = typeof override === 'string' ? override : tab.dbQuery ?? '';
     if (!raw.trim()) return;
+    lastRunRef.current = raw;
     const query = substituteQueryParams(raw, tab.dbParams ?? {});
     setRunning(true);
     updateTab(tab.id, { dbError: '', dbResult: null });
@@ -300,7 +309,7 @@ export function DBQueryPanel({ tab }: DBQueryPanelProps) {
     const sec = tab.dbAutoRefresh ?? 0;
     if (!sec || !conn) return;
     const id = setInterval(() => {
-      if (!queryIdRef.current) runRef.current();
+      if (!queryIdRef.current) runRef.current(lastRunRef.current || undefined);
     }, sec * 1000);
     return () => clearInterval(id);
   }, [tab.dbAutoRefresh, conn]);
@@ -398,7 +407,7 @@ export function DBQueryPanel({ tab }: DBQueryPanelProps) {
 
   const runWithOffset = useCallback(async (offset: number) => {
     if (!conn) return;
-    const raw = tab.dbQuery ?? '';
+    const raw = lastRunRef.current || (tab.dbQuery ?? '');
     if (!raw.trim()) return;
     const query = substituteQueryParams(raw, tab.dbParams ?? {});
     setRunning(true);
@@ -447,23 +456,170 @@ export function DBQueryPanel({ tab }: DBQueryPanelProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [conn, effectiveScope, tab.dbQuery, tab.dbLimit, tab.dbParams, tab.id, updateTab]);
 
+  // What ⌘↵ runs: the selection if there is one, else (SQL) the statement
+  // the caret is in — DataGrip's model. Mongo runs the whole text.
+  const pickTarget = useCallback((): { text: string; start?: number; end?: number } => {
+    const full = tab.dbQuery ?? '';
+    const ed = editorRef.current;
+    const model = ed?.getModel();
+    if (!ed || !model) return { text: full };
+    const sel = ed.getSelection();
+    // A selection runs exactly that text; a whitespace-only one counts as none.
+    if (sel && !sel.isEmpty() && model.getValueInRange(sel).trim()) {
+      return {
+        text: model.getValueInRange(sel),
+        start: model.getOffsetAt(sel.getStartPosition()),
+        end: model.getOffsetAt(sel.getEndPosition()),
+      };
+    }
+    if (!conn || conn.kind === 'mongo') return { text: full };
+    const value = model.getValue();
+    const pos = ed.getPosition();
+    const st = pos ? statementAt(splitStatements(value), model.getOffsetAt(pos), value) : undefined;
+    return st ? { text: st.text, start: st.start, end: st.end } : { text: full };
+  }, [conn, tab.dbQuery]);
+
+  // Brief highlight on the text that is about to run.
+  const flashRange = useCallback((start?: number, end?: number) => {
+    const ed = editorRef.current;
+    const monaco = monacoRef.current;
+    const model = ed?.getModel();
+    if (!ed || !monaco || !model || start == null || end == null) return;
+    const a = model.getPositionAt(start);
+    const b = model.getPositionAt(end);
+    const deco = ed.createDecorationsCollection([{
+      range: new monaco.Range(a.lineNumber, a.column, b.lineNumber, b.column),
+      options: { className: 'pm-db-stmt-flash' },
+    }]);
+    setTimeout(() => deco.clear(), 700);
+  }, []);
+
+  const runCurrent = useCallback(() => {
+    const target = pickTarget();
+    if (!target.text.trim()) return;
+    flashRange(target.start, target.end);
+    void runOnce(target.text);
+  }, [pickTarget, flashRange, runOnce]);
+  const runAll = useCallback(() => { void runOnce(tab.dbQuery ?? ''); }, [runOnce, tab.dbQuery]);
+  const runCurrentRef = useRef(runCurrent);
+  const runAllRef = useRef(runAll);
+  useEffect(() => { runCurrentRef.current = runCurrent; }, [runCurrent]);
+  useEffect(() => { runAllRef.current = runAll; }, [runAll]);
+
+  const isSqlConn = !!conn && conn.kind !== 'mongo';
+  const statementCount = useMemo(
+    () => (isSqlConn ? splitStatements(tab.dbQuery ?? '').length : 0),
+    [isSqlConn, tab.dbQuery],
+  );
+
   const handleEditorMount = useCallback(
     (editor: MonacoType.editor.IStandaloneCodeEditor, monaco: Monaco) => {
-      editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, () => { runRef.current?.(); });
-      editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, () => { saveRef.current?.(); });
+      editorRef.current = editor;
+      monacoRef.current = monaco;
+      // addAction (not addCommand): a command's keybinding is global and
+      // fires in whichever DB editor mounted last when several tabs are open.
+      editor.addAction({
+        id: 'patchman.db.runCurrent',
+        label: i18n.t('dbquery:editor.runCurrent'),
+        keybindings: [monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter],
+        contextMenuGroupId: 'navigation',
+        contextMenuOrder: 1,
+        run: () => { runCurrentRef.current(); },
+      });
+      editor.addAction({
+        id: 'patchman.db.runAll',
+        label: i18n.t('dbquery:editor.runAll'),
+        keybindings: [monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.Enter],
+        contextMenuGroupId: 'navigation',
+        contextMenuOrder: 2,
+        run: () => { runAllRef.current(); },
+      });
+      editor.addAction({
+        id: 'patchman.db.save',
+        label: i18n.t('dbquery:panel.saveQuery'),
+        keybindings: [monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS],
+        run: () => { saveRef.current?.(); },
+      });
       // ⌘⇧F (Mac) / Ctrl+Shift+F (Linux/Win) — same chord VS Code / Monaco
       // use natively for "Format document".
-      editor.addCommand(
-        monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.KeyF,
-        () => { beautifyRef.current?.(); },
-      );
-      if (conn) {
-        registerDBCompletion(monaco, conn.id, conn.kind);
-        loadSchema(conn.id).catch(() => { /* ignore */ });
-      }
+      editor.addAction({
+        id: 'patchman.db.beautify',
+        label: i18n.t('dbquery:panel.beautify'),
+        keybindings: [monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.KeyF],
+        run: () => { beautifyRef.current?.(); },
+      });
+      // ▶ in the glyph margin runs that statement.
+      editor.onMouseDown((e) => {
+        if (e.target.type !== monaco.editor.MouseTargetType.GUTTER_GLYPH_MARGIN) return;
+        const line = e.target.position?.lineNumber;
+        const model = editor.getModel();
+        if (!line || !model) return;
+        const st = splitStatements(model.getValue()).find((x) => model.getPositionAt(x.start).lineNumber === line);
+        if (!st) return;
+        flashRangeRef.current(st.start, st.end);
+        void runOnceRef.current(st.text);
+      });
+      setEditorReady((n) => n + 1);
     },
-    [conn, loadSchema],
+    [],
   );
+
+  const flashRangeRef = useRef(flashRange);
+  useEffect(() => { flashRangeRef.current = flashRange; }, [flashRange]);
+  const runOnceRef = useRef(runOnce);
+  useEffect(() => { runOnceRef.current = runOnce; }, [runOnce]);
+
+  // Completion follows the tab's connection (bound per editor model).
+  useEffect(() => {
+    const ed = editorRef.current;
+    const monaco = monacoRef.current;
+    if (!ed || !monaco || !conn) return;
+    bindDBCompletion(monaco, ed.getModel(), conn.id, conn.kind);
+    loadSchema(conn.id).catch(() => { /* ignore */ });
+  }, [conn?.id, conn?.kind, editorReady]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Statement markers: ▶ on each statement's first line, and a tint on the
+  // statement the caret is in (only when there is more than one).
+  useEffect(() => {
+    const ed = editorRef.current;
+    const monaco = monacoRef.current;
+    if (!ed || !monaco) return;
+    const coll = ed.createDecorationsCollection([]);
+    const update = () => {
+      const model = ed.getModel();
+      if (!model || !isSqlConn) { coll.clear(); return; }
+      const value = model.getValue();
+      const stmts = splitStatements(value);
+      const decos: MonacoType.editor.IModelDeltaDecoration[] = stmts.map((st) => {
+        const line = model.getPositionAt(st.start).lineNumber;
+        return {
+          range: new monaco.Range(line, 1, line, 1),
+          options: {
+            glyphMarginClassName: 'pm-db-run-glyph',
+            glyphMarginHoverMessage: { value: i18n.t('dbquery:editor.runThis') },
+          },
+        };
+      });
+      const sel = ed.getSelection();
+      const pos = ed.getPosition();
+      if (stmts.length > 1 && pos && (!sel || sel.isEmpty())) {
+        const cur = statementAt(stmts, model.getOffsetAt(pos), value);
+        if (cur) {
+          const a = model.getPositionAt(cur.start);
+          const b = model.getPositionAt(cur.end);
+          decos.push({
+            range: new monaco.Range(a.lineNumber, 1, b.lineNumber, 1),
+            options: { isWholeLine: true, className: 'pm-db-current-stmt' },
+          });
+        }
+      }
+      coll.set(decos);
+    };
+    update();
+    const d1 = ed.onDidChangeCursorPosition(update);
+    const d2 = ed.onDidChangeModelContent(update);
+    return () => { d1.dispose(); d2.dispose(); coll.clear(); };
+  }, [isSqlConn, editorReady]);
 
   const saveRef = useRef(handleSave);
   const beautifyRef = useRef(handleBeautify);
@@ -712,9 +868,9 @@ export function DBQueryPanel({ tab }: DBQueryPanelProps) {
           ) : (
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button size="sm" disabled={!conn} onClick={runOnce} className="gap-1.5">
+                <Button size="sm" disabled={!conn} onClick={runCurrent} className="gap-1.5">
                   <Play className="h-3.5 w-3.5" />
-                  <span className="text-xs">{t('panel.runQuery')}</span>
+                  <span className="text-xs">{statementCount > 1 ? t('panel.runStatement') : t('panel.runQuery')}</span>
                   <span className="text-[10px] opacity-70 ml-0.5">⌘↵</span>
                 </Button>
               </TooltipTrigger>
@@ -725,7 +881,20 @@ export function DBQueryPanel({ tab }: DBQueryPanelProps) {
                     via: effectiveScope === 'local' ? t('panel.viaLocal') : t('panel.viaTeam'),
                   })}
                 </p>
+                {isSqlConn && <p className="text-xs max-w-[220px] mt-1 opacity-80">{t('panel.runModesHint')}</p>}
               </TooltipContent>
+            </Tooltip>
+          )}
+          {!running && statementCount > 1 && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button size="sm" variant="outline" disabled={!conn} onClick={runAll} className="gap-1.5">
+                  <Play className="h-3.5 w-3.5" />
+                  <span className="text-xs">{t('panel.runAll', { count: statementCount })}</span>
+                  <span className="text-[10px] opacity-70 ml-0.5">⇧⌘↵</span>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom"><p className="text-xs max-w-[220px]">{t('panel.runAllTooltip')}</p></TooltipContent>
             </Tooltip>
           )}
         </TooltipProvider>
@@ -865,6 +1034,7 @@ export function DBQueryPanel({ tab }: DBQueryPanelProps) {
               automaticLayout: true,
               padding: { top: 12 },
               suggestOnTriggerCharacters: true,
+              glyphMargin: isSqlConn,
               quickSuggestions: { other: true, comments: false, strings: false },
             }}
           />
@@ -922,6 +1092,7 @@ export function DBQueryPanel({ tab }: DBQueryPanelProps) {
                   onPageChange={conn?.kind !== 'mongo' ? handlePageChange : undefined}
                   rowLimit={tab.dbLimit ?? defaultRowLimit}
                   documents={conn?.kind === 'mongo'}
+                  dbKind={conn?.kind}
                 />
               </div>
               {(tab.dbHistory?.length ?? 0) > 1 && (
@@ -1011,7 +1182,7 @@ function RecentRunsStrip({
 
 function kindToMonacoLang(k: DBKind | undefined): string {
   if (!k) return 'plaintext';
-  if (k === 'mongo') return 'javascript';
+  if (k === 'mongo') return 'mongosh'; // monacoDBCompletion registers it
   return 'sql';
 }
 

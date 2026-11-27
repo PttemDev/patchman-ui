@@ -66,9 +66,11 @@ pm.request.method         // "GET"
 pm.request.url            // final URL after env substitution
 pm.request.body           // raw body string
 
-// Headers
+// Headers (Postman-compatible)
 pm.request.headers.get("Content-Type")
-pm.request.headers.set("X-Timestamp", Date.now().toString())
+pm.request.headers.upsert({ key: "X-Timestamp", value: Date.now().toString() })
+pm.request.headers.add({ key: "X-Request-Id", value: "abc" })
+pm.request.headers.set("X-Debug", "1")
 pm.request.headers.has("Authorization")
 pm.request.headers.remove("X-Debug")`}
             />
@@ -77,9 +79,13 @@ pm.request.headers.remove("X-Debug")`}
               title="pm.environment"
               description={t('guide.preRequest.pmEnvironmentDesc')}
               code={`const base = pm.environment.get("baseUrl");
-pm.environment.set("requestId", crypto.randomUUID());
+pm.environment.set("requestId", Date.now().toString());
 pm.environment.unset("oldToken");
-pm.environment.has("authToken");`}
+pm.environment.has("authToken");
+pm.environment.replaceIn("{{baseUrl}}/users");
+
+// The script runs before {{variables}} are filled in, so a value it sets
+// here is what headers, URL and body use.`}
             />
 
             <Section
@@ -96,15 +102,14 @@ console.error("missing env var");`}
 const nonce = Date.now().toString();
 const payload = nonce + pm.request.body;
 
-// goja sandbox supports modern JS; do whatever crypto lib your env supports.
-// Here we fake it with a simple hash for illustration:
-let h = 0;
-for (let i = 0; i < payload.length; i++) h = (h * 31 + payload.charCodeAt(i)) | 0;
-const sig = (h >>> 0).toString(16);
+// CryptoJS is built in (also as require("crypto-js")): MD5, SHA1, SHA256,
+// SHA512, HmacSHA256…, CryptoJS.enc.Hex / Base64 / Utf8, plus btoa / atob.
+const sig = CryptoJS.HmacSHA256(payload, secret).toString(CryptoJS.enc.Hex);
+const bodyHash = CryptoJS.SHA256(pm.request.body).toString(CryptoJS.enc.Base64);
 
-pm.request.headers.set("X-Nonce", nonce);
-pm.request.headers.set("X-Signature", sig);
-pm.request.headers.set("X-Key", secret);`}
+pm.request.headers.upsert({ key: "X-Nonce", value: nonce });
+pm.request.headers.upsert({ key: "X-Signature", value: sig });
+pm.request.headers.upsert({ key: "X-Body-Hash", value: bodyHash });`}
             />
 
             <Section

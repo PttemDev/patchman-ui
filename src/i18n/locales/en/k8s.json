@@ -381,7 +381,13 @@
     "showRaw": "Show raw JSON",
     "hideRaw": "Hide raw JSON",
     "tailTip": "Lines to load — applies on Enter or after a pause",
-    "noLinesAtLevel": "No lines at this level"
+    "noLinesAtLevel": "No lines at this level",
+    "pod": "Pod",
+    "podSwitchTip": "Switch to another pod of the same workload",
+    "podsLoading": "Loading pods…",
+    "podOpened": "opened",
+    "podRestarts_one": "{{count}} restart",
+    "podRestarts_other": "{{count}} restarts"
   },
   "events": {
     "loading": "Loading events…",

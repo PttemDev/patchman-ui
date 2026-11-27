@@ -510,9 +510,14 @@ export interface Tab {
    *  the Kafka topic browser, 's3' for the object-storage browser, 'tool'
    *  for a Dev Tools utility (kind in `toolKind`), 'redis' for the Redis
    *  key browser, 'es' for the Elasticsearch console, 'k8s' for the
-   *  Kubernetes cluster explorer, 'git' for the Git client.
+   *  Kubernetes cluster explorer, 'git' for the Git client, 'terminal' for a
+   *  sidebar terminal session shown in a tab (desktop only, never persisted).
    *  Omitted on legacy tabs — treat as 'api'. */
-  type?: 'api' | 'db' | 'kafka' | 's3' | 'redis' | 'es' | 'k8s' | 'git' | 'tool' | 'excalidraw' | 'note' | 'grafana' | 'rabbit' | 'servicemap' | 'graylog' | 'plugin' | 'gcp';
+  type?: 'api' | 'db' | 'kafka' | 's3' | 'redis' | 'es' | 'k8s' | 'git' | 'tool' | 'excalidraw' | 'note' | 'grafana' | 'rabbit' | 'servicemap' | 'graylog' | 'plugin' | 'gcp' | 'terminal' | 'qahub';
+  /** CR + QA Hub tab: the section on screen (qahub/sections.ts). */
+  qaSection?: string;
+  /** The terminal session a `type: 'terminal'` tab shows (terminalSessions.ts). */
+  terminalSessionId?: string;
   /** For a `type: 'plugin'` tab: the plugin, its connection and the op
    *  the panel shows (RFC §16). */
   pluginId?: string;
@@ -810,6 +815,10 @@ export interface TestStep {
 
 export interface TestCase {
   id: string;
+  /** Creator; only they can move the case between spaces. */
+  userId?: string;
+  /** Team workspace the case is shared with; absent = personal. */
+  workspaceId?: string | null;
   title: string;
   description: string;
   priority: string;
@@ -820,6 +829,9 @@ export interface TestCase {
   createdAt: string;
   // Folder the case is filed in (TestCaseFolder.id); null/absent = root.
   folderId?: string | null;
+  /** CR + QA Hub: the Jira issue and the MR ("<linkId>:<iid>") this case tests. */
+  jiraKey?: string;
+  mrRef?: string;
 }
 
 // QA test-case folder (owner-only, nests via parentId; null = top level).
@@ -827,6 +839,10 @@ export interface TestCaseFolder {
   id: string;
   name: string;
   parentId: string | null;
+  /** Creator; only they can move the folder between spaces. */
+  userId?: string;
+  /** Team workspace the folder is shared with; absent = personal. */
+  workspaceId?: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -1157,6 +1173,8 @@ export interface DBConnectionGrant {
 export interface Defect {
   id: string;
   userId: string;
+  /** The Jira issue created from this defect (CR + QA Hub). */
+  jiraKey?: string;
   title: string;
   description: string;
   status: 'open' | 'in_progress' | 'fixed' | 'verified' | 'closed' | 'reopened';
@@ -1750,6 +1768,353 @@ export interface GraylogConnection {
   availableScopes?: Array<'local' | 'remote'>;
   createdAt: string;
   updatedAt: string;
+}
+
+/** A saved Jira site (CR_QA_P0_PLAN.md P0.b). PatchMan only reads it. */
+/** CR + QA Hub: a Git project linked to a Jira project (P0.b). */
+export interface QAProjectLink {
+  id: string;
+  userId: string;
+  workspaceId?: string;
+  gitConnectionId: string;
+  gitProject: string;
+  jiraConnectionId: string;
+  jiraProjectKey: string;
+  /** Regex for issue keys; "" = PROJECT-123. */
+  keyPattern: string;
+  testEnvironmentId: string;
+  /** The caller's own connections for this link ("" / absent = the link's). */
+  myGitConnectionId?: string;
+  myJiraConnectionId?: string;
+  hasWebhook?: boolean;
+  webhookAt?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** CR + QA Hub radar thresholds of a QA space (P0.c). 0 / "" = off. */
+export interface QASettings {
+  id?: string;
+  workspaceId?: string;
+  slaHours: number;
+  largeFiles: number;
+  sourcePatterns: string;
+  testPatterns: string;
+  /** Comma-separated signal kinds turned off. */
+  disabledSignals: string;
+  /** Jira status names of the test queue, comma-separated. */
+  testStatuses: string;
+  mergedDays: number;
+  digestHour: number | null;
+  timezone?: string;
+  /** The team's review rules, given to every AI review and fix check. */
+  reviewGuide?: string;
+}
+
+export type QASignalKind = 'stuck' | 'unverifiedFixes' | 'awaitingReview' | 'noJira' | 'jiraMismatch' | 'noTests' | 'large' | 'collision' | 'aiAssisted';
+
+export interface QASignal { kind: QASignalKind; reason?: string }
+
+export interface QARadarUser { username: string; name?: string }
+
+export interface QARadarJira {
+  key: string;
+  summary?: string;
+  status?: string;
+  statusCategory?: string;
+  assignee?: string;
+  url?: string;
+  missing?: boolean;
+}
+
+/** One MR in the radar. Facts the BE did not fetch are null. */
+export interface QARadarMR {
+  ref: string;
+  linkId: string;
+  gitConnectionId: string;
+  provider: string;
+  project: string;
+  iid: number;
+  title: string;
+  state: 'opened' | 'merged';
+  author: QARadarUser;
+  reviewers: QARadarUser[];
+  assignees: QARadarUser[];
+  approvedBy: string[];
+  sourceBranch: string;
+  targetBranch: string;
+  webUrl: string;
+  headSha: string;
+  createdAt: string;
+  updatedAt: string;
+  mergedAt?: string;
+  draft: boolean;
+  hasConflicts: boolean;
+  detailedMergeStatus?: string;
+  pipeline: string | null;
+  approvalsGiven: number | null;
+  approvalsLeft: number | null;
+  unresolvedThreads: boolean | null;
+  changedFiles: number | null;
+  aiAssisted: boolean | null;
+  notes: number;
+  jiraKey?: string;
+  jira: QARadarJira | null;
+  signals: QASignal[];
+  collidesWith: string[];
+  /** AI review at the current head (null = none). */
+  review: { id: string; status: QAReview['status']; pending: number; posted: number } | null;
+  /** Posted findings of an earlier review still waiting for a fix check. */
+  openFindings?: number;
+  /** The fix check at this head, if one was submitted. */
+  verifyId?: string;
+}
+
+/** The MR fields the MR side panel needs. */
+export type QAMRRef = Pick<QARadarMR, 'linkId' | 'gitConnectionId' | 'provider' | 'project' | 'iid' | 'title' | 'webUrl' | 'headSha'>;
+
+export interface QARadarLink {
+  id: string;
+  gitConnectionId: string;
+  gitProject: string;
+  provider?: string;
+  jiraProjectKey?: string;
+  status: 'ok' | 'noAccess' | 'needsToken' | 'error';
+  error?: string;
+  jiraStatus?: '' | 'ok' | 'noAccess' | 'error';
+  jiraError?: string;
+  shown: number;
+  total: number | null;
+  truncated: boolean;
+  mergedTruncated?: boolean;
+  /** MRs whose details couldn't all be read (their unread facts are null). */
+  incomplete: number;
+  /** The Git identity is the caller's own (own OAuth or own connection). */
+  personal: boolean;
+  /** The caller reads this link through their own connection(s). */
+  mapped: boolean;
+}
+
+export interface QARadarResult {
+  generatedAt: string;
+  links: QARadarLink[];
+  mrs: QARadarMR[];
+  merged: QARadarMR[];
+  settings: QASettings;
+  signalKinds: QASignalKind[];
+  /** Git connection id → the caller's own username on it. */
+  me: Record<string, string>;
+}
+
+export interface QAInboxItem {
+  ref: string;
+  kind: 'review' | 'verify' | 'stuck' | 'test';
+  reason?: string;
+  mr?: QARadarMR;
+  issue?: QARadarJira;
+  jiraConnectionId?: string;
+  since?: string;
+}
+
+export interface QAInboxResult {
+  generatedAt: string;
+  items: QAInboxItem[];
+  snoozed: number;
+  links: QARadarLink[];
+  testStatuses: string[];
+  jiraTruncated?: boolean;
+  /** Jira connections skipped for the test queue (their token is someone else's). */
+  jiraSkipped: number;
+  digestHour: number | null;
+  /** Setup changes agents proposed, waiting for the user. */
+  pendingSetup: number;
+}
+
+export type QAFindingSeverity = 'blocker' | 'major' | 'minor' | 'nit';
+
+export interface QAReviewFinding {
+  id: string;
+  severity: QAFindingSeverity;
+  file?: string;
+  line?: number;
+  title: string;
+  body: string;
+  suggestion?: string;
+  status: 'pending' | 'approved' | 'rejected' | 'posted';
+  noteId?: string;
+  inline?: boolean;
+  postError?: string;
+  /** Latest fix-check verdict, at commit verifiedSha. */
+  verdict?: QAVerdict;
+  verifiedSha?: string;
+  /** The thread was resolved from PatchMan after a verified fix. */
+  resolved?: boolean;
+}
+
+export type QAVerdict = 'fixed' | 'not_fixed' | 'partly' | 'obsolete';
+
+export interface QAFindingVerdict {
+  findingId: string;
+  verdict: QAVerdict;
+  evidence: string;
+  /** What a person sent: resolved | replied. */
+  applied?: 'resolved' | 'replied';
+  applyError?: string;
+}
+
+/** A fix check: an agent's verdicts on posted findings after new commits. */
+export interface QAVerification {
+  id: string;
+  linkId: string;
+  iid: number;
+  reviewId: string;
+  fromSha: string;
+  headSha: string;
+  status: 'claimed' | 'submitted' | 'applied';
+  claimedBy: string;
+  agent: string;
+  model: string;
+  summary: string;
+  verdicts: QAFindingVerdict[];
+  counts: Record<string, number>;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** An AI review of an MR at one head commit (written by a person's agent). */
+export interface QAReview {
+  id: string;
+  workspaceId?: string;
+  linkId: string;
+  gitConnectionId: string;
+  provider: string;
+  project: string;
+  iid: number;
+  headSha: string;
+  title: string;
+  webUrl: string;
+  status: 'claimed' | 'draft' | 'posted' | 'discarded' | 'stale';
+  claimedBy: string;
+  agent: string;
+  model: string;
+  summary: string;
+  findings: QAReviewFinding[];
+  counts: Record<string, number>;
+  authorUsername: string;
+  reviewerUsernames: string[];
+  postedAt?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface QAMRTests {
+  ref: string;
+  jiraKey: string;
+  headSha: string;
+  environmentId: string;
+  cases: { id: string; title: string; status: string; type: string; jiraKey?: string; mrRef?: string; executable: boolean }[];
+  runs: (TestRun & { mrRef?: string; jiraKey?: string })[];
+}
+
+export interface QAScheduledRun {
+  id: string;
+  userId: string;
+  workspaceId?: string;
+  name: string;
+  targetKind: 'folder' | 'plan';
+  targetId: string;
+  environmentId: string;
+  days: string;
+  hour: number;
+  minute: number;
+  timezone: string;
+  enabled: boolean;
+  lastRunAt?: string;
+  lastRunId?: string;
+  lastStatus?: string;
+  lastError?: string;
+}
+
+export interface QAChannel {
+  id: string;
+  userId: string;
+  workspaceId?: string;
+  kind: 'slack' | 'teams';
+  name: string;
+  events: string;
+  enabled: boolean;
+  lastError?: string;
+  lastSentAt?: string;
+}
+
+export interface QAReports {
+  days: number;
+  radar: { day: string; openMrs: number; signals: Record<string, number>; merged: number; leadMedianH: number | null; leadP90H: number | null }[];
+  tests: { day: string; passed: number; failed: number; runs: number }[];
+  testTotals: { passed: number; failed: number; runs: number };
+  defects: { open: number; closed: number; createdInWindow: number };
+  reviews: { count: number; findings: Record<string, Record<string, number>> };
+}
+
+/** A CR + QA setup change an AI agent proposed, waiting for the user. */
+export interface QASetupProposal {
+  id: string;
+  workspaceId?: string;
+  agent: string;
+  tool: string;
+  summary: string;
+  status: 'pending' | 'applied' | 'rejected';
+  result?: string;
+  createdAt: string;
+}
+
+export interface QAQueueItem {
+  linkId: string;
+  gitConnectionId: string;
+  project: string;
+  provider: string;
+  iid: number;
+  headSha: string;
+  title: string;
+  author: string;
+  webUrl: string;
+  reason: 'reviewer' | 'mine' | 'open';
+  claimedBy?: string;
+  /** review = no AI review at head; verify = posted findings got new commits. */
+  kind?: 'review' | 'verify';
+  openFindings?: number;
+}
+
+export interface JiraConnection {
+  id: string;
+  userId: string;
+  workspaceId?: string;
+  name: string;
+  /** Site URL, e.g. https://acme.atlassian.net (no /rest path). */
+  baseUrl: string;
+  /** cloud = email + API token; datacenter = personal access token. */
+  flavor: 'cloud' | 'datacenter';
+  authKind: 'email_token' | 'pat';
+  email?: string;
+  hasSecret?: boolean;
+  options?: { acFieldId?: string; defaultJql?: string };
+  ownerName?: string;
+  shared?: boolean;
+  grantRole?: 'owner' | 'read' | 'write';
+  scope?: 'local' | 'remote';
+  primaryScope?: 'local' | 'remote' | '';
+  availableScopes?: Array<'local' | 'remote'>;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** A Jira field (the acceptance-criteria picker lists custom ones). */
+export interface JiraField {
+  id: string;
+  name: string;
+  custom: boolean;
+  schemaType?: string;
+  schemaCustom?: string;
 }
 
 /** Graylog time range: last N seconds, from/to (RFC 3339) or a keyword. */
@@ -2463,6 +2828,17 @@ export interface ResourceRow {
   extra?: Record<string, string>;
 }
 
+// A pod sharing the open pod's owner (mirrors k8sclient.PodSibling/PodSiblings).
+export interface K8sPodSibling extends ResourceRow {
+  containers?: string[];
+  current?: boolean;
+}
+export interface K8sPodSiblings {
+  owner: { kind: string; name: string } | null;
+  matchedBy: 'owner' | 'labels' | 'none';
+  pods: K8sPodSibling[];
+}
+
 // A workload's rollout history entry (mirrors k8sclient.WorkloadRevision).
 export interface K8sWorkloadRevision {
   revision: number;
@@ -2750,15 +3126,52 @@ export interface GitMRDetail {
   hasConflicts: boolean;
   sha: string;
   diffRefs: { baseSha: string; headSha: string; startSha: string };
+  // MR page parity (absent on an older backend — treat as unknown).
+  provider?: 'gitlab' | 'github';
+  authorUsername?: string;
+  detailedMergeStatus?: string;
+  mergedAt?: string | null;
+  closedAt?: string | null;
+  mergeCommitSha?: string | null;
+  squashCommitSha?: string | null;
+  assignees?: GitMember[];
+  reviewers?: GitMember[];
+  labels?: string[];
+  milestone?: GitMilestone | null;
+  mergedBy?: GitMember | null;
+  /** Set to merge when the pipeline succeeds (GitHub: auto-merge enabled). */
+  autoMerge?: boolean;
+  /** The MR's own merge settings (GitLab), the merge dialog's defaults. */
+  squash?: boolean;
+  removeSourceBranch?: boolean;
+  notesCount?: number;
+  changesCount?: string;
+  commitsCount?: number;
+  /** "group/project!12" or "owner/repo#12". */
+  reference?: string;
+  fork?: boolean;
+  canMerge?: boolean | null;
+  /** The provider username of the token in use ("" = unknown). */
+  me?: string;
 }
 
-export interface GitMRNote { id: number; body: string; author: string; username: string; avatarUrl?: string; createdAt: string }
+export interface GitMRNote {
+  id: number; body: string; author: string; username: string; avatarUrl?: string; createdAt: string;
+  system?: boolean; edited?: boolean;
+  /** The caller wrote it, so it can be edited / deleted. */
+  canEdit?: boolean;
+}
+export interface GitMRAward { name: string; count: number; mine: boolean; users: string[] }
+export interface GitLabel { name: string; color?: string }
+export interface GitMilestone { id: number; title: string }
 
 export interface GitMRDiscussion {
   id: string;
   notes: GitMRNote[];
   resolvable: boolean;
   resolved: boolean;
+  /** A system note ("added 1 commit"), only with ?system=1. */
+  system?: boolean;
   position?: { newPath: string; oldPath: string; newLine: number | null; oldLine: number | null };
 }
 

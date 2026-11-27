@@ -432,7 +432,18 @@
     "noDispatchable": "Burada elle çalıştırılabilen workflow yok — on: bloğuna workflow_dispatch ekleyin.",
     "dispatched": "Workflow başlatıldı",
     "varsHint_gh": "Değişken değerleri siz gösterene kadar gizli kalır, birer birer (her bakış kaydedilir). Secret'ların yalnız adları listelenir — GitHub secret değerini asla döndürmez.",
-    "hiddenValue_gh": "değeri GitHub hiç döndürmez"
+    "hiddenValue_gh": "değeri GitHub hiç döndürmez",
+    "playAll": "Hepsini çalıştır",
+    "playAllCount_one": "{{count}} çalıştır",
+    "playAllCount_other": "Tümünü çalıştır ({{count}})",
+    "playAllTip_one": "{{name}} içindeki {{count}} manuel job'u çalıştır",
+    "playAllTip_other": "{{name}} içindeki {{count}} manuel job'u çalıştır",
+    "playAllConfirm_one": "{{name}} içindeki {{count}} manuel job çalıştırılsın mı?",
+    "playAllConfirm_other": "{{name}} içindeki {{count}} manuel job çalıştırılsın mı?",
+    "playAllProgress": "{{done}}/{{total}}",
+    "playAllDone_one": "{{count}} job başladı",
+    "playAllDone_other": "{{count}} job başladı",
+    "playAllPartial": "{{ok}} başladı, {{failed}} başarısız"
   },
   "vcs": {
     "failed": "Git işlemi başarısız",
@@ -721,7 +732,110 @@
     "openOn": "{{provider}} üzerinde aç",
     "editCommitMessage": "Commit mesajını düzenle",
     "squashCommitMessage": "Squash commit mesajı",
-    "mergeCommitMessage": "Merge commit mesajı"
+    "mergeCommitMessage": "Merge commit mesajı",
+    "resolveConflicts": "Conflict'leri çöz",
+    "resolveHint": "{{src}} ile {{dst}} çakışıyor. Yerel klonda çöz: PatchMan {{src}} dalına geçer, {{dst}} dalını içine merge eder ve conflict çözücüyü açar.",
+    "resolveHintClone": "{{src}} ile {{dst}} çakışıyor. PatchMan projeyi bu bilgisayara klonlar, {{src}} dalına geçer, {{dst}} dalını içine merge eder ve conflict çözücüyü açar.",
+    "resolveDirtyTitle": "Önce değişikliklerini commit'le veya stash'le",
+    "resolveDirtyDesc": "Yerel klonda {{branch}} dalında commit'lenmemiş değişiklikler var. Commit'le ya da stash'le, sonra tekrar dene.",
+    "resolveOpenedTitle_one": "{{count}} dosyada conflict var",
+    "resolveOpenedTitle_other": "{{count}} dosyada conflict var",
+    "resolveOpenedDesc": "{{dst}}, {{src}} dalına merge edildi. Conflict'leri çöz, merge'ü commit'le, sonra Push et — MR güncellenir ve merge edilebilir olur.",
+    "resolveCleanTitle": "Yerelde conflict kalmadı",
+    "resolveCleanDesc": "{{dst}}, {{src}} dalına sorunsuz merge edildi. MR'ı güncellemek için {{src}} dalını Push et.",
+    "resolveFailed": "Conflict çözümü hazırlanamadı",
+    "md": {
+      "write": "Yaz",
+      "preview": "Önizleme",
+      "supported": "Markdown desteklenir",
+      "nothing": "Önizlenecek bir şey yok."
+    },
+    "note": {
+      "edited": "düzenlendi",
+      "edit": "Yorumu düzenle",
+      "delete": "Yorumu sil",
+      "deleteTitle": "Bu yorum silinsin mi?",
+      "deleteDesc": "Sunucuda herkes için silinir. Bu işlem geri alınamaz.",
+      "save": "Yorumu kaydet"
+    },
+    "awards": {
+      "react": ":{{name}}: ile tepki ver",
+      "add": "Tepki ekle"
+    },
+    "copy": {
+      "menu": "Kopyala",
+      "reference": "Referans",
+      "sourceBranch": "Kaynak branch adı",
+      "link": "Bağlantı",
+      "checkout": "Checkout komutları",
+      "done": "Kopyalandı: {{what}}",
+      "failed": "Panoya kopyalanamadı"
+    },
+    "meta": {
+      "none": "Yok",
+      "assignees": "Atananlar",
+      "reviewers": "İnceleyiciler",
+      "labels": "Etiketler",
+      "milestone": "Kilometre taşı",
+      "mergedBy": "Merge eden"
+    },
+    "edit": {
+      "open": "Düzenle",
+      "title": "!{{iid}} düzenle",
+      "title_pr": "#{{iid}} düzenle",
+      "titleLabel": "Başlık",
+      "draft": "Taslak olarak işaretle",
+      "description": "Açıklama",
+      "targetBranch": "Hedef branch",
+      "addAssignee": "Atanan ekle…",
+      "removePerson": "Kaldır",
+      "addLabel": "Etiket ekle…",
+      "removeLabel": "Etiketi kaldır",
+      "save": "Değişiklikleri kaydet",
+      "saved": "Kaydedildi"
+    },
+    "commits": {
+      "none": "Commit yok.",
+      "copySha": "Commit SHA'sını kopyala",
+      "open": "Commit'i aç"
+    },
+    "pipelines": {
+      "none": "Bu merge request için pipeline yok.",
+      "none_pr": "Bu pull request için kontrol yok.",
+      "status": "Durum",
+      "pipeline": "Pipeline",
+      "pipeline_pr": "Kontroller",
+      "commit": "Commit",
+      "created": "Oluşturuldu",
+      "checks": "Tüm kontroller"
+    },
+    "files": {
+      "filter": "Dosyaları filtrele…",
+      "count_one": "{{count}} dosya",
+      "count_other": "{{count}} dosya",
+      "viewed": "{{done}}/{{total}} görüldü",
+      "noMatch": "Eşleşen dosya yok.",
+      "markViewed": "Görüldü olarak işaretle",
+      "viewedLabel": "Görüldü"
+    },
+    "mergedBy": "{{name}} merge etti",
+    "autoMergeSet": "Pipeline başarılı olunca otomatik merge edilecek.",
+    "autoMergeSet_pr": "Otomatik merge açık: gerekli kontroller geçince GitHub merge eder.",
+    "autoMergeSetToast": "Otomatik merge ayarlandı",
+    "cancelAutoMerge": "Otomatik merge’i iptal et",
+    "autoMergeCancelled": "Otomatik merge iptal edildi",
+    "cannotMerge": "Bunu merge etme yetkiniz yok",
+    "tabCommits": "Commit'ler",
+    "tabCommitsN_one": "Commit'ler ({{count}})",
+    "tabCommitsN_other": "Commit'ler ({{count}})",
+    "tabPipelines": "Pipeline'lar",
+    "tabPipelines_pr": "Kontroller",
+    "mergeMethod": "Merge yöntemi",
+    "method": {
+      "merge": "Merge commit",
+      "squash": "Squash",
+      "rebase": "Rebase"
+    }
   },
   "tree": {
     "title": "Proje",

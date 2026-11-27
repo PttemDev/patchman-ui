@@ -3,6 +3,7 @@ import { getLocalApiUrl, isDesktop } from '@/lib/platform';
 import { clientId } from '@/lib/clientId';
 import { getRemoteBaseUrl } from '@/stores/remoteStore';
 import { getAppVersion } from '@/lib/version';
+import { qaScopeFor } from '@/stores/qaScopeStore';
 import type {
   ClusterOverview,
   K8sPodMetricsResult,
@@ -27,6 +28,18 @@ import type {
   TestRun,
   User,
   WebAuditReport,
+  QAProjectLink,
+  QARadarResult,
+  QAInboxResult,
+  QASettings,
+  QAReview,
+  QAVerification,
+  QAQueueItem,
+  QAMRTests,
+  QAScheduledRun,
+  QAChannel,
+  QAReports,
+  QASetupProposal,
 } from '@/types';
 
 
@@ -163,6 +176,11 @@ api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
   // last value seen per user for upgrade tracking). Set first so it rides
   // along regardless of which baseURL/auth branch returns below.
   config.headers['X-Client-Version'] = getAppVersion();
+  // CR + QA Hub: QA requests read / create in the chosen workspace.
+  const qaWs = qaScopeFor(config.url);
+  if (qaWs && !(config.params && 'workspaceId' in config.params)) {
+    config.params = { ...(config.params ?? {}), workspaceId: qaWs };
+  }
   // Execution pin overrides both baseURL and auth header. Used by the
   // "Execution target" selector (desktop-synced only): the data calls keep
   // going to remote, but proxy/send and test/load-test execution can be
@@ -576,6 +594,63 @@ function parseTestCase(raw: Record<string, unknown>): TestCase {
       : (tc.steps || []),
   } as TestCase;
 }
+
+// CR + QA Hub: move a QA item between personal and a workspace (creator only).
+export const qaAPI = {
+  move: (kind: 'case' | 'folder' | 'plan' | 'defect' | 'requirement' | 'sharedStep' | 'loadTest', id: string, workspaceId: string | null) =>
+    api.post<{ moved: number; workspaceId: string | null }>('/qa/move', { kind, id, workspaceId: workspaceId ?? '' }),
+  links: () => api.get<QAProjectLink[]>('/qa/links').then((res) => { res.data = res.data ?? []; return res; }),
+  createLink: (data: Partial<QAProjectLink>) => api.post<QAProjectLink>('/qa/links', data),
+  updateLink: (id: string, data: Partial<QAProjectLink>) => api.put<QAProjectLink>(`/qa/links/${id}`, data),
+  deleteLink: (id: string) => api.delete(`/qa/links/${id}`),
+  /** Read a link through my own connections ("" = the link's; both "" removes). */
+  mapMine: (id: string, data: { gitConnectionId: string; jiraConnectionId: string }) => api.put(`/qa/links/${id}/mine`, data),
+  radar: (refresh = false) => api.get<QARadarResult>('/qa/radar', { params: refresh ? { refresh: 1 } : {} }),
+  inbox: (refresh = false) => api.get<QAInboxResult>('/qa/inbox', { params: refresh ? { refresh: 1 } : {} }),
+  settings: () => api.get<QASettings>('/qa/settings'),
+  saveSettings: (data: Partial<QASettings> & { clearDigest?: boolean }) => api.put<QASettings>('/qa/settings', data),
+  /** ref is the item ref, plus "@<headSha>" for an MR so a new commit ends the snooze. */
+  snooze: (itemRef: string, hours: number) => api.post('/qa/inbox/snooze', { itemRef, hours }),
+  unsnooze: (itemRef: string) => api.delete('/qa/inbox/snooze', { params: { itemRef } }),
+  reviewQueue: () => api.get<{ items: QAQueueItem[]; generatedAt: string }>('/qa/review-queue'),
+  reviews: (params: { linkId?: string; iid?: number; status?: string } = {}) =>
+    api.get<QAReview[]>('/qa/reviews', { params }).then((res) => { res.data = res.data ?? []; return res; }),
+  decideFinding: (id: string, fid: string, data: { status?: string; title?: string; body?: string; severity?: string; suggestion?: string }) =>
+    api.patch<QAReview>(`/qa/reviews/${id}/findings/${fid}`, data),
+  discardReview: (id: string) => api.post<QAReview>(`/qa/reviews/${id}/discard`),
+  postReview: (id: string) => api.post<{ review: QAReview; posted: number; failed: number }>(`/qa/reviews/${id}/post`),
+  verifications: (linkId: string, iid: number) =>
+    api.get<QAVerification[]>('/qa/verifications', { params: { linkId, iid } }).then((res) => { res.data = res.data ?? []; return res; }),
+  applyVerification: (id: string, data: { resolve: string[]; reply: string[] }) =>
+    api.post<{ verification: QAVerification; sent: number; failed: number }>(`/qa/verifications/${id}/apply`, data),
+  mrTests: (linkId: string, iid: number) => api.get<QAMRTests>('/qa/mr-tests', { params: { linkId, iid } }),
+  runMRTests: (linkId: string, iid: number, environmentId?: string) =>
+    api.post<{ testRun: TestRun & { mrRef?: string; jiraKey?: string }; summary: { total: number; passed: number; failed: number; skipped: number; drafts?: number } }>('/qa/mr-tests/run', { linkId, iid, environmentId }),
+  postMRTestResults: (linkId: string, iid: number, runId: string, target: 'mr' | 'jira') => api.post('/qa/mr-tests/post', { linkId, iid, runId, target }),
+  defectToJira: (id: string, jiraConnectionId: string, projectKey: string, issueType?: string) =>
+    api.post<{ key: string; url: string }>(`/qa/defects/${id}/jira`, { jiraConnectionId, projectKey, issueType }),
+  schedules: () => api.get<QAScheduledRun[]>('/qa/schedules').then((r) => { r.data = r.data ?? []; return r; }),
+  createSchedule: (data: Partial<QAScheduledRun>) => api.post<QAScheduledRun>('/qa/schedules', data),
+  updateSchedule: (id: string, data: Partial<QAScheduledRun>) => api.put<QAScheduledRun>(`/qa/schedules/${id}`, data),
+  deleteSchedule: (id: string) => api.delete(`/qa/schedules/${id}`),
+  runSchedule: (id: string) => api.post(`/qa/schedules/${id}/run`),
+  channels: () => api.get<QAChannel[]>('/qa/channels').then((r) => { r.data = r.data ?? []; return r; }),
+  createChannel: (data: Partial<QAChannel> & { url: string }) => api.post<QAChannel>('/qa/channels', data),
+  updateChannel: (id: string, data: Partial<QAChannel> & { url?: string }) => api.put<QAChannel>(`/qa/channels/${id}`, data),
+  deleteChannel: (id: string) => api.delete(`/qa/channels/${id}`),
+  testChannel: (id: string) => api.post(`/qa/channels/${id}/test`),
+  reports: (days = 30) => api.get<QAReports>('/qa/reports', { params: { days } }),
+  proposals: (status = 'pending') => api.get<QASetupProposal[]>('/qa/proposals', { params: { status } }).then((r) => { r.data = r.data ?? []; return r; }),
+  proposalRequest: (id: string) => api.get<{ method: string; path: string; query?: Record<string, string>; body?: unknown }>(`/qa/proposals/${id}/request`),
+  resolveProposal: (id: string, status: 'applied' | 'rejected', result = '') => api.post(`/qa/proposals/${id}/resolve`, { status, result }),
+  /** Replays an approved proposal as the user (only CR + QA setup routes reach here). */
+  applyProposalRequest: (r: { method: string; path: string; query?: Record<string, string>; body?: unknown }) =>
+    api.request({ method: r.method as 'POST', url: r.path, params: r.query, data: r.body }),
+  agentSetupPolicy: () => api.get<{ ask: boolean }>('/qa/agent-setup-policy'),
+  setAgentSetupPolicy: (ask: boolean) => api.put<{ ask: boolean }>('/qa/agent-setup-policy', { ask }),
+  webhookSecret: (linkId: string) => api.post<{ path: string; secret: string }>(`/qa/links/${linkId}/webhook`),
+  installWebhook: (linkId: string, url: string, secret: string) => api.post(`/qa/links/${linkId}/webhook/install`, { url, secret }),
+};
 
 export const testCasesAPI = {
   list: () =>
@@ -1377,6 +1452,35 @@ export const gcpAPI = {
     api.post(`/gcp/credentials/${id}/gke/clusters`, body, dbCfg(scope)),
 };
 
+export const jiraAPI = {
+  list: (scope?: DBScope) => api.get('/jira-connections', dbCfg(scope)),
+  create: (data: Record<string, unknown>, scope?: DBScope) =>
+    api.post('/jira-connections', data, dbCfg(scope)),
+  get: (id: string, scope?: DBScope) => api.get(`/jira-connections/${id}`, dbCfg(scope)),
+  update: (id: string, data: Record<string, unknown>, scope?: DBScope) =>
+    api.patch(`/jira-connections/${id}`, data, dbCfg(scope)),
+  delete: (id: string, scope?: DBScope) => api.delete(`/jira-connections/${id}`, dbCfg(scope)),
+  /** A saved connection may carry on-screen overrides (draft) so the edit dialog tests what it shows. */
+  test: (id: string | null, data?: Record<string, unknown>, scope?: DBScope) =>
+    id
+      ? api.post(`/jira-connections/${id}/test`, data, dbCfg(scope, { timeout: 30000 }))
+      : api.post('/jira-connections/test', data, dbCfg(scope, { timeout: 30000 })),
+  revealSecret: (id: string, scope?: DBScope) =>
+    api.post(`/jira-connections/${id}/reveal-secret`, {}, dbCfg(scope)),
+  listGrants: (id: string, scope?: DBScope) => api.get(`/jira-connections/${id}/grants`, dbCfg(scope)),
+  addGrant: (id: string, data: { subjectKind: 'user' | 'team'; subjectId: string; role?: 'read' | 'write' }, scope?: DBScope) =>
+    api.post(`/jira-connections/${id}/grants`, data, dbCfg(scope)),
+  deleteGrant: (id: string, grantId: string, scope?: DBScope) =>
+    api.delete(`/jira-connections/${id}/grants/${grantId}`, dbCfg(scope)),
+  fields: (id: string, scope?: DBScope) => api.get(`/jira-connections/${id}/fields`, dbCfg(scope, { timeout: 35000 })),
+  projects: (id: string, q: string, scope?: DBScope) =>
+    api.get<{ key: string; name: string }[]>(`/jira-connections/${id}/projects`, dbCfg(scope, { params: { q }, timeout: 35000 })),
+  search: (id: string, params: { jql?: string; next?: string; limit?: number }, scope?: DBScope) =>
+    api.get(`/jira-connections/${id}/search`, dbCfg(scope, { params, timeout: 50000 })),
+  issue: (id: string, key: string, scope?: DBScope) =>
+    api.get(`/jira-connections/${id}/issue/${encodeURIComponent(key)}`, dbCfg(scope, { timeout: 35000 })),
+};
+
 export const graylogAPI = {
   streams: (id: string, scope?: DBScope) => api.get(`/graylog/${id}/streams`, dbCfg(scope)),
   search: (id: string, params: GraylogSearchParams, scope?: DBScope) =>
@@ -1779,6 +1883,12 @@ export interface K8sPortForward {
   address: string;
 }
 
+// WebSocket base (http→ws) of the local embedded BE, falling back to the remote base.
+function localWsBase(): string {
+  const local = getLocalApiUrl();
+  return (local ? `${local}/api` : getRemoteBaseUrl()).replace(/^http/i, 'ws');
+}
+
 // aiShellAPI drives the in-app "Claude Code" terminal — a PTY running the
 // locally-installed `claude` CLI, bridged over a WebSocket. Desktop (embedded)
 // only; the status probe lets the UI render the right state before connecting.
@@ -1787,12 +1897,16 @@ export const aiShellAPI = {
     api.get<{ available: boolean; desktop: boolean }>('/ai/claude-status', { ...(scope ? { _executionPin: scope } : {}) }),
   // Absolute WebSocket URL to the local embedded BE (http→ws), no token — the
   // embedded BE trusts localhost, exactly like the K8s local-shell bridge.
-  shellUrl: (): { url: string } => {
-    const local = getLocalApiUrl();
-    const base = local ? `${local}/api` : getRemoteBaseUrl();
-    const wsBase = base.replace(/^http/i, 'ws');
-    return { url: `${wsBase}/ai/claude-shell` };
-  },
+  shellUrl: (): { url: string } => ({ url: `${localWsBase()}/ai/claude-shell` }),
+};
+
+// Multi-session desktop terminal — local login shells over a WebSocket.
+export const terminalAPI = {
+  status: () => api.get<{ desktop: boolean; shell?: string; home?: string }>('/terminal/status', { _executionPin: 'local' }),
+  shellUrl: (): { url: string } => ({ url: `${localWsBase()}/terminal/shell` }),
+  /** The user's shell history file, newest first, each command once. */
+  history: (limit = 1000) =>
+    api.get<{ entries: { command: string; time: number | null }[]; file: string }>('/terminal/history', { params: { limit }, _executionPin: 'local' }),
 };
 
 export const k8sAPI = {
@@ -1828,6 +1942,11 @@ export const k8sAPI = {
   // StatefulSet+DaemonSet ControllerRevisions) for its detail drawer.
   related: (id: string, params: { context: string; namespace?: string; kind: string; name: string }, scope?: DBScope) =>
     api.get(`/k8s/${id}/related`, { params, ...(scope ? { _executionPin: scope } : {}) }),
+  // Pods sharing a pod's owner (ReplicaSet/Deployment/StatefulSet/DaemonSet/
+  // Job, else the app label) — the pod-log viewer's pod switcher. An older BE
+  // answers 404.
+  podSiblings: (id: string, params: { context: string; namespace?: string; pod: string }, scope?: DBScope) =>
+    api.get(`/k8s/${id}/pod-siblings`, { params, ...(scope ? { _executionPin: scope } : {}) }),
   // logsUrl builds the absolute SSE stream URL the streaming-fetch reader
   // consumes (pod logs). Routed by scope the same way axios resolves its
   // baseURL: local pin hits the embedded BE (LocalUserAuth, no token);
@@ -1956,12 +2075,9 @@ export const k8sAPI = {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars -- kept so callers can pass a scope like the other URL builders
     _scope?: DBScope,
   ): { url: string; scope: DBScope } => {
-    const local = getLocalApiUrl();
-    const base = local ? `${local}/api` : getRemoteBaseUrl();
-    const wsBase = base.replace(/^http/i, 'ws');
     const qs = new URLSearchParams();
     qs.set('context', params.context);
-    return { url: `${wsBase}/k8s/${id}/local-shell?${qs.toString()}`, scope: 'local' };
+    return { url: `${localWsBase()}/k8s/${id}/local-shell?${qs.toString()}`, scope: 'local' };
   },
 
   // ── v2 write ops (all require the write grant BE-side) ────────────────
@@ -2554,11 +2670,11 @@ export const gitAPI = {
     api.get(`/git/connections/${id}/merge_request`, gitReadCfg(id, params)),
   mergeRequestChanges: (id: string, params: { project: string; iid: number }) =>
     api.get(`/git/connections/${id}/merge_request_changes`, gitReadCfg(id, params)),
-  mrDiscussions: (id: string, params: { project: string; iid: number }) =>
+  mrDiscussions: (id: string, params: { project: string; iid: number; system?: 1 }) =>
     api.get(`/git/connections/${id}/merge_request_discussions`, gitReadCfg(id, params)),
   mrApprovals: (id: string, params: { project: string; iid: number }) =>
     api.get(`/git/connections/${id}/merge_request_approvals`, gitReadCfg(id, params)),
-  mrPipelines: (id: string, params: { project: string; iid: number }) =>
+  mrPipelines: (id: string, params: { project: string; iid: number; limit?: number }) =>
     api.get(`/git/connections/${id}/merge_request_pipelines`, gitReadCfg(id, params)),
   projectMembers: (id: string, params: { project: string; query?: string }) =>
     api.get(`/git/connections/${id}/project_members`, gitReadCfg(id, params)),
@@ -2582,6 +2698,22 @@ export const gitAPI = {
     api.post(`/git/connections/${id}/merge_request_discussion_reply`, { body }, gitReadCfg(id, { project, iid, discussion })),
   resolveMRDiscussion: (id: string, project: string, iid: number, discussion: string, resolved: boolean) =>
     api.post(`/git/connections/${id}/merge_request_discussion_resolve`, { resolved }, gitReadCfg(id, { project, iid, discussion })),
+  updateMRNote: (id: string, project: string, iid: number, discussion: string, note: number, body: string) =>
+    api.post(`/git/connections/${id}/merge_request_note_update`, { body }, gitReadCfg(id, { project, iid, discussion, note })),
+  deleteMRNote: (id: string, project: string, iid: number, discussion: string, note: number) =>
+    api.post(`/git/connections/${id}/merge_request_note_delete`, null, gitReadCfg(id, { project, iid, discussion, note })),
+  mrCommits: (id: string, params: { project: string; iid: number }) =>
+    api.get(`/git/connections/${id}/merge_request_commits`, gitReadCfg(id, params)),
+  cancelAutoMergeMR: (id: string, project: string, iid: number) =>
+    api.post(`/git/connections/${id}/merge_request_cancel_auto_merge`, null, gitReadCfg(id, { project, iid })),
+  mrAwards: (id: string, params: { project: string; iid: number }) =>
+    api.get(`/git/connections/${id}/merge_request_awards`, gitReadCfg(id, params)),
+  toggleMRAward: (id: string, project: string, iid: number, name: string, on: boolean) =>
+    api.post(`/git/connections/${id}/merge_request_award`, { name, on }, gitReadCfg(id, { project, iid })),
+  projectLabels: (id: string, params: { project: string }) =>
+    api.get(`/git/connections/${id}/project_labels`, gitReadCfg(id, params)),
+  projectMilestones: (id: string, params: { project: string }) =>
+    api.get(`/git/connections/${id}/project_milestones`, gitReadCfg(id, params)),
 
   // ── CI/CD (reads need read_api; variables a write grant; writes the api scope) ──
   pipelines: (id: string, params: { project: string; ref?: string; status?: string; source?: string; page?: number }) =>

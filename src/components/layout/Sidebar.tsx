@@ -25,6 +25,7 @@ import {
   LayoutDashboard,
   ChevronsRight,
   Puzzle,
+  TerminalSquare,
 } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -53,12 +54,15 @@ import { useThemeStore } from '@/stores/themeStore';
 import { useSettingsUIStore } from '@/stores/settingsUIStore';
 import { useProxyConfigStore } from '@/stores/proxyConfigStore';
 import { HistoryList } from '@/components/history/HistoryList';
-import { QADashboard, QAHeaderActions } from '@/components/qa/QADashboard';
+import { QAHeaderActions } from '@/components/qa/QADashboard';
+import { QALauncher } from '@/components/qahub/QALauncher';
+import { QAInboxBadge, QAInboxPoller } from '@/components/qahub/QAInboxPoller';
 import { MockServerList } from '@/components/mock/MockServerList';
 import { WebSocketClient } from '@/components/websocket/WebSocketClient';
 import { CookieManager } from '@/components/cookies/CookieManager';
 import { AuditPanel } from '@/components/audit/AuditPanel';
 import { LLMPanel } from '@/components/llm/LLMPanel';
+import { TerminalPanel } from '@/components/terminal/TerminalPanel';
 import { useSidebarStore } from '@/stores/sidebarStore';
 import { useAuthStore } from '@/stores/authStore';
 import { Separator } from '@/components/ui/separator';
@@ -67,7 +71,7 @@ import { PluginsSidebar } from '@/components/plugins/PluginsSidebar';
 import { usePluginStore } from '@/stores/pluginStore';
 import { useUpdateStore } from '@/stores/updateStore';
 
-export type SidebarTab = 'collections' | 'history' | 'qa' | 'qa-planning' | 'mock' | 'websocket' | 'cookies' | 'audit' | 'database' | 'kafka' | 'storage' | 'redis' | 'elasticsearch' | 'kubernetes' | 'git' | 'ai' | 'devtools' | 'excalidraw' | 'notes' | 'dashboards' | 'plugins';
+export type SidebarTab = 'collections' | 'history' | 'qa' | 'qa-planning' | 'mock' | 'websocket' | 'cookies' | 'audit' | 'database' | 'kafka' | 'storage' | 'redis' | 'elasticsearch' | 'kubernetes' | 'git' | 'ai' | 'terminal' | 'devtools' | 'excalidraw' | 'notes' | 'dashboards' | 'plugins';
 
 // Always hidden in local mode — these features need a multi-user backend
 // that the embedded desktop BE deliberately doesn't provide (audit log is
@@ -93,6 +97,7 @@ export const sidebarTabs: { id: SidebarTab; icon: React.ElementType; group?: str
   { id: 'dashboards', icon: LayoutDashboard, group: 'main' },
   { id: 'git', icon: GitBranch, group: 'main' },
   { id: 'ai', icon: Sparkles, group: 'main' },
+  { id: 'terminal', icon: TerminalSquare, group: 'main' },
   { id: 'excalidraw', icon: Shapes, group: 'main' },
   { id: 'notes', icon: NotebookText, group: 'main' },
   { id: 'devtools', icon: Wrench, group: 'tools' },
@@ -110,6 +115,8 @@ export function platformHiddenTabs(isLocal: boolean, desktop: boolean): Set<Side
   const hidden = new Set<SidebarTab>();
   // Plugins install on the desktop's embedded BE only (RFC §16).
   if (!desktop) hidden.add('plugins');
+  // The terminal spawns local login shells on the desktop's embedded BE.
+  if (!desktop) hidden.add('terminal');
   if (isLocal) {
     MULTI_USER_TABS.forEach((tab) => hidden.add(tab));
     if (!desktop) {
@@ -172,6 +179,7 @@ export function Sidebar() {
 
   return (
     <div className="flex h-full border-r">
+      <QAInboxPoller />
       {/* Icon strip */}
       <TooltipProvider delayDuration={100}>
         <div className="w-12 bg-muted/30 border-r flex flex-col items-center py-2 gap-1 shrink-0">
@@ -252,6 +260,9 @@ export function Sidebar() {
         {effectiveActive === 'mock' ? (
           /* Mock panel manages its own header and scroll */
           <MockServerList />
+        ) : effectiveActive === 'terminal' ? (
+          /* Terminal panel manages its own header; sessions live in the registry */
+          <TerminalPanel />
         ) : effectiveActive === 'ai' ? null : (
           <>
             <div className="px-3 py-2 border-b flex items-center justify-between gap-2 min-h-[2.5rem]">
@@ -293,7 +304,7 @@ export function Sidebar() {
               {effectiveActive === 'dashboards' && <><DashboardsSidebar /><GcpSidebarGroup service="logging" /></>}
               {effectiveActive === 'plugins' && <PluginsSidebar />}
               {effectiveActive === 'history' && <HistoryList />}
-              {effectiveActive === 'qa' && <QADashboard />}
+              {effectiveActive === 'qa' && <QALauncher />}
               {effectiveActive === 'websocket' && <WebSocketClient />}
               {effectiveActive === 'cookies' && <CookieManager />}
               {effectiveActive === 'audit' && <AuditPanel />}
@@ -454,13 +465,14 @@ function RailTabs({ mainTabs, toolTabs, activeId, onPick, label, moreLabel }: {
             aria-label={label(tab.id)}
             className={cn(
               d.btn,
-              'shrink-0 rounded-md flex items-center justify-center transition-all duration-200 cursor-pointer',
+              'relative shrink-0 rounded-md flex items-center justify-center transition-all duration-200 cursor-pointer',
               activeId === tab.id
                 ? 'bg-primary text-primary-foreground shadow-sm'
                 : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground',
             )}
           >
             <Icon className="h-4 w-4" />
+            {tab.id === 'qa' && <QAInboxBadge />}
           </button>
         </TooltipTrigger>
         <TooltipContent side="right">

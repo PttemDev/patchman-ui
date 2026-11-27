@@ -432,7 +432,18 @@
     "noDispatchable": "Ningún workflow se puede ejecutar a mano — añade workflow_dispatch a su bloque on:.",
     "dispatched": "Workflow iniciado",
     "varsHint_gh": "Los valores de las variables quedan ocultos hasta que los muestras, uno a uno (cada consulta queda registrada). De los secretos solo se listan los nombres: GitHub nunca devuelve su valor.",
-    "hiddenValue_gh": "GitHub nunca devuelve el valor"
+    "hiddenValue_gh": "GitHub nunca devuelve el valor",
+    "playAll": "Ejecutar todos",
+    "playAllCount_one": "Ejecutar {{count}}",
+    "playAllCount_other": "Ejecutar los {{count}}",
+    "playAllTip_one": "Ejecutar el {{count}} job manual de {{name}}",
+    "playAllTip_other": "Ejecutar los {{count}} jobs manuales de {{name}}",
+    "playAllConfirm_one": "¿Ejecutar {{count}} job manual de {{name}}?",
+    "playAllConfirm_other": "¿Ejecutar {{count}} jobs manuales de {{name}}?",
+    "playAllProgress": "{{done}}/{{total}}",
+    "playAllDone_one": "{{count}} job iniciado",
+    "playAllDone_other": "{{count}} jobs iniciados",
+    "playAllPartial": "{{ok}} iniciados, {{failed}} fallidos"
   },
   "vcs": {
     "failed": "La operación de Git falló",
@@ -721,7 +732,110 @@
     "openOn": "Abrir en {{provider}}",
     "editCommitMessage": "Editar el mensaje del commit",
     "squashCommitMessage": "Mensaje del commit de squash",
-    "mergeCommitMessage": "Mensaje del commit de merge"
+    "mergeCommitMessage": "Mensaje del commit de merge",
+    "resolveConflicts": "Resolver conflictos",
+    "resolveHint": "{{src}} tiene conflictos con {{dst}}. Resuélvelos en tu clon local: PatchMan cambia a {{src}}, fusiona {{dst}} en ella y abre el resolvedor de conflictos.",
+    "resolveHintClone": "{{src}} tiene conflictos con {{dst}}. PatchMan clona el proyecto en este equipo, cambia a {{src}}, fusiona {{dst}} en ella y abre el resolvedor de conflictos.",
+    "resolveDirtyTitle": "Primero haz commit o stash de tus cambios",
+    "resolveDirtyDesc": "El clon local tiene cambios sin commit en {{branch}}. Haz commit o stash y vuelve a intentarlo.",
+    "resolveOpenedTitle_one": "{{count}} archivo tiene conflictos",
+    "resolveOpenedTitle_other": "{{count}} archivos tienen conflictos",
+    "resolveOpenedDesc": "{{dst}} se fusionó en {{src}}. Resuelve los conflictos, haz commit de la fusión y luego Push: la merge request se actualiza y se puede fusionar.",
+    "resolveCleanTitle": "No quedan conflictos en local",
+    "resolveCleanDesc": "{{dst}} se fusionó en {{src}} sin conflictos. Haz Push de {{src}} para actualizar la merge request.",
+    "resolveFailed": "No se pudo preparar la resolución de conflictos",
+    "md": {
+      "write": "Escribir",
+      "preview": "Vista previa",
+      "supported": "Admite Markdown",
+      "nothing": "Nada que previsualizar."
+    },
+    "note": {
+      "edited": "editado",
+      "edit": "Editar comentario",
+      "delete": "Eliminar comentario",
+      "deleteTitle": "¿Eliminar este comentario?",
+      "deleteDesc": "Se elimina en el servidor para todos. No se puede deshacer.",
+      "save": "Guardar comentario"
+    },
+    "awards": {
+      "react": "Reaccionar con :{{name}}:",
+      "add": "Añadir reacción"
+    },
+    "copy": {
+      "menu": "Copiar",
+      "reference": "Referencia",
+      "sourceBranch": "Nombre de la rama origen",
+      "link": "Enlace",
+      "checkout": "Comandos de checkout",
+      "done": "Copiado: {{what}}",
+      "failed": "No se pudo copiar al portapapeles"
+    },
+    "meta": {
+      "none": "Ninguno",
+      "assignees": "Asignados",
+      "reviewers": "Revisores",
+      "labels": "Etiquetas",
+      "milestone": "Hito",
+      "mergedBy": "Fusionado por"
+    },
+    "edit": {
+      "open": "Editar",
+      "title": "Editar !{{iid}}",
+      "title_pr": "Editar #{{iid}}",
+      "titleLabel": "Título",
+      "draft": "Marcar como borrador",
+      "description": "Descripción",
+      "targetBranch": "Rama destino",
+      "addAssignee": "Añadir asignado…",
+      "removePerson": "Quitar",
+      "addLabel": "Añadir etiqueta…",
+      "removeLabel": "Quitar etiqueta",
+      "save": "Guardar cambios",
+      "saved": "Guardado"
+    },
+    "commits": {
+      "none": "No hay commits.",
+      "copySha": "Copiar el SHA del commit",
+      "open": "Abrir commit"
+    },
+    "pipelines": {
+      "none": "No hay pipelines para esta merge request.",
+      "none_pr": "No hay comprobaciones para este pull request.",
+      "status": "Estado",
+      "pipeline": "Pipeline",
+      "pipeline_pr": "Comprobaciones",
+      "commit": "Commit",
+      "created": "Creado",
+      "checks": "Todas las comprobaciones"
+    },
+    "files": {
+      "filter": "Filtrar archivos…",
+      "count_one": "{{count}} archivo",
+      "count_other": "{{count}} archivos",
+      "viewed": "{{done}}/{{total}} vistos",
+      "noMatch": "Ningún archivo coincide.",
+      "markViewed": "Marcar como visto",
+      "viewedLabel": "Visto"
+    },
+    "mergedBy": "fusionado por {{name}}",
+    "autoMergeSet": "Se fusionará automáticamente cuando el pipeline tenga éxito.",
+    "autoMergeSet_pr": "Fusión automática activada: GitHub fusiona cuando pasen las comprobaciones requeridas.",
+    "autoMergeSetToast": "Fusión automática activada",
+    "cancelAutoMerge": "Cancelar fusión automática",
+    "autoMergeCancelled": "Fusión automática cancelada",
+    "cannotMerge": "No tienes permiso para fusionar esto",
+    "tabCommits": "Commits",
+    "tabCommitsN_one": "Commits ({{count}})",
+    "tabCommitsN_other": "Commits ({{count}})",
+    "tabPipelines": "Pipelines",
+    "tabPipelines_pr": "Comprobaciones",
+    "mergeMethod": "Método de fusión",
+    "method": {
+      "merge": "Commit de fusión",
+      "squash": "Squash",
+      "rebase": "Rebase"
+    }
   },
   "tree": {
     "title": "Proyecto",

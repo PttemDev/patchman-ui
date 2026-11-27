@@ -1,8 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Terminal } from '@xterm/xterm';
-import { FitAddon } from '@xterm/addon-fit';
-import '@xterm/xterm/css/xterm.css';
+import type { Terminal } from '@xterm/xterm';
+import type { FitAddon } from '@xterm/addon-fit';
 import { RotateCw, TerminalSquare } from 'lucide-react';
 import { k8sAPI, type DBScope } from '@/services/api';
 import { Button } from '@/components/ui/button';
@@ -14,6 +13,9 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
+import { applyTerminalPrefs, attachPtySocket, createXterm, sendPtyResize, xtermTheme as xtermThemeFn } from '@/lib/ptyTerminal';
+import { useThemeStore } from '@/stores/themeStore';
+import { useTerminalPrefsStore } from '@/stores/terminalPrefsStore';
 
 // What the terminal is wired to:
 //  - pod-exec: an interactive shell INSIDE a pod container (v2, current).
@@ -39,15 +41,6 @@ interface K8sTerminalProps {
 const SHELLS = ['/bin/sh', '/bin/bash', '/bin/ash', '/bin/zsh'];
 
 type Status = 'connecting' | 'open' | 'closed';
-
-// Our own WS framing (matches the BE bridge in k8s_exec.go / k8s_local_shell.go).
-// FE→BE we only ever send stdin + resize; BE→FE we receive stdout/stderr/exit.
-interface OutFrame {
-  type: 'stdout' | 'stderr' | 'exit';
-  data?: string;
-  code?: number;
-  error?: string;
-}
 
 // K8sTerminal is an interactive xterm terminal wired to a scope-routed
 // WebSocket. term.onData → {type:'stdin'}; a fit/resize → {type:'resize',
@@ -82,20 +75,12 @@ export function K8sTerminal({
     if (!container && containers.length > 0) setContainer(containers[0]);
   }, [containers, container]);
 
-  const xtermTheme = useMemo(() => {
-    // Kept close to the app surface: near-black in dark, off-white in light.
-    if (theme === 'light') {
-      return { background: '#ffffff', foreground: '#1e293b', cursor: '#1e293b', selectionBackground: '#cbd5e199' };
-    }
-    return { background: '#0a0a0a', foreground: '#e4e4e7', cursor: '#e4e4e7', selectionBackground: '#3f3f4699' };
-  }, [theme]);
+  const preset = useThemeStore((s) => s.preset);
+  const prefs = useTerminalPrefsStore();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const xtermTheme = useMemo(() => xtermThemeFn(), [theme, preset, prefs.colorScheme, prefs.cursorColor]);
 
-  const sendResize = useCallback(() => {
-    const term = termRef.current;
-    const ws = wsRef.current;
-    if (!term || !ws || ws.readyState !== WebSocket.OPEN) return;
-    ws.send(JSON.stringify({ type: 'resize', cols: term.cols, rows: term.rows }));
-  }, []);
+  const sendResize = useCallback(() => sendPtyResize(wsRef.current, termRef.current), []);
 
   // Connect / reconnect. Keyed on the target + nonce; the cleanup disposes the
   // term and closes the socket, so switching container/shell or unmounting
@@ -105,16 +90,7 @@ export function K8sTerminal({
     if (!connId || !context) return;
     if (!isLocal && !pod) return;
 
-    const term = new Terminal({
-      cursorBlink: true,
-      fontSize: 12,
-      fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace',
-      theme: xtermTheme,
-      scrollback: 5000,
-      convertEol: false,
-    });
-    const fit = new FitAddon();
-    term.loadAddon(fit);
+    const { term, fit } = createXterm(5000);
     termRef.current = term;
     fitRef.current = fit;
 
@@ -152,20 +128,6 @@ export function K8sTerminal({
       sendResize();
     };
 
-    ws.onmessage = (ev) => {
-      let frame: OutFrame;
-      try {
-        frame = JSON.parse(typeof ev.data === 'string' ? ev.data : '') as OutFrame;
-      } catch {
-        return;
-      }
-      if (frame.type === 'stdout' || frame.type === 'stderr') {
-        if (frame.data) term.write(frame.data);
-      } else if (frame.type === 'exit') {
-        setExit({ code: frame.code, error: frame.error });
-      }
-    };
-
     ws.onclose = () => {
       setStatus('closed');
     };
@@ -174,12 +136,8 @@ export function K8sTerminal({
       setExit((e) => e ?? { error: t('terminal.wsError') });
     };
 
-    // stdin: pipe every keystroke to the remote.
-    const dataSub = term.onData((d) => {
-      if (ws.readyState === WebSocket.OPEN) {
-        ws.send(JSON.stringify({ type: 'stdin', data: d }));
-      }
-    });
+    // stdout/stderr/exit in, stdin out.
+    const dataSub = attachPtySocket(term, ws, setExit);
 
     // Refit + resize on container size changes.
     const ro = new ResizeObserver(() => {
@@ -200,7 +158,17 @@ export function K8sTerminal({
       if (fitRef.current === fit) fitRef.current = null;
       if (wsRef.current === ws) wsRef.current = null;
     };
-  }, [connId, context, isLocal, namespace, pod, container, shell, scope, nonce, xtermTheme, sendResize, t]);
+  }, [connId, context, isLocal, namespace, pod, container, shell, scope, nonce, theme, sendResize, t]);
+
+  // Prefs/scheme/preset are pushed to the live terminal (a reconnect would kill the session).
+  useEffect(() => {
+    if (!termRef.current) return;
+    applyTerminalPrefs(termRef.current);
+    if (hostRef.current?.clientWidth) { // font size may have changed — refit
+      try { fitRef.current?.fit(); } catch { /* not laid out */ }
+      sendResize();
+    }
+  }, [xtermTheme, prefs.cursorStyle, prefs.cursorBlink, prefs.fontSize, sendResize]);
 
   const dot = status === 'open' ? 'bg-emerald-500' : status === 'connecting' ? 'bg-amber-500' : 'bg-muted-foreground/40';
 

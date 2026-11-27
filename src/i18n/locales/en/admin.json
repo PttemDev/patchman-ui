@@ -198,7 +198,8 @@
       "collab": "Workspaces & teams",
       "devtools": "Dev tools",
       "sync": "Desktop sync",
-      "other": "Other"
+      "other": "Other",
+      "jira": "Jira"
     }
   }
 }

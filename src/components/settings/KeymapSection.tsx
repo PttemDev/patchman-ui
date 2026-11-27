@@ -1,7 +1,8 @@
 // Settings → Keymap: every shortcut in the app (lib/keymap.ts), grouped by
 // where it works. Click a binding to record a new one; conflicts in the same
 // scope are flagged, OS-reserved chords refused, browser-reserved ones warned
-// about on the web build. Presets (JetBrains / VS Code) set the defaults;
+// about on the web build; keys the terminal owns are refused for terminal
+// shortcuts, which are listed on desktop only. Presets (JetBrains / VS Code) set the defaults;
 // per-action overrides sit on top and can be reset one by one or all at once.
 
 import { useEffect, useMemo, useState } from 'react';
@@ -14,7 +15,7 @@ import { confirmDialog } from '@/components/ui/confirm';
 import { isDesktop } from '@/lib/platform';
 import { cn } from '@/lib/utils';
 import {
-  KEYMAP, bindingFromEvent, browserReserved, chordLabel, defaultBindings, osReserved, resolveBindings, sameBinding,
+  KEYMAP, bindingFromEvent, browserReserved, chordLabel, defaultBindings, osReserved, resolveBindings, sameBinding, terminalReserved,
   useKeymapStore, type KeyBinding, type KeymapAction, type KeymapPreset, type KeymapScope,
 } from '@/lib/keymap';
 
@@ -28,7 +29,7 @@ function Chord({ keys, muted }: { keys: string[]; muted?: boolean }) {
   );
 }
 
-const SCOPES: KeymapScope[] = ['global', 'git', 'editor'];
+const SCOPES: KeymapScope[] = ['global', 'git', 'editor', 'terminal'];
 
 export function KeymapSection() {
   const { t } = useTranslation('settings');
@@ -41,8 +42,9 @@ export function KeymapSection() {
   // Re-render on store changes: resolveBindings reads the store directly.
   void overrides; void preset;
 
+  // Terminal shortcuts all fire while the terminal has focus, so they clash across scopes too.
   const conflictsOf = (a: KeymapAction, b: KeyBinding) =>
-    KEYMAP.filter((x) => x.id !== a.id && !x.fixed && x.scope === a.scope && resolveBindings(x.id).some((y) => sameBinding(y, b)));
+    KEYMAP.filter((x) => x.id !== a.id && !x.fixed && (x.scope === a.scope || (x.inTerminal && a.inTerminal)) && resolveBindings(x.id).some((y) => sameBinding(y, b)));
 
   // Capture the next chord while recording.
   useEffect(() => {
@@ -55,6 +57,7 @@ export function KeymapSection() {
       const b = bindingFromEvent(e);
       if (!b) return;
       if (osReserved(b)) { setNotice({ id: action.id, text: t('keymap.osReserved', { chord: chordLabel(b).join(' ') }) }); return; }
+      if (action.inTerminal && terminalReserved(b)) { setNotice({ id: action.id, text: t('keymap.terminalReserved', { chord: chordLabel(b).join(' ') }) }); return; }
       const list = [...resolveBindings(action.id)];
       if (recording.index < list.length) list[recording.index] = b; else list.push(b);
       setBindings(action.id, list.filter((x, i, arr) => arr.findIndex((y) => sameBinding(x, y)) === i));
@@ -71,9 +74,9 @@ export function KeymapSection() {
   const q = query.trim().toLowerCase();
   const groups = useMemo(() => SCOPES.map((scope) => ({
     scope,
-    items: KEYMAP.filter((a) => a.scope === scope && (!q || t(a.labelKey).toLowerCase().includes(q)
+    items: KEYMAP.filter((a) => a.scope === scope && (desktop || (!a.inTerminal && a.scope !== 'terminal')) && (!q || t(a.labelKey).toLowerCase().includes(q)
       || resolveBindings(a.id).some((b) => chordLabel(b).join('').toLowerCase().includes(q)))),
-  })), [q, t, overrides, preset]); // eslint-disable-line react-hooks/exhaustive-deps
+  })), [q, t, overrides, preset, desktop]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const removeBinding = (a: KeymapAction, i: number) => setBindings(a.id, resolveBindings(a.id).filter((_, j) => j !== i));
   const changed = (a: KeymapAction) => !!overrides[a.id];
@@ -120,7 +123,12 @@ export function KeymapSection() {
                       </span>
                       <span className="flex shrink-0 flex-wrap items-center justify-end gap-1.5">
                         {a.fixed ? (
-                          (a.display ?? binds.map(chordLabel)).map((c, i) => <Chord key={i} keys={c} muted />)
+                          (a.display ?? binds.map(chordLabel)).map((c, i) => (
+                            <span key={i} className="flex items-center">
+                              {i > 0 && <span className="mr-1.5 text-[11px] text-muted-foreground">/</span>}
+                              <Chord keys={c} muted />
+                            </span>
+                          ))
                         ) : (
                           <>
                             {binds.map((b, i) => (

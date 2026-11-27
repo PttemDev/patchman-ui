@@ -2,7 +2,8 @@
 // bindings per platform, a scope, and an optional user override (Settings →
 // Keymap). Scoped bindings (git, editor) win over global ones while their
 // surface is active: they listen on `window` in the capture phase, which
-// runs before the global `document` listener.
+// runs before the global `document` listener. The terminal scope is active
+// while the sidebar terminal panel has focus.
 
 import { useEffect, useRef } from 'react';
 import { create } from 'zustand';
@@ -23,7 +24,7 @@ export interface KeyBinding {
   double?: boolean;
 }
 
-export type KeymapScope = 'global' | 'git' | 'editor';
+export type KeymapScope = 'global' | 'git' | 'editor' | 'terminal';
 
 export interface KeymapAction {
   id: string;
@@ -36,6 +37,8 @@ export interface KeymapAction {
   fixed?: boolean;
   /** display-only text for fixed actions (e.g. "⌘+click") */
   display?: string[][];
+  /** fires while the terminal has focus: never bound to the shell's keys (terminalReserved) */
+  inTerminal?: true;
 }
 
 const k = (code: string, m: Omit<KeyBinding, 'code'> = {}): KeyBinding => ({ code, ...m });
@@ -56,6 +59,7 @@ export const KEYMAP: KeymapAction[] = [
   { id: 'global.toggleSidebar', labelKey: 'keymap.toggleSidebar', scope: 'global', ...same([k('KeyB', { mod: true })]) },
   { id: 'global.envManager', labelKey: 'keymap.environmentManager', scope: 'global', ...same([k('KeyE', { mod: true })]) },
   { id: 'global.pasteHistory', labelKey: 'keymap.pasteHistory', scope: 'global', mac: [k('KeyV', { mod: true, alt: true })], other: [k('KeyV', { mod: true, alt: true })] },
+  { id: 'global.toggleTerminal', labelKey: 'keymap.toggleTerminal', scope: 'global', inTerminal: true, mac: [k('Backquote', { ctrl: true })], other: [k('Backquote', { mod: true })] },
   { id: 'global.quit', labelKey: 'keymap.quit', scope: 'global', fixed: true, mac: [k('KeyQ', { mod: true })], other: [k('KeyQ', { mod: true })] },
   // ── git tab ──
   { id: 'git.commit', labelKey: 'keymap.gitCommit', scope: 'git', ...same([k('KeyK', { mod: true })]) },
@@ -74,6 +78,21 @@ export const KEYMAP: KeymapAction[] = [
   { id: 'editor.declaration', labelKey: 'keymap.gitDeclaration', scope: 'editor', ...same([k('KeyB', { mod: true }), k('F12')]) },
   { id: 'editor.usages', labelKey: 'keymap.gitUsages', scope: 'editor', ...same([k('F7', { alt: true })]) },
   { id: 'editor.ctrlClick', labelKey: 'keymap.gitCtrlClick', scope: 'editor', fixed: true, mac: [], other: [], display: [[isMacPlatform ? '⌘' : 'Ctrl', 'click']] },
+  // ── terminal (desktop only) ──
+  { id: 'terminal.newSession', labelKey: 'keymap.terminalNewSession', scope: 'terminal', inTerminal: true, ...same([k('KeyT', { mod: true, shift: true })]) },
+  { id: 'terminal.closeSession', labelKey: 'keymap.terminalCloseSession', scope: 'terminal', inTerminal: true, ...same([k('KeyW', { mod: true, shift: true })]) },
+  { id: 'terminal.nextSession', labelKey: 'keymap.terminalNextSession', scope: 'terminal', inTerminal: true, ...same([k('BracketRight', { mod: true, shift: true })]) },
+  { id: 'terminal.prevSession', labelKey: 'keymap.terminalPrevSession', scope: 'terminal', inTerminal: true, ...same([k('BracketLeft', { mod: true, shift: true })]) },
+  // Fixed keys of the terminal itself (ptyTerminal.ts mac editing keys, pm-ghost.zsh suggestion keys).
+  ...(isMacPlatform ? [
+    { id: 'terminal.lineEdges', labelKey: 'keymap.terminalLineEdges', scope: 'terminal' as const, fixed: true, mac: [], other: [], display: [['⌘', '←'], ['⌘', '→']] },
+    { id: 'terminal.killLine', labelKey: 'keymap.terminalKillLine', scope: 'terminal' as const, fixed: true, mac: [], other: [], display: [['⌘', '⌫']] },
+    { id: 'terminal.wordJump', labelKey: 'keymap.terminalWordJump', scope: 'terminal' as const, fixed: true, mac: [], other: [], display: [['⌥', '←'], ['⌥', '→']] },
+  ] : []),
+  { id: 'terminal.acceptSuggestion', labelKey: 'keymap.terminalAcceptSuggestion', scope: 'terminal', fixed: true, mac: [], other: [],
+    display: isMacPlatform ? [['→'], ['⌘', '→'], ['⌃', 'E']] : [['→'], ['End'], ['Ctrl', 'E']] },
+  { id: 'terminal.acceptWord', labelKey: 'keymap.terminalAcceptWord', scope: 'terminal', fixed: true, mac: [], other: [],
+    display: isMacPlatform ? [['⌥', '→']] : [['Alt', 'F']] },
 ];
 
 // Presets change only the actions that differ from the JetBrains defaults.
@@ -149,6 +168,31 @@ export function matches(e: KeyboardEvent, b: KeyBinding): boolean {
 
 export const matchesAction = (e: KeyboardEvent, id: string) => resolveBindings(id).some((b) => matches(e, b));
 
+/** ⌥/Alt+1–9 (switch tab) works everywhere, inside a terminal too (ptyTerminal keeps it from the shell). */
+export const isTabSwitchKey = (e: KeyboardEvent): boolean =>
+  e.altKey && !e.ctrlKey && !e.metaKey && !e.shiftKey && /^Digit[1-9]$/.test(e.code);
+
+// A focused xterm terminal owns Ctrl/Alt keys (the shell's); ⌘ shortcuts still work, and so do
+// ⌥1–9 and the terminal's own shortcuts (inTerminal), which terminalReserved keeps off the shell's keys.
+export function terminalOwnsKey(e: KeyboardEvent): boolean {
+  return e.target instanceof Element && !!e.target.closest('.xterm') && (e.ctrlKey || (e.altKey && !e.metaKey))
+    && !isTabSwitchKey(e) && !KEYMAP.some((a) => a.inTerminal && !a.fixed && matchesAction(e, a.id));
+}
+
+const TERMINAL_EDIT_KEYS = ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End', 'Backspace', 'Delete', 'Enter', 'Tab', 'Escape'];
+const TERMINAL_CMD_KEYS = ['ArrowLeft', 'ArrowRight', 'Backspace', 'KeyC', 'KeyV', 'KeyA']; // mac editing keys + copy/paste/select all
+
+/** Chords that belong to the terminal (typing, the shell's Ctrl/Alt keys, line editing, ⌘ editing keys). */
+export function terminalReserved(b: KeyBinding, mac = isMacPlatform): boolean {
+  const cmd = mac && !!b.mod;
+  const control = mac ? !!b.ctrl : !!b.mod;
+  if (!cmd && !control && !b.alt) return true;
+  if (b.alt && !cmd) return true;
+  if (control && !cmd && !b.shift && b.code !== 'Backquote') return true;
+  if (!cmd && TERMINAL_EDIT_KEYS.includes(b.code)) return true;
+  return cmd && !b.shift && !b.alt && !b.ctrl && TERMINAL_CMD_KEYS.includes(b.code);
+}
+
 const KEY_NAMES: Record<string, string> = {
   Backquote: '`', BracketLeft: '[', BracketRight: ']', ArrowLeft: '←', ArrowRight: '→', ArrowUp: '↑', ArrowDown: '↓',
   Minus: '-', Equal: '=', Comma: ',', Period: '.', Slash: '/', Backslash: '\\', Semicolon: ';', Quote: "'",
@@ -188,6 +232,7 @@ export function shortcutHint(_actions: KeymapAction[] | undefined, id: string): 
 
 export const GIT_KEYMAP = KEYMAP.filter((a) => a.scope === 'git');
 export const EDITOR_KEYMAP = KEYMAP.filter((a) => a.scope === 'editor');
+export const TERMINAL_KEYMAP = KEYMAP.filter((a) => a.scope === 'terminal');
 
 /** Builds a binding from a keydown (Settings capture). null for a bare modifier. */
 export function bindingFromEvent(e: KeyboardEvent): KeyBinding | null {
@@ -217,11 +262,14 @@ export function browserReserved(b: KeyBinding): boolean {
  * Runs handlers[id] for a matching binding while `active` is true. Handlers
  * are read through a ref so callers can pass a fresh object each render;
  * bindings are read live, so a change in Settings applies at once. Double-tap
- * bindings (⇧⇧) are handled too.
+ * bindings (⇧⇧) are handled too. `when`, if given, is checked on every key
+ * (e.g. where focus is right now).
  */
-export function useScopedKeymap(actions: KeymapAction[], active: boolean, handlers: Record<string, () => void>) {
+export function useScopedKeymap(actions: KeymapAction[], active: boolean, handlers: Record<string, () => void>, when?: () => boolean) {
   const ref = useRef(handlers);
   ref.current = handlers;
+  const whenRef = useRef(when);
+  whenRef.current = when;
   useEffect(() => {
     if (!active) return;
     const dialogOpen = () => !!document.querySelector('[role="dialog"][data-state="open"], [role="alertdialog"][data-state="open"]');
@@ -231,7 +279,7 @@ export function useScopedKeymap(actions: KeymapAction[], active: boolean, handle
     const onKey = (e: KeyboardEvent) => {
       clean = ['Shift', 'Control', 'Alt', 'Meta'].includes(e.key) && !e.repeat;
       if (!clean) tapKey = '';
-      if (dialogOpen()) return;
+      if (dialogOpen() || terminalOwnsKey(e) || whenRef.current?.() === false) return; // a focused terminal keeps its Ctrl/Alt keys
       for (const a of actions) {
         const fn = ref.current[a.id];
         if (fn && matchesAction(e, a.id)) {
@@ -243,7 +291,7 @@ export function useScopedKeymap(actions: KeymapAction[], active: boolean, handle
       }
     };
     const onUp = (e: KeyboardEvent) => {
-      if (!clean || dialogOpen()) return;
+      if (!clean || dialogOpen() || whenRef.current?.() === false) return;
       const now = Date.now();
       if (tapKey === e.key && now - tapAt < 400) {
         tapKey = '';

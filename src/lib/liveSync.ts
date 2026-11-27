@@ -254,6 +254,8 @@ function scheduleCollectionsRefresh() {
   }, 300);
 }
 
+let qaRefreshTimer = 0;
+
 function dispatch(ev: RealtimeEvent) {
   if (!ev || typeof ev.type !== 'string') return;
   // Self-echo: our own mutation has already triggered refreshLists in
@@ -285,6 +287,16 @@ function dispatch(ev: RealtimeEvent) {
     }
     scheduleMemoryRefresh();
     window.dispatchEvent(new CustomEvent('patchman:note-event', { detail: { type: ev.type, noteId: ev.noteId } }));
+    return;
+  }
+  if (ev.type === 'qa.radar') {
+    // A linked project changed (GitLab webhook): refresh the QA Inbox and
+    // tell an open Radar to reload (debounced: a push brings several events).
+    window.clearTimeout(qaRefreshTimer);
+    qaRefreshTimer = window.setTimeout(() => {
+      void import('@/stores/qaInboxStore').then((m) => m.useQAInboxStore.getState().fetch());
+      window.dispatchEvent(new CustomEvent('patchman:qa-radar'));
+    }, 800);
     return;
   }
   if (ev.type.startsWith('workspace.')) {

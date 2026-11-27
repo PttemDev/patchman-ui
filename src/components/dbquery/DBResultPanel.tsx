@@ -24,8 +24,8 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
-import * as XLSX from 'xlsx';
-import type { DBQueryResult } from '@/types';
+import type { DBKind, DBQueryResult } from '@/types';
+import { downloadRows } from './resultFormats';
 import { DBResultTable } from './DBResultTable';
 import { DBResultChart } from './DBResultChart';
 import { DBResultJSON } from './DBResultJSON';
@@ -42,7 +42,6 @@ import {
 } from '@/stores/dbColumnPrefsStore';
 
 const EMPTY_HIDDEN: readonly string[] = [];
-import { stringifyValue } from './formatters';
 
 interface DBResultPanelProps {
   result: DBQueryResult;
@@ -53,13 +52,15 @@ interface DBResultPanelProps {
   rowLimit?: number;
   /** Mongo: offer (and start on) the document card view. */
   documents?: boolean;
+  /** Connection kind — identifier quoting for SQL copy formats. */
+  dbKind?: DBKind;
 }
 
 type ResultView = 'docs' | 'table' | 'json' | 'chart' | 'explain';
 
 // DBResultPanel composes the toolbar (export/view/columns) over one of
 // three views, plus the cell inspector, row inspector and summary footer.
-export function DBResultPanel({ result, onAddFilter, onOpenFK, onPageChange, rowLimit, documents }: DBResultPanelProps) {
+export function DBResultPanel({ result, onAddFilter, onOpenFK, onPageChange, rowLimit, documents, dbKind }: DBResultPanelProps) {
   const { t } = useTranslation('dbquery');
   const [view, setView] = useState<ResultView>(documents ? 'docs' : 'table');
   const [cell, setCell] = useState<{ rowIndex: number; colName: string; value: unknown } | null>(null);
@@ -121,30 +122,7 @@ export function DBResultPanel({ result, onAddFilter, onOpenFK, onPageChange, row
   const onPickRow = useCallback((rowIndex: number) => setRowIdx(rowIndex), []);
 
   const handleExport = (fmt: 'csv' | 'json' | 'jsonl' | 'xlsx') => {
-    const cols = visibleColNames;
-    const rows = objectRows;
-    if (fmt === 'xlsx') {
-      const sheet = XLSX.utils.json_to_sheet(rows.map((r) => Object.fromEntries(cols.map((c) => [c, normalizeCell(r[c])]))));
-      const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, sheet, 'Result');
-      XLSX.writeFile(wb, 'result.xlsx');
-      return;
-    }
-    let blob: Blob;
-    let filename: string;
-    if (fmt === 'json') {
-      blob = new Blob([JSON.stringify(rows, null, 2)], { type: 'application/json' });
-      filename = 'result.json';
-    } else if (fmt === 'jsonl') {
-      blob = new Blob([rows.map((r) => JSON.stringify(r)).join('\n')], { type: 'application/jsonl' });
-      filename = 'result.jsonl';
-    } else {
-      const header = cols.map(csvEscape).join(',');
-      const body = rows.map((r) => cols.map((c) => csvEscape(stringifyValue(r[c]))).join(',')).join('\n');
-      blob = new Blob([header + '\n' + body], { type: 'text/csv' });
-      filename = 'result.csv';
-    }
-    triggerDownload(blob, filename);
+    downloadRows(fmt, visibleColNames, objectRows);
   };
 
   return (
@@ -294,6 +272,7 @@ export function DBResultPanel({ result, onAddFilter, onOpenFK, onPageChange, row
               onPickCell={onPickCell}
               onPickRow={onPickRow}
               onOpenFK={onOpenFK}
+              dbKind={dbKind}
             />
           )
         )}
@@ -363,28 +342,5 @@ function detectExplain(result: DBQueryResult): boolean {
   return false;
 }
 
-function normalizeCell(v: unknown): unknown {
-  if (v == null) return '';
-  if (typeof v === 'object') {
-    try { return JSON.stringify(v); } catch { return String(v); }
-  }
-  return v;
-}
 
-function csvEscape(s: string): string {
-  if (s.includes(',') || s.includes('"') || s.includes('\n')) {
-    return '"' + s.replace(/"/g, '""') + '"';
-  }
-  return s;
-}
 
-function triggerDownload(blob: Blob, filename: string) {
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-}

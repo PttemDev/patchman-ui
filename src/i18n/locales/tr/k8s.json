@@ -381,7 +381,13 @@
     "showRaw": "Ham JSON'u göster",
     "hideRaw": "Ham JSON'u gizle",
     "tailTip": "Yüklenecek satır sayısı — Enter'a basınca ya da yazmayı bırakınca uygulanır",
-    "noLinesAtLevel": "Bu seviyede satır yok"
+    "noLinesAtLevel": "Bu seviyede satır yok",
+    "pod": "Pod",
+    "podSwitchTip": "Aynı iş yükünün başka bir pod'una geç",
+    "podsLoading": "Pod'lar yükleniyor…",
+    "podOpened": "açılan",
+    "podRestarts_one": "{{count}} yeniden başlatma",
+    "podRestarts_other": "{{count}} yeniden başlatma"
   },
   "events": {
     "loading": "Olaylar yükleniyor…",

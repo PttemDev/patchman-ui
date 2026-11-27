@@ -53,7 +53,9 @@
       "rabbit": "RabbitMQ",
       "graylog": "Graylog",
       "servicemap": "服务地图",
-      "plugin": "插件"
+      "plugin": "插件",
+      "terminal": "终端 · {{cwd}}",
+      "qahub": "CR + QA Hub"
     },
     "moreParams": "更多参数"
   },

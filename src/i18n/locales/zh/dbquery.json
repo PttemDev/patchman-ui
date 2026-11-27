@@ -147,7 +147,12 @@
     "queryFailed": "查询失败",
     "emptyRun": "按 Cmd+Enter 运行查询。",
     "emptyPickConnection": "在上方选择一个连接以开始。",
-    "savedQueryDefault": "已保存查询"
+    "savedQueryDefault": "已保存查询",
+    "runStatement": "运行语句",
+    "runModesHint": "⌘↵ 运行选中内容或光标处语句 · ⇧⌘↵ 全部运行",
+    "runAll_one": "全部运行 ({{count}})",
+    "runAll_other": "全部运行 ({{count}})",
+    "runAllTooltip": "运行编辑器中的所有语句，每条语句有自己的结果标签页。"
   },
   "results": {
     "truncated": "已截断",
@@ -178,17 +183,57 @@
     "copyValue": "复制值",
     "showAsJson": "显示为 JSON…",
     "copyAs": "复制为…",
-    "copyPlain": "纯文本",
-    "copyRowJson": "行作为 JSON",
-    "copyRowInsert": "行作为 INSERT",
-    "copyColumnName": "列名",
+    "copyColumnName": "复制列名",
     "filterByValue": "按此值筛选",
     "excludeValue": "排除此值",
     "filterNull": "筛选 NULL",
     "filterNotNull": "筛选 NOT NULL",
     "openReferenced": "打开引用的行…",
     "unfreezeColumn": "取消冻结列",
-    "freezeColumn": "冻结列"
+    "freezeColumn": "冻结列",
+    "copiedValue": "已复制",
+    "copiedName": "已复制列名",
+    "copiedRows_one": "已将 {{count}} 行复制为 {{format}}",
+    "copiedRows_other": "已将 {{count}} 行复制为 {{format}}",
+    "copiedValues_one": "已复制 {{count}} 个值",
+    "copiedValues_other": "已复制 {{count}} 个值",
+    "fmt": {
+      "tsv": "TSV（可粘贴到 Excel / 表格）",
+      "csv": "CSV",
+      "json": "JSON",
+      "markdown": "Markdown 表格",
+      "insert": "SQL INSERT"
+    },
+    "dl": {
+      "csv": "CSV",
+      "json": "JSON",
+      "xlsx": "Excel (.xlsx)"
+    },
+    "selectAllRows": "选择所有行",
+    "rowSelectHint": "单击选择 · Shift+单击选择范围 · ⌘+单击追加",
+    "rowsSelected_one": "已选择 {{count}} 行",
+    "rowsSelected_other": "已选择 {{count}} 行",
+    "copy": "复制",
+    "copyShortcut": "复制所选行（含表头）(⌘C)",
+    "download": "下载",
+    "downloadSelected_one": "下载所选 {{count}} 行",
+    "downloadSelected_other": "下载所选 {{count}} 行",
+    "clearSelection": "清除",
+    "copyAllColumnNames": "复制所有列名",
+    "copyColumnValues": "复制列值",
+    "copyColumnIn": "复制为 IN (…) 列表",
+    "sortAsc": "升序排序",
+    "sortDesc": "降序排序",
+    "hideColumn": "隐藏列",
+    "copyWhere": "复制为 WHERE 条件",
+    "copyRowAs": "复制行为",
+    "copyRowsAs_one": "将 {{count}} 行复制为",
+    "copyRowsAs_other": "将 {{count}} 行复制为",
+    "downloadRow": "下载行为",
+    "downloadRows_one": "将 {{count}} 行下载为",
+    "downloadRows_other": "将 {{count}} 行下载为",
+    "selectRow": "选择行",
+    "deselectRow": "取消选择"
   },
   "chart": {
     "noData": "没有可绘制的数据。",
@@ -802,5 +847,20 @@
     "costTitle": "此查询将扫描 {{size}}",
     "costBody": "这超过了你的 {{ask}}“先询问”限制。BigQuery 按扫描的数据量计费。",
     "costRun": "运行"
+  },
+  "completion": {
+    "columnsCount_one": "{{count}} 列",
+    "columnsCount_other": "{{count}} 列",
+    "template": "代码模板",
+    "fkJoin": "按外键 join",
+    "schema": "模式",
+    "fkCondition": "外键",
+    "expandColumns_one": "展开为 {{count}} 列",
+    "expandColumns_other": "展开为 {{count}} 列"
+  },
+  "editor": {
+    "runCurrent": "运行光标处语句 / 选中内容",
+    "runAll": "运行整个脚本",
+    "runThis": "运行此语句"
   }
 }

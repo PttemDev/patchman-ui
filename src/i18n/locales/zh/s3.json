@@ -56,7 +56,12 @@
     "testFailed": "测试失败",
     "updateFailedAll": "在每个后端上更新均失败",
     "createFailedAll": "在每个后端上创建均失败",
-    "saveFailed": "保存失败"
+    "saveFailed": "保存失败",
+    "bucket": "存储桶（可选）",
+    "bucketPlaceholder": "my-bucket",
+    "prefix": "路径（可选）",
+    "prefixPlaceholder": "team/reports/",
+    "pinHint": "适用于只能访问一个存储桶或路径的密钥：连接会直接在那里打开，而不是列出存储桶。"
   },
   "share": {
     "title": "共享 \"{{name}}\"",

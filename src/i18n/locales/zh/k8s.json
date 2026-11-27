@@ -381,7 +381,13 @@
     "showRaw": "显示原始 JSON",
     "hideRaw": "隐藏原始 JSON",
     "tailTip": "要加载的行数——按回车或停顿后生效",
-    "noLinesAtLevel": "此级别没有日志行"
+    "noLinesAtLevel": "此级别没有日志行",
+    "pod": "Pod",
+    "podSwitchTip": "切换到同一工作负载的其他 Pod",
+    "podsLoading": "正在加载 Pod…",
+    "podOpened": "已打开",
+    "podRestarts_one": "{{count}} 次重启",
+    "podRestarts_other": "{{count}} 次重启"
   },
   "events": {
     "loading": "正在加载 events…",

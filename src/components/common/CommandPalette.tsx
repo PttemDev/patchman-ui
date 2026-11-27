@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { matchesAction } from '@/lib/keymap';
+import { matchesAction, terminalOwnsKey } from '@/lib/keymap';
 import { useTranslation } from 'react-i18next';
 import {
   Search,
@@ -26,6 +26,7 @@ import { useRequestStore } from '@/stores/requestStore';
 import { useThemeStore } from '@/stores/themeStore';
 import { useEnvironmentStore } from '@/stores/environmentStore';
 import { useSidebarStore } from '@/stores/sidebarStore';
+import { openQAHub } from '@/components/qahub/openQAHub';
 import { cn } from '@/lib/utils';
 
 interface CommandItem {
@@ -144,8 +145,8 @@ export function CommandPalette() {
         name: t('commands.goQa'),
         category: 'Navigation',
         icon: <ClipboardCheck className="h-4 w-4" />,
-        keywords: 'sidebar panel qa testing',
-        action: () => { setSidebarTab('qa'); close(); },
+        keywords: 'qa testing hub cr review test cases plans runs defects',
+        action: () => { openQAHub(); close(); },
       },
       {
         id: 'go-mock',
@@ -316,6 +317,7 @@ export function CommandPalette() {
   // Register Cmd+K / Ctrl+K global listener
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      if (terminalOwnsKey(e)) return;
       if (matchesAction(e, 'global.commandPalette')) {
         e.preventDefault();
         e.stopPropagation();

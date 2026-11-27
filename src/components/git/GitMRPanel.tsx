@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
-  AlertTriangle, Check, ExternalLink, FileDiff, GitBranch, GitMerge, GitPullRequest, Loader2, MessageSquare,
-  Plus, RefreshCw, Search, ThumbsUp, UserPlus, X, Download, PanelLeftOpen,
+  AlertTriangle, Check, ExternalLink, GitBranch, GitMerge, GitPullRequest, Loader2, MessageSquare,
+  Plus, RefreshCw, Search, ThumbsUp, UserPlus, X, Download, PanelLeftOpen, Pencil, Clock,
 } from 'lucide-react';
 import { gitAPI } from '@/services/api';
 import { gitOpsToken } from '@/stores/gitConnectionStore';
@@ -19,7 +19,12 @@ import { cn } from '@/lib/utils';
 import type {
   GitFileDiff, GitMember, GitMergeRequest, GitMRApprovals, GitMRDetail, GitMRDiscussion, GitMRPipeline,
 } from '@/types';
-import { GitMRDiff, Thread, Composer, type LineRef } from './GitMRDiff';
+import { GitMRDiff, Thread, Composer, SystemNote, type LineRef } from './GitMRDiff';
+import { EditMRDialog, MRAwardsBar, MRCopyMenu, MRMetaSummary } from './GitMRMeta';
+import { MRCommitsTab, MRFileTree, MRPipelinesTab } from './GitMRTabs';
+import { useViewedFiles } from './mrViewed';
+
+type DetailTab = 'overview' | 'commits' | 'pipelines' | 'changes';
 import { extractErr, timeAgo } from './util';
 
 type Filter = 'opened' | 'review' | 'created' | 'assigned' | 'merged' | 'all';
@@ -29,7 +34,7 @@ interface PendingComment { file: GitFileDiff; line: LineRef; body: string }
 // Merge requests (GitLab) / pull requests (GitHub) for the selected project (GIT_IDE_PLAN §I): list
 // with filters, then Overview (description, pipeline, approvals, threads)
 // and Changes (diff with inline threads, "Start review" batching).
-export function GitMRPanel({ connId, project, canWrite, localRepo, currentBranch, defaultBranch, onCheckedOut, provider }: {
+export function GitMRPanel({ connId, project, canWrite, localRepo, currentBranch, defaultBranch, onCheckedOut, provider, onResolveConflicts, resolving, hasLocalClone }: {
   /** 'github' → pull-request wording (#12, "Open on GitHub"). */
   provider?: string;
   connId: string;
@@ -39,6 +44,10 @@ export function GitMRPanel({ connId, project, canWrite, localRepo, currentBranch
   currentBranch?: string;
   defaultBranch?: string;
   onCheckedOut?: (branch: string) => void;
+  /** Desktop: merge the target into the source on the local clone and open the resolver. */
+  onResolveConflicts?: (sourceBranch: string, targetBranch: string) => void;
+  resolving?: boolean;
+  hasLocalClone?: boolean;
 }) {
   const { t } = useTranslation('git');
   const pr = provider === 'github' ? 'pr' : undefined;
@@ -138,7 +147,8 @@ export function GitMRPanel({ connId, project, canWrite, localRepo, currentBranch
       <div className="flex min-w-0 flex-1 flex-col">
         {sel ? (
           <MRDetail key={sel} provider={provider} onTabChange={(tb) => setListHidden(tb === 'changes')} connId={connId} project={project} iid={sel} canWrite={canWrite} localRepo={localRepo}
-            onChanged={() => void loadList()} onCheckedOut={onCheckedOut} />
+            onChanged={() => void loadList()} onCheckedOut={onCheckedOut}
+            onResolveConflicts={onResolveConflicts} resolving={resolving} hasLocalClone={hasLocalClone} />
         ) : (
           <div className="flex flex-1 items-center justify-center text-xs text-muted-foreground">{t('mr.pick', { context: pr })}</div>
         )}
@@ -149,9 +159,9 @@ export function GitMRPanel({ connId, project, canWrite, localRepo, currentBranch
   );
 }
 
-function MRDetail({ connId, project, iid, canWrite, localRepo, onChanged, onCheckedOut, onTabChange, provider }: {
+export function MRDetail({ connId, project, iid, canWrite, localRepo, onChanged, onCheckedOut, onTabChange, provider, onResolveConflicts, resolving, hasLocalClone }: {
   provider?: string;
-  onTabChange?: (tab: 'overview' | 'changes') => void;
+  onTabChange?: (tab: DetailTab) => void;
   connId: string;
   project: string;
   iid: number;
@@ -159,13 +169,17 @@ function MRDetail({ connId, project, iid, canWrite, localRepo, onChanged, onChec
   localRepo?: { id: string; connectionId: string } | null;
   onChanged: () => void;
   onCheckedOut?: (branch: string) => void;
+  onResolveConflicts?: (sourceBranch: string, targetBranch: string) => void;
+  resolving?: boolean;
+  hasLocalClone?: boolean;
 }) {
   const { t } = useTranslation('git');
   const { toast } = useToast();
   const pr = provider === 'github' ? 'pr' : undefined;
   const [mr, setMr] = useState<GitMRDetail | null>(null);
   const [err, setErr] = useState('');
-  const [tab, setTab] = useState<'overview' | 'changes'>('overview');
+  const [tab, setTab] = useState<DetailTab>('overview');
+  const [editOpen, setEditOpen] = useState(false);
   const [diffs, setDiffs] = useState<GitFileDiff[] | null>(null);
   const [threads, setThreads] = useState<GitMRDiscussion[]>([]);
   const [approvals, setApprovals] = useState<GitMRApprovals | null>(null);
@@ -175,12 +189,13 @@ function MRDetail({ connId, project, iid, canWrite, localRepo, onChanged, onChec
   const [reviewMode, setReviewMode] = useState(true);
   const [mergeOpen, setMergeOpen] = useState(false);
   const [busy, setBusy] = useState('');
+  const viewed = useViewedFiles(`${connId}|${project}|${iid}`, diffs);
 
   const load = useCallback(async () => {
     try {
       const [m, d, a, p] = await Promise.allSettled([
         gitAPI.mergeRequest(connId, { project, iid }),
-        gitAPI.mrDiscussions(connId, { project, iid }),
+        gitAPI.mrDiscussions(connId, { project, iid, system: 1 }),
         gitAPI.mrApprovals(connId, { project, iid }),
         gitAPI.mrPipelines(connId, { project, iid }),
       ]);
@@ -245,10 +260,25 @@ function MRDetail({ connId, project, iid, canWrite, localRepo, onChanged, onChec
 
   const opened = mr.state === 'opened';
   const pipe = pipes[0];
+  // Overview timeline: conversations plus system notes ("added 1 commit"), in order.
   const general = threads.filter((d) => !d.position);
-  const inline = threads.filter((d) => d.position);
+  const conversations = general.filter((d) => !d.system);
+  const inline = threads.filter((d) => d.position && !d.system);
   const unresolved = threads.filter((d) => d.resolvable && !d.resolved).length;
   const fileObj = diffs?.find((d) => d.newPath === file);
+  // Unlike act(), an edit that fails rethrows so the editor keeps the text.
+  const noteActions = {
+    onEditNote: async (id: string, note: number, body: string) => {
+      try {
+        await gitAPI.updateMRNote(connId, project, iid, id, note, body);
+      } catch (e) {
+        toast({ title: t('mr.actionFailed'), description: extractErr(e, t('mr.actionFailed')), variant: 'destructive' });
+        throw e;
+      }
+      await load();
+    },
+    onDeleteNote: (id: string, note: number) => act('noteDelete', () => gitAPI.deleteMRNote(connId, project, iid, id, note)),
+  };
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
@@ -257,6 +287,12 @@ function MRDetail({ connId, project, iid, canWrite, localRepo, onChanged, onChec
           <h2 className="min-w-0 flex-1 text-sm font-semibold">
             {mr.draft && <Badge variant="outline" className="mr-1.5 align-middle text-[10px]">{t('mr.draft')}</Badge>}
             {mr.title.replace(/^Draft:\s*/i, '')} <span className="font-mono font-normal text-muted-foreground">{pr ? '#' : '!'}{mr.iid}</span>
+            {canWrite && (
+              <button type="button" onClick={() => setEditOpen(true)} title={t('mr.edit.open')} aria-label={t('mr.edit.open')}
+                className="ml-1.5 inline-flex rounded p-0.5 align-middle text-muted-foreground hover:bg-accent hover:text-foreground">
+                <Pencil className="h-3 w-3" />
+              </button>
+            )}
           </h2>
           <a href={mr.webUrl} target="_blank" rel="noreferrer" className="flex shrink-0 items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground">
             {pr ? 'GitHub' : 'GitLab'} <ExternalLink className="h-3 w-3" />
@@ -271,9 +307,37 @@ function MRDetail({ connId, project, iid, canWrite, localRepo, onChanged, onChec
           {!!approvals?.changesRequestedBy?.length && <span className="text-amber-600">{t('mr.changesRequested', { names: approvals.changesRequestedBy.join(', ') })}</span>}
           {unresolved > 0 && <span className="text-amber-600">{t('mr.unresolvedThreads', { count: unresolved })}</span>}
           {mr.hasConflicts && <span className="flex items-center gap-1 text-red-500"><AlertTriangle className="h-3 w-3" />{t('mr.hasConflicts')}</span>}
+          {mr.state === 'merged' && mr.mergedBy && <span>{t('mr.mergedBy', { name: mr.mergedBy.name || mr.mergedBy.username })}</span>}
         </div>
+        {mr.autoMerge && opened && (
+          <div className="flex flex-wrap items-center gap-2 rounded-md border border-sky-500/30 bg-sky-500/5 px-2.5 py-1.5 text-[11px]">
+            <Clock className="h-3.5 w-3.5 shrink-0 text-sky-600" />
+            <span className="min-w-0 flex-1 text-muted-foreground">{t('mr.autoMergeSet', { context: pr })}</span>
+            {canWrite && (
+              <Button size="sm" variant="outline" className="h-7 text-xs" disabled={!!busy}
+                onClick={() => void act('cancelAuto', () => gitAPI.cancelAutoMergeMR(connId, project, iid), t('mr.autoMergeCancelled'))}>
+                {t('mr.cancelAutoMerge')}
+              </Button>
+            )}
+          </div>
+        )}
+        {mr.hasConflicts && opened && onResolveConflicts && (
+          <div className="flex flex-wrap items-center gap-2 rounded-md border border-red-500/30 bg-red-500/5 px-2.5 py-1.5 text-[11px]">
+            <AlertTriangle className="h-3.5 w-3.5 shrink-0 text-red-500" />
+            <span className="min-w-0 flex-1 text-muted-foreground">
+              {t(hasLocalClone ? 'mr.resolveHint' : 'mr.resolveHintClone', { src: mr.sourceBranch, dst: mr.targetBranch })}
+            </span>
+            <Button size="sm" variant="outline" className="h-7 gap-1 border-red-500/40 text-xs text-red-600 hover:text-red-600 dark:text-red-400"
+              disabled={!!busy || resolving} onClick={() => onResolveConflicts(mr.sourceBranch, mr.targetBranch)}>
+              {resolving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <GitMerge className="h-3.5 w-3.5" />}
+              {t('mr.resolveConflicts')}
+            </Button>
+          </div>
+        )}
         <div className="flex flex-wrap items-center gap-1.5">
           {localRepo && <Button size="sm" variant="outline" className="h-7 gap-1 text-xs" disabled={!!busy} onClick={() => void checkoutLocal()}><Download className="h-3.5 w-3.5" />{t('mr.checkoutLocal')}</Button>}
+          <MRCopyMenu mr={mr} pr={pr} />
+          {canWrite && <Button size="sm" variant="outline" className="h-7 gap-1 text-xs" disabled={!!busy} onClick={() => setEditOpen(true)}><Pencil className="h-3.5 w-3.5" />{t('mr.edit.open')}</Button>}
           {canWrite && opened && (
             <>
               {approvals?.userHasApproved
@@ -283,15 +347,18 @@ function MRDetail({ connId, project, iid, canWrite, localRepo, onChanged, onChec
               {(mr.mergeStatus === 'need_rebase' || mr.hasConflicts) && <Button size="sm" variant="outline" className="h-7 text-xs" disabled={!!busy} onClick={() => void act('rebase', () => gitAPI.rebaseMR(connId, project, iid), t('mr.rebaseStarted'))}>{t('mr.rebase')}</Button>}
               <Button size="sm" variant="ghost" className="h-7 text-xs text-destructive" disabled={!!busy} onClick={async () => { if (await confirmDialog({ title: t('mr.closeTitle'), destructive: true })) void act('close', () => gitAPI.updateMR(connId, project, iid, { stateEvent: 'close' })); }}>{t('mr.close')}</Button>
               <div className="flex-1" />
-              <Button size="sm" className="h-7 gap-1 text-xs" disabled={!!busy || mr.draft || mr.hasConflicts} onClick={() => setMergeOpen(true)}><GitMerge className="h-3.5 w-3.5" />{t('mr.merge')}</Button>
+              <Button size="sm" className="h-7 gap-1 text-xs" disabled={!!busy || mr.draft || mr.hasConflicts || mr.canMerge === false} title={mr.canMerge === false ? t('mr.cannotMerge') : undefined} onClick={() => setMergeOpen(true)}><GitMerge className="h-3.5 w-3.5" />{t('mr.merge')}</Button>
             </>
           )}
           {canWrite && mr.state === 'closed' && <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => void act('reopen', () => gitAPI.updateMR(connId, project, iid, { stateEvent: 'reopen' }))}>{t('mr.reopen')}</Button>}
         </div>
         <div className="flex gap-3 text-xs">
-          {(['overview', 'changes'] as const).map((x) => (
+          {(['overview', 'commits', 'pipelines', 'changes'] as const).map((x) => (
             <button key={x} type="button" onClick={() => { setTab(x); onTabChange?.(x); }} className={cn('border-b-2 pb-1', tab === x ? 'border-primary text-foreground' : 'border-transparent text-muted-foreground hover:text-foreground')}>
-              {x === 'overview' ? t('mr.tabOverview', { count: general.length }) : t('mr.tabChanges', { count: inline.length })}
+              {x === 'overview' ? t('mr.tabOverview', { count: conversations.length })
+                : x === 'changes' ? t('mr.tabChanges', { count: inline.length })
+                  : x === 'commits' ? (mr.commitsCount != null ? t('mr.tabCommitsN', { count: mr.commitsCount }) : t('mr.tabCommits'))
+                    : t('mr.tabPipelines', { context: pr })}
             </button>
           ))}
         </div>
@@ -301,34 +368,35 @@ function MRDetail({ connId, project, iid, canWrite, localRepo, onChanged, onChec
         <div className="min-h-0 flex-1 overflow-auto p-4">
           {/* Readable line length on wide screens (description, threads, composer). */}
           <div className="mx-auto max-w-4xl space-y-3">
-          <div className="break-words rounded-md border bg-card p-3 text-xs">
+          <div className="group relative break-words rounded-md border bg-card p-3 text-xs">
+            {canWrite && (
+              <button type="button" onClick={() => setEditOpen(true)} title={t('mr.edit.open')} aria-label={t('mr.edit.open')}
+                className="absolute right-2 top-2 rounded p-1 text-muted-foreground opacity-0 hover:bg-accent hover:text-foreground focus:opacity-100 group-hover:opacity-100">
+                <Pencil className="h-3 w-3" />
+              </button>
+            )}
             {mr.description ? <MarkdownView markdown={mr.description} className="md-compact" /> : <span className="text-muted-foreground">{t('mr.noDescription')}</span>}
           </div>
-          {general.map((d) => (
-            <Thread key={d.id} d={d} canReply={canWrite}
+          <MRAwardsBar connId={connId} project={project} iid={iid} canWrite={canWrite} />
+          <MRMetaSummary mr={mr} onEdit={canWrite ? () => setEditOpen(true) : undefined} />
+          {general.flatMap((d) => d.system ? (
+            d.notes.map((n) => <SystemNote key={n.id} n={n} />)
+          ) : (
+            <Thread key={d.id} d={d} canReply={canWrite} {...noteActions}
               onReply={(id, b) => act('reply', () => gitAPI.replyMRDiscussion(connId, project, iid, id, b))}
               onResolve={(id, r) => act('resolve', () => gitAPI.resolveMRDiscussion(connId, project, iid, id, r))} />
           ))}
           {canWrite && <Composer immediate={false} onSubmit={(b) => act('note', () => gitAPI.createMRDiscussion(connId, project, iid, { body: b }))} />}
           </div>
         </div>
+      ) : tab === 'commits' ? (
+        <div className="min-h-0 flex-1 overflow-auto p-4"><MRCommitsTab connId={connId} project={project} iid={iid} /></div>
+      ) : tab === 'pipelines' ? (
+        <div className="min-h-0 flex-1 overflow-auto p-4"><MRPipelinesTab connId={connId} project={project} iid={iid} pr={pr} /></div>
       ) : (
-        <div className="flex min-h-0 flex-1 flex-col">
-          <div className="flex max-h-24 shrink-0 flex-wrap gap-1 overflow-auto border-b px-3 py-1.5">
-            {!diffs ? <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" /> : diffs.map((d) => {
-              const n = inline.filter((x) => x.position?.newPath === d.newPath).length + pending.filter((p) => p.file.newPath === d.newPath).length;
-              return (
-                <button key={d.newPath} type="button" onClick={() => setFile(d.newPath)} title={d.newPath}
-                  className={cn('flex items-center gap-1.5 rounded border px-2 py-0.5 text-xs', file === d.newPath ? 'border-primary bg-primary/10' : 'hover:bg-accent/40')}>
-                  <FileDiff className={cn('h-3.5 w-3.5 shrink-0', d.status === 'added' ? 'text-emerald-500' : d.status === 'deleted' ? 'text-red-500' : 'text-sky-500')} />
-                  <span className="max-w-[220px] truncate">{d.newPath}</span>
-                  {!!n && <span className="flex items-center gap-0.5 text-[10px] text-amber-600"><MessageSquare className="h-2.5 w-2.5" />{n}</span>}
-                  {d.additions != null && <span className="font-mono text-[10px] text-emerald-600">+{d.additions}</span>}
-                  {d.deletions != null && <span className="font-mono text-[10px] text-red-500">−{d.deletions}</span>}
-                </button>
-              );
-            })}
-          </div>
+        <div className="flex min-h-0 flex-1">
+          <MRFileTree diffs={diffs} file={file} onPick={setFile} isViewed={viewed.isViewed} viewedCount={viewed.viewedCount} onToggleViewed={viewed.toggle}
+            commentCount={(path) => inline.filter((x) => x.position?.newPath === path).length + pending.filter((p) => p.file.newPath === path).length} />
           <div className="flex min-w-0 flex-1 flex-col">
             {canWrite && (
               <div className="flex shrink-0 items-center gap-3 border-b px-3 py-1.5 text-[11px]">
@@ -347,7 +415,12 @@ function MRDetail({ connId, project, iid, canWrite, localRepo, onChanged, onChec
             <div className="min-h-0 flex-1 overflow-auto">
               {fileObj && (
                 <>
-                  <div className="sticky top-0 z-10 border-b bg-muted/60 px-3 py-1 font-mono text-[11px] backdrop-blur">{fileObj.newPath}</div>
+                  <div className="sticky top-0 z-10 flex items-center gap-2 border-b bg-muted/60 px-3 py-1 font-mono text-[11px] backdrop-blur">
+                    <span className="min-w-0 flex-1 truncate">{fileObj.status === 'renamed' && fileObj.oldPath !== fileObj.newPath ? `${fileObj.oldPath} → ${fileObj.newPath}` : fileObj.newPath}</span>
+                    <label className="flex shrink-0 items-center gap-1 font-sans text-[11px] text-muted-foreground">
+                      <input type="checkbox" checked={viewed.isViewed(fileObj)} onChange={() => viewed.toggle(fileObj)} className="h-3 w-3" />{t('mr.files.viewedLabel')}
+                    </label>
+                  </div>
                   <GitMRDiff
                     file={fileObj}
                     threads={[...inline, ...pending.filter((p) => p.file.newPath === fileObj.newPath).map((p, i): GitMRDiscussion => ({
@@ -359,6 +432,7 @@ function MRDetail({ connId, project, iid, canWrite, localRepo, onChanged, onChec
                     onComment={(line, body) => comment(fileObj, line, body)}
                     onReply={(id, b) => act('reply', () => gitAPI.replyMRDiscussion(connId, project, iid, id, b))}
                     onResolve={(id, r) => act('resolve', () => gitAPI.resolveMRDiscussion(connId, project, iid, id, r))}
+                    {...noteActions}
                   />
                 </>
               )}
@@ -367,7 +441,9 @@ function MRDetail({ connId, project, iid, canWrite, localRepo, onChanged, onChec
         </div>
       )}
       <MergeDialog pr={pr} open={mergeOpen} onOpenChange={setMergeOpen} mr={mr} pipelineStatus={pipe?.status} unresolved={unresolved}
-        onMerge={(opts) => act('merge', () => gitAPI.mergeMR(connId, project, iid, { ...opts, sha: mr.sha }), t('mr.mergedToast'))} />
+        onMerge={(opts) => act('merge', () => gitAPI.mergeMR(connId, project, iid, { ...opts, sha: mr.sha }), opts.mergeWhenPipelineSucceeds ? t('mr.autoMergeSetToast') : t('mr.mergedToast'))} />
+      <EditMRDialog open={editOpen} onOpenChange={setEditOpen} connId={connId} project={project} mr={mr} pr={pr}
+        onSaved={() => { toast({ title: t('mr.edit.saved') }); setDiffs(null); void load(); onChanged(); }} />
     </div>
   );
 }
@@ -390,11 +466,14 @@ function MergeDialog({ open, onOpenChange, mr, pipelineStatus, unresolved, onMer
   mr: GitMRDetail;
   pipelineStatus?: string;
   unresolved: number;
-  onMerge: (o: { squash: boolean; removeSourceBranch: boolean; mergeWhenPipelineSucceeds: boolean; squashCommitMessage?: string; mergeCommitMessage?: string }) => Promise<void>;
+  onMerge: (o: { squash: boolean; removeSourceBranch: boolean; mergeWhenPipelineSucceeds: boolean; squashCommitMessage?: string; mergeCommitMessage?: string; mergeMethod?: string }) => Promise<void>;
 }) {
   const { t } = useTranslation('git');
-  const [squash, setSquash] = useState(false);
-  const [remove, setRemove] = useState(true);
+  // Defaults come from the MR's own settings (GitLab's "Delete source branch" / "Squash commits" checkboxes).
+  const [squash, setSquash] = useState(!!mr.squash);
+  const [remove, setRemove] = useState(mr.removeSourceBranch ?? true);
+  // GitHub: merge commit, squash or rebase (the repository may allow only some).
+  const [method, setMethod] = useState<'merge' | 'squash' | 'rebase'>(mr.squash ? 'squash' : 'merge');
   const running = pipelineStatus === 'running' || pipelineStatus === 'pending' || pipelineStatus === 'created';
   const [auto, setAuto] = useState(running);
   const [edit, setEdit] = useState(false);
@@ -406,11 +485,17 @@ function MergeDialog({ open, onOpenChange, mr, pipelineStatus, unresolved, onMer
     if (!open) return;
     setAuto(running);
     setEdit(false);
+    setSquash(!!mr.squash);
+    setRemove(pr ? true : mr.removeSourceBranch ?? true);
+    setMethod(mr.squash ? 'squash' : 'merge');
     setSquashMsg(mr.title.replace(/^Draft:\s*/i, ''));
     setMergeMsg(defaultMergeMessage(mr, pr));
   }, [open, running, mr, pr]);
-  const msg = squash ? squashMsg : mergeMsg;
-  const setMsg = squash ? setSquashMsg : setMergeMsg;
+  // On GitHub the method decides squash; a rebase writes no commit message.
+  const squashing = pr ? method === 'squash' : squash;
+  const canEditMsg = !(pr && method === 'rebase');
+  const msg = squashing ? squashMsg : mergeMsg;
+  const setMsg = squashing ? setSquashMsg : setMergeMsg;
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className={cn(edit ? 'sm:max-w-xl' : 'sm:max-w-md')}>
@@ -426,11 +511,23 @@ function MergeDialog({ open, onOpenChange, mr, pipelineStatus, unresolved, onMer
         )}
         <div className="min-w-0 space-y-2 text-xs">
           <label className="flex items-center gap-2"><Switch checked={remove} onCheckedChange={setRemove} />{t('mr.removeSource')}</label>
-          <label className="flex items-center gap-2"><Switch checked={squash} onCheckedChange={setSquash} />{t('mr.squash')}</label>
-          <label className="flex items-center gap-2"><Switch checked={edit} onCheckedChange={setEdit} />{t('mr.editCommitMessage')}</label>
-          {edit && (
+          {pr ? (
+            <div className="flex items-center gap-2">
+              <span className="text-muted-foreground">{t('mr.mergeMethod')}</span>
+              {(['merge', 'squash', 'rebase'] as const).map((m) => (
+                <button key={m} type="button" onClick={() => setMethod(m)}
+                  className={cn('rounded-full border px-2 py-0.5 text-[11px]', method === m ? 'border-primary bg-primary/10 text-foreground' : 'text-muted-foreground hover:text-foreground')}>
+                  {t(`mr.method.${m}`)}
+                </button>
+              ))}
+            </div>
+          ) : (
+            <label className="flex items-center gap-2"><Switch checked={squash} onCheckedChange={setSquash} />{t('mr.squash')}</label>
+          )}
+          {canEditMsg && <label className="flex items-center gap-2"><Switch checked={edit} onCheckedChange={setEdit} />{t('mr.editCommitMessage')}</label>}
+          {edit && canEditMsg && (
             <div className="space-y-1">
-              <div className="font-medium">{squash ? t('mr.squashCommitMessage') : t('mr.mergeCommitMessage')}</div>
+              <div className="font-medium">{squashing ? t('mr.squashCommitMessage') : t('mr.mergeCommitMessage')}</div>
               <Textarea value={msg} onChange={(e) => setMsg(e.target.value)} spellCheck={false}
                 className="min-h-[140px] w-full resize-y font-mono text-xs" />
             </div>
@@ -439,13 +536,15 @@ function MergeDialog({ open, onOpenChange, mr, pipelineStatus, unresolved, onMer
         </div>
         <DialogFooter>
           <Button size="sm" variant="ghost" onClick={() => onOpenChange(false)}>{t('vcs.cancel')}</Button>
-          <Button size="sm" disabled={busy || (edit && !msg.trim())} onClick={async () => {
+          <Button size="sm" disabled={busy || (edit && canEditMsg && !msg.trim())} onClick={async () => {
             setBusy(true);
+            const withMsg = edit && canEditMsg;
             await onMerge({
-              squash, removeSourceBranch: remove, mergeWhenPipelineSucceeds: auto && running,
+              squash: squashing, removeSourceBranch: remove, mergeWhenPipelineSucceeds: auto && running,
+              mergeMethod: pr ? method : undefined,
               // Without "edit", GitLab / GitHub use their own default message.
-              squashCommitMessage: edit && squash ? squashMsg : undefined,
-              mergeCommitMessage: edit && !squash ? mergeMsg : undefined,
+              squashCommitMessage: withMsg && squashing ? squashMsg : undefined,
+              mergeCommitMessage: withMsg && !squashing ? mergeMsg : undefined,
             });
             setBusy(false);
             onOpenChange(false);

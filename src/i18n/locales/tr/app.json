@@ -35,7 +35,7 @@
     "closeTab": "Geçerli Sekmeyi Kapat",
     "goCollections": "Koleksiyonlara Git",
     "goHistory": "Geçmişe Git",
-    "goQa": "QA'ya Git",
+    "goQa": "CR + QA Hub'ı aç",
     "goMock": "Mock Sunuculara Git",
     "switchToTab": "Şuna geç: {{name}}",
     "newRequest": "Yeni İstek",
@@ -108,7 +108,14 @@
     "newRequest": "Yeni İstek",
     "settings": "Ayarlar",
     "checkUpdates": "Güncellemeleri Denetle…",
-    "quit": "PatchMan’den Çık"
+    "quit": "PatchMan’den Çık",
+    "qaInbox": "QA Gelen Kutusu",
+    "installUpdate": "Güncelleme hazır — yükle…",
+    "badge": {
+      "inbox_one": "QA gelen kutusunda {{count}} öğe",
+      "inbox_other": "QA gelen kutusunda {{count}} öğe",
+      "update": "güncelleme hazır"
+    }
   },
   "quitConfirm": {
     "title": "PatchMan'den çıkılsın mı?",

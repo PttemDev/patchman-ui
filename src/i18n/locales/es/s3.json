@@ -56,7 +56,12 @@
     "testFailed": "La prueba falló",
     "updateFailedAll": "La actualización falló en todos los backends",
     "createFailedAll": "La creación falló en todos los backends",
-    "saveFailed": "Error al guardar"
+    "saveFailed": "Error al guardar",
+    "bucket": "Bucket (opcional)",
+    "bucketPlaceholder": "my-bucket",
+    "prefix": "Ruta (opcional)",
+    "prefixPlaceholder": "team/reports/",
+    "pinHint": "Para claves que solo pueden usar un bucket o una ruta: la conexión se abre ahí en lugar de listar los buckets."
   },
   "share": {
     "title": "Compartir \"{{name}}\"",

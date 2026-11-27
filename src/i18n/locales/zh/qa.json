@@ -509,7 +509,9 @@
     "saving": "保存中…",
     "update": "更新",
     "create": "创建",
-    "manualHint": "手动步骤：运行器会跳过，需要手动执行。"
+    "manualHint": "手动步骤：运行器会跳过，需要手动执行。",
+    "jiraKey": "Jira 键",
+    "jiraKeyHint": "在 CR + QA Hub 中将用例关联到 Jira 问题及其 MR"
   },
   "defectStatus": {
     "open": "打开",
@@ -678,7 +680,8 @@
     "skippedCount": "{{count}} 跳过",
     "skippedInline": "已跳过",
     "assertExpected": "{{type}}：期望 {{expected}}",
-    "assertExpectedGot": "{{type}}：期望 {{expected}}，实际 {{actual}}"
+    "assertExpectedGot": "{{type}}：期望 {{expected}}，实际 {{actual}}",
+    "pickToEdit": "选择一个测试用例在此编辑，或新建一个。"
   },
   "sharedSteps": {
     "editTitle": "编辑共享步骤",
@@ -810,5 +813,586 @@
     "runTitle": "运行“{{name}}”中的全部用例",
     "save": "保存",
     "skippedCount": "已跳过（无可执行步骤）：{{count}}"
+  },
+  "hub": {
+    "title": "CR + QA Hub",
+    "subtitle": "评审、测试与跟踪集中一处：MR、Jira 与测试用例",
+    "newTestCase": "新建测试用例",
+    "group": {
+      "test": "测试",
+      "track": "跟踪",
+      "setup": "配置",
+      "review": "评审"
+    },
+    "section": {
+      "overview": "概览",
+      "cases": "测试用例",
+      "plans": "计划",
+      "runs": "运行",
+      "load": "负载测试",
+      "defects": "缺陷",
+      "requirements": "需求",
+      "steps": "共享步骤",
+      "settings": "设置",
+      "inbox": "收件箱",
+      "radar": "MR 雷达",
+      "reviews": "AI 评审",
+      "reports": "报告",
+      "automation": "自动化"
+    },
+    "sectionHint": {
+      "overview": "覆盖率、优先级和快速运行",
+      "cases": "文件夹中的可执行 API 和手动用例",
+      "plans": "将用例组合成计划并运行",
+      "runs": "计划和文件夹运行的结果",
+      "load": "负载与性能测试",
+      "defects": "测试中发现的缺陷",
+      "requirements": "测试覆盖的内容",
+      "steps": "在用例间复用的步骤块",
+      "settings": "Jira 与 Git 关联、连接",
+      "inbox": "现在需要你处理的事项",
+      "radar": "已关联项目的未合并 MR 及信号",
+      "reviews": "你的智能体评审 MR；由人批准并发布",
+      "reports": "团队趋势 — 从不按个人",
+      "automation": "夜间运行、定时运行、通知渠道"
+    },
+    "open": "打开 CR + QA Hub",
+    "openHint": "QA 现在以标签页打开，每个视图都有足够空间",
+    "jumpTo": "跳转到",
+    "classicView": "经典侧边栏视图",
+    "classicNote": "经典视图 —— 将在后续版本中移除",
+    "backToHub": "Hub",
+    "scope": {
+      "label": "QA 空间",
+      "hint": "个人项目仅自己可见；团队工作区会与团队共享其 QA 项目",
+      "personal": "个人",
+      "none": "还没有团队工作区 —— 将团队绑定到工作区即可共享 QA 项目"
+    },
+    "move": {
+      "to": "移动到…",
+      "share": "共享…",
+      "done_one": "已移动到 {{target}}",
+      "done_other": "已将 {{count}} 项移动到 {{target}}",
+      "failed": "无法移动"
+    }
+  },
+  "settings": {
+    "links": {
+      "title": "项目 ↔ Jira",
+      "hint": "哪个 Git 项目的 MR 属于哪个 Jira 项目",
+      "add": "关联项目",
+      "loading": "正在加载关联…",
+      "empty": "还没有关联的项目。将 Git 项目关联到 Jira 项目，即可把 MR 与问题对应起来。",
+      "gitProject": "Git 项目",
+      "jiraProject": "Jira 项目",
+      "keyPattern": "问题键格式",
+      "testEnv": "测试环境",
+      "noJira": "未关联 Jira",
+      "defaultPattern": "PROJECT-123（默认）",
+      "unknownConn": "连接不可用",
+      "edit": "编辑关联",
+      "delete": "删除关联",
+      "deleteTitle": "删除 {{project}} 的关联？",
+      "deleteBody": "该项目的 MR 将不再与 Jira 问题对应。项目和问题本身不受影响。",
+      "deleteFailed": "无法删除关联",
+      "loadFailed": "无法加载关联",
+      "saveFailed": "无法保存关联",
+      "addTitle": "关联项目",
+      "editTitle": "编辑关联",
+      "dialogHint": "会在 MR 标题、源分支和描述中查找该 Jira 项目的问题键。",
+      "gitConnection": "Git 连接",
+      "gitProjectPlaceholder": "group/repo、owner/name 或项目 ID",
+      "jiraConnection": "Jira 连接",
+      "pick": "请选择",
+      "noGitConns": "没有 Git 连接 — 请在 Git 工具中添加",
+      "noJiraConns": "没有 Jira 连接 — 请在下方添加",
+      "keyPatternHint": "可选的问题键正则表达式，例如 MER-\\d+。留空则使用 PROJECT-123。",
+      "noTestEnv": "无",
+      "cancel": "取消",
+      "save": "保存",
+      "gitProjectHint": "在所有 Git 连接中搜索；选择项目时会同时选择其连接。"
+    },
+    "radar": {
+      "title": "雷达阈值",
+      "hint": "留空即关闭该信号",
+      "slaHours": "评审 SLA（小时）",
+      "slaHint": "等待评审：无批准且空闲至少这么久。",
+      "off": "关闭",
+      "largeFiles": "大型 MR（文件数）",
+      "largeHint": "过大：修改的文件至少这么多。",
+      "testPatterns": "测试文件模式",
+      "testPatternsHint": "每行一个 glob。无测试：修改了源文件但没有匹配这些模式的文件。",
+      "sourcePatterns": "源文件模式",
+      "sourcePatternsHint": "可选。留空 = 所有非测试文件。",
+      "testStatuses": "Jira 测试状态",
+      "testStatusesHint": "逗号分隔。分配给你且处于这些状态的问题会进入收件箱。",
+      "mergedDays": "合并回看（天）",
+      "digestHour": "每日摘要",
+      "signals": "信号",
+      "signalsHint": "关闭的信号不会计算或显示。",
+      "saved": "雷达设置已保存",
+      "saveFailed": "无法保存设置",
+      "reviewGuide": "团队评审指南",
+      "reviewGuidePlaceholder": "例如：金额始终用 decimal，不用 float。payments/ 下的任何改动至少为 major。忽略格式问题。",
+      "reviewGuideHint": "团队的约定、风险区域和严重级别规则。会提供给此 QA 空间的每次 AI 评审和修复检查。"
+    },
+    "mine": {
+      "column": "你的连接",
+      "hint": "通过你自己的 Git / Jira 连接读取此关联，使你的评审、MR 和 Jira 测试队列进入收件箱。",
+      "useMine": "使用我的连接",
+      "title": "{{project}} 的你的连接",
+      "body": "此关联使用其自身的连接读取，这些令牌属于其所有者。选择你自己的连接，雷达才能识别你。只影响你自己。",
+      "linkDefault": "关联默认：{{name}}",
+      "note": "你的连接必须能访问相同的 Git 项目和 Jira 项目。"
+    },
+    "webhook": {
+      "body": "GitLab 会立即把 MR、流水线和评论事件通知 PatchMan，雷达和收件箱无需等待即可更新。",
+      "create": "创建 webhook 密钥",
+      "events": "事件：合并请求、流水线、评论。",
+      "exists": "已有 webhook 密钥。创建新密钥后，旧 webhook 在 GitLab 中更新前将无法使用。",
+      "install": "在 GitLab 中创建",
+      "installFailed": "GitLab 拒绝（需要 Maintainer 权限）— 请在 GitLab 中手动添加 webhook",
+      "installed": "已在 GitLab 中创建 webhook",
+      "lastEvent": "最近事件 {{when}}",
+      "regenerate": "生成新密钥",
+      "secret": "密钥令牌",
+      "secretOnce": "仅此时显示。GitLab 会通过 X-Gitlab-Token 发送它。",
+      "title": "GitLab webhook",
+      "url": "Webhook URL"
+    }
+  },
+  "radar": {
+    "loading": "正在读取已关联的项目…",
+    "loadFailed": "无法加载雷达",
+    "noLinks": "此 QA 空间还没有关联的 Git 项目。将项目关联到 Jira 项目后，雷达会显示其未合并的 MR 及信号。",
+    "linkProjects": "关联项目",
+    "search": "搜索标题、分支、作者、问题键…",
+    "allProjects": "所有项目",
+    "mine": "我的",
+    "table": "表格",
+    "board": "看板",
+    "refresh": "刷新",
+    "updated": "更新于 {{when}}",
+    "noneMatch": "没有符合筛选条件的 MR。",
+    "mergedTitle": "最近合并 — Jira 未完成",
+    "openRemote": "在浏览器中打开",
+    "close": "关闭",
+    "openSettings": "打开设置",
+    "truncated": "显示 {{total}} 个未合并 MR 中的 {{shown}} 个 — 雷达每个项目最多读取 300 个。",
+    "mergedTruncated": "回看期内已合并的 MR 多于已检查的数量。",
+    "jiraNotRead": "未读取该问题键的 Jira",
+    "jiraMissing": "Jira 中不存在该问题键",
+    "linkStatus": {
+      "noAccess": "你无法使用此关联的 Git 连接",
+      "needsToken": "此 Git 连接没有令牌",
+      "error": "无法读取"
+    },
+    "jiraStatus": {
+      "noAccess": "你无法使用此关联的 Jira 连接",
+      "error": "无法读取 Jira"
+    },
+    "col": {
+      "mr": "合并请求",
+      "author": "作者",
+      "reviewers": "评审人",
+      "pipeline": "流水线",
+      "jira": "Jira",
+      "updated": "更新"
+    },
+    "pipeline": {
+      "success": "通过",
+      "failed": "失败",
+      "running": "运行中",
+      "pending": "等待中",
+      "canceled": "已取消",
+      "skipped": "已跳过",
+      "manual": "手动",
+      "created": "已创建"
+    },
+    "column": {
+      "review": "等待评审",
+      "stuck": "受阻",
+      "ready": "可合并",
+      "draft": "草稿"
+    },
+    "signal": {
+      "stuck": {
+        "label": "受阻",
+        "hint": "冲突、流水线失败、未解决的讨论或需要变基"
+      },
+      "unverifiedFixes": {
+        "label": "修复未验证",
+        "hint": "已发布问题且有新提交，但还没人检查修复"
+      },
+      "awaitingReview": {
+        "label": "等待评审",
+        "hint": "无批准且空闲超过 SLA"
+      },
+      "noJira": {
+        "label": "无 Jira",
+        "hint": "没有关联 Jira 项目的问题键，或该键不存在"
+      },
+      "jiraMismatch": {
+        "label": "Jira 不一致",
+        "hint": "MR 未合并但 Jira 已完成，或 MR 已合并但 Jira 未完成"
+      },
+      "noTests": {
+        "label": "无测试",
+        "hint": "修改了源文件但没有测试文件"
+      },
+      "large": {
+        "label": "过大",
+        "hint": "修改的文件数超过阈值"
+      },
+      "collision": {
+        "label": "冲撞",
+        "hint": "另一个打开的 MR 修改了同一文件"
+      },
+      "aiAssisted": {
+        "label": "可能为 AI",
+        "hint": "某个提交带有 AI 工具签名（启发式）"
+      }
+    },
+    "incomplete_one": "{{count}} 个 MR 未完全读取 — 未读取的信息显示为未知。",
+    "incomplete_other": "{{count}} 个 MR 未完全读取 — 未读取的信息显示为未知。",
+    "notPersonal": "部分关联使用的连接令牌属于其所有者，因此\"我的\"无法识别你在那里的 MR。"
+  },
+  "inbox": {
+    "loading": "正在加载收件箱…",
+    "loadFailed": "无法加载收件箱",
+    "noLinks": "收件箱来自已关联的项目：待你评审的 MR、你受阻的 MR，以及等待你测试的 Jira 问题。关联一个项目即可开始。",
+    "kind": {
+      "review": "等待你评审",
+      "stuck": "你受阻的 MR",
+      "test": "待测试（Jira）",
+      "verify": "待验证的修复"
+    },
+    "updated": "更新于 {{when}}",
+    "snoozedCount_one": "已推迟 {{count}} 项",
+    "snoozedCount_other": "已推迟 {{count}} 项",
+    "testOff": "Jira 测试队列已关闭 — 请设置测试状态",
+    "jiraTruncated": "Jira 问题多于显示数量",
+    "enableNotifications": "开启通知",
+    "empty": "目前没有需要你处理的事项。",
+    "monitoring_one": "正在关注 {{count}} 个关联项目。",
+    "monitoring_other": "正在关注 {{count}} 个关联项目。",
+    "open": "打开",
+    "openJira": "Jira",
+    "snooze": "推迟",
+    "snoozeFor": {
+      "h1": "1 小时",
+      "h4": "4 小时",
+      "tomorrow": "直到明天 09:00",
+      "week": "1 周"
+    },
+    "snoozed": "已推迟",
+    "snoozeFailed": "无法推迟",
+    "snoozeNote": "推迟的 MR 在有新提交时会重新出现。",
+    "notify": {
+      "title_one": "QA 收件箱有 {{count}} 个新事项",
+      "title_other": "QA 收件箱有 {{count}} 个新事项"
+    },
+    "digest": {
+      "title": "今日 QA 收件箱",
+      "body": "{{review}} 待评审 · {{stuck}} 受阻 · {{test}} 待测试"
+    },
+    "jiraSkipped_one": "{{count}} 个 Jira 连接未纳入你的测试队列",
+    "jiraSkipped_other": "{{count}} 个 Jira 连接未纳入你的测试队列",
+    "jiraSkippedHint": "其令牌属于所有者，\"分配给我\"将指向所有者。请添加你自己的 Jira 连接。",
+    "notPersonal": "未列出你在 {{projects}} 上的评审和 MR：该 Git 连接使用的是所有者的令牌，而不是你的账户。请用你自己的连接（或 GitLab 账户）关联这些项目以在此查看。"
+  },
+  "drawer": {
+    "mr": "MR",
+    "review": "AI 评审",
+    "tests": "测试"
+  },
+  "review": {
+    "approve": "批准",
+    "approverNote": "MR 的作者、评审人和该评审的所有者可以批准发现。发布使用你自己的 Git 凭据；没有人的操作不会发布任何内容。",
+    "copied": "已复制",
+    "copy": "复制",
+    "copyCommand": "复制命令",
+    "copyPrompt": "复制提示",
+    "decideFailed": "无法保存决定",
+    "discard": "丢弃",
+    "discardBody": "该评审会以“已丢弃”保留在历史中；你的智能体可以重新评审此提交。",
+    "discardTitle": "丢弃此评审？",
+    "edit": "编辑",
+    "findingBody": "发现内容",
+    "findingTitle": "发现标题",
+    "hiddenCount_one": "已隐藏 {{count}} 个 minor/nit",
+    "hiddenCount_other": "已隐藏 {{count}} 个 minor/nit",
+    "inProgress": "有智能体正在评审此提交（{{when}} 认领）。",
+    "launchFailed": "无法打开终端 — 请复制命令",
+    "loadFailed": "无法加载评审",
+    "loading": "正在加载评审…",
+    "noFindings": "智能体未发现问题。",
+    "olderOnly": "下面的评审针对较旧的提交；请重新评审当前的 head。",
+    "postApproved_one": "发布 {{count}} 个已批准",
+    "postApproved_other": "发布 {{count}} 个已批准",
+    "postConfirmBody": "已批准的发现和摘要将以你的名义作为评论发布到 {{mr}}。",
+    "postConfirmTitle_one": "发布 {{count}} 个发现？",
+    "postConfirmTitle_other": "发布 {{count}} 个发现？",
+    "postFailed": "无法发布",
+    "postFailedSome_one": "{{count}} 个无法发布 — 请查看该发现",
+    "postFailedSome_other": "{{count}} 个无法发布 — 请查看这些发现",
+    "posted_one": "已发布 {{count}} 个发现",
+    "posted_other": "已发布 {{count}} 个发现",
+    "postedGeneral": "作为普通评论发布",
+    "reject": "拒绝",
+    "runInTerminal": "在终端中运行",
+    "saveEdit": "保存",
+    "showAll": "显示 minor 和 nit",
+    "staleNote": "此评审之后 MR 有了新提交。发现可能与差异不符；请重新评审。",
+    "title": "AI 评审",
+    "withAgent": "用我的智能体评审",
+    "withAgentHint": "你自己的智能体（配置了 PatchMan MCP 的 Claude Code）在你的电脑上评审 MR，并在这里提交草稿。PatchMan 本身从不把代码发送给 AI 服务。",
+    "severity": {
+      "blocker": "阻断",
+      "major": "严重",
+      "minor": "次要",
+      "nit": "细节"
+    },
+    "status": {
+      "pending": "待定",
+      "approved": "已批准",
+      "rejected": "已拒绝",
+      "posted": "已发布"
+    },
+    "reviewStatus": {
+      "claimed": "进行中",
+      "draft": "草稿",
+      "posted": "已发布",
+      "discarded": "已丢弃",
+      "stale": "已过期"
+    }
+  },
+  "reviews": {
+    "claimedByYou": "已由你认领",
+    "noneYet": "还没有评审。",
+    "queue": "评审队列",
+    "queueEmpty": "每个打开的 MR 在当前提交上都有评审。",
+    "reason": {
+      "reviewer": "你是评审人",
+      "mine": "你的 MR",
+      "open": "打开"
+    },
+    "recent": "最近的评审",
+    "reviewWithAgent": "用智能体评审",
+    "workQueue": "用我的智能体处理队列",
+    "workQueueHint": "你的智能体逐个处理你评审的 MR 和你自己的 MR，并提交草稿供你批准。",
+    "verifyKind_one": "检查 {{count}} 个修复",
+    "verifyKind_other": "检查 {{count}} 个修复",
+    "verifyWithAgent": "用我的代理验证"
+  },
+  "mrTests": {
+    "automated": "自动",
+    "byJira": "按 Jira 键",
+    "byMR": "按 MR",
+    "cases": "关联的测试用例",
+    "draftHint": "你的智能体读取 Jira 验收标准和差异，并创建关联到此 MR 的测试用例草稿。你在“测试用例”中审核并启用它们。",
+    "draftWithAgent": "用我的智能体起草测试",
+    "loadFailed": "无法加载 MR 测试",
+    "manual": "手动",
+    "noCases": "此 MR 还没有关联的测试用例 — 用智能体起草，或在用例上设置 Jira 键。",
+    "noEnv": "无环境",
+    "noRuns": "还没有运行。",
+    "postBody": {
+      "mr": "运行结果将以你的名义作为评论发布到 {{mr}}。",
+      "jira": "运行结果将通过 Jira 连接作为评论添加到 {{key}}。"
+    },
+    "postJira": "在 Jira 评论",
+    "postMR": "发布到 MR",
+    "postTitle": {
+      "mr": "将结果发布到 MR？",
+      "jira": "将结果评论到 Jira？"
+    },
+    "posted": "已发布",
+    "ran": "已运行：{{passed}} 通过，{{failed}} 失败，跳过 {{skipped}} 个手动",
+    "result": "{{passed}} 通过 · {{failed}} 失败",
+    "run_one": "运行 {{count}} 个测试",
+    "run_other": "运行 {{count}} 个测试",
+    "runFailed": "无法运行测试",
+    "runs": "运行记录",
+    "title": "此 MR 的测试",
+    "draftsNote_one": "{{count}} 个用例是草稿或未启用，不会运行 — 请先在“测试用例”中审核并启用。",
+    "draftsNote_other": "{{count}} 个用例是草稿或未启用，不会运行 — 请先在“测试用例”中审核并启用。"
+  },
+  "defectJira": {
+    "body": "根据“{{title}}”创建 Jira 问题，包含其描述和复现步骤。",
+    "create": "在 Jira 中创建",
+    "created": "已创建 {{key}}",
+    "failed": "无法创建 Jira 问题",
+    "issueType": "问题类型",
+    "linked": "Jira 问题",
+    "title": "在 Jira 中创建"
+  },
+  "reports": {
+    "aiFindings": "AI 评审发现",
+    "aiHint_one": "期间 {{count}} 次评审",
+    "aiHint_other": "期间 {{count}} 次评审",
+    "days_one": "{{count}} 天",
+    "days_other": "{{count}} 天",
+    "defects": "未关闭缺陷",
+    "defectsSub": "已关闭 {{closed}} · 期间新增 {{created}}",
+    "failed": "失败",
+    "leadHint": "从创建到合并的小时数",
+    "leadTime": "交付时间（中位数）",
+    "leadTrend": "交付时间",
+    "loadFailed": "无法加载报告",
+    "loading": "正在加载报告…",
+    "median": "中位数",
+    "noReviews": "期间没有 AI 评审。",
+    "noRuns": "期间没有测试运行。",
+    "noSnapshot": "还没有雷达数据 — 有人打开雷达或收件箱时每天收集一次。",
+    "openMrs": "打开的 MR",
+    "p90": "p90 {{h}} 小时",
+    "passRate": "测试通过率",
+    "passed": "通过",
+    "radarHint": "每天按信号统计的打开 MR",
+    "radarTrend": "信号趋势",
+    "runs_one": "{{count}} 次运行",
+    "runs_other": "{{count}} 次运行",
+    "stuckNow": "当前 {{count}} 个受阻",
+    "teamOnly": "此 QA 空间的团队级数据，不按个人细分。",
+    "testTrend": "每日测试结果"
+  },
+  "automation": {
+    "channels": {
+      "add": "添加渠道",
+      "body": "Slack 或 Teams 的传入 webhook 会收到 MR 事件（来自 GitLab webhook）和每日摘要。",
+      "deleteTitle": "删除此渠道？",
+      "dialogHint": "在 Slack 或 Teams 中创建传入 webhook 并粘贴其 URL。它会加密保存且不再显示。",
+      "events": "事件",
+      "kind": "服务",
+      "name": "名称",
+      "none": "还没有渠道。",
+      "sendFailed": "无法发送",
+      "sent": "已发送测试消息",
+      "test": "发送测试",
+      "title": "通知渠道",
+      "url": "传入 webhook URL",
+      "urlHint": "Slack：hooks.slack.com · Teams：*.webhook.office.com 或 Power Automate 工作流 URL。"
+    },
+    "days": "星期",
+    "enabled": "启用",
+    "everyDay": "每天",
+    "time": "时间",
+    "event": {
+      "mr_opened": "MR 已打开",
+      "pipeline_failed": "流水线失败",
+      "mr_approved": "MR 已批准",
+      "mr_merged": "MR 已合并",
+      "digest": "每日摘要"
+    },
+    "night": {
+      "body": "你自己的智能体在夜间于你的电脑上处理你的评审队列：评审等待你的 MR、起草缺失的测试并提交草稿。早上有人批准前不会发布任何内容。",
+      "copyCron": "复制 cron 行",
+      "install": "在此 Mac 上定时",
+      "installFailed": "无法定时",
+      "installed": "已定时夜间运行",
+      "log": "日志：{{path}}",
+      "on": "已定时",
+      "remove": "移除定时",
+      "title": "夜间运行",
+      "update": "更新定时",
+      "webNote": "在浏览器中：把 cron 行加入你的 crontab，或在 PatchMan 桌面应用中定时。",
+      "prompt": "提示",
+      "server": "你的 Claude Code 中 PatchMan MCP 服务器名称",
+      "toolsHint": "只预先批准这些工具：{{tools}}。智能体会读取他人编写的 MR 和 Jira 文本，因此无人值守时不允许其他任何操作。",
+      "serverLocal": "patchman-local — 本设备（桌面应用）",
+      "serverRemote": "patchman — PatchMan 服务器",
+      "serverCustom": "其他…"
+    },
+    "schedules": {
+      "add": "添加定时",
+      "body": "服务器按计划运行测试文件夹或计划（不使用 AI）。结果显示在“运行”和“报告”中。",
+      "deleteTitle": "删除此定时？",
+      "dialogHint": "创建定时即批准其运行。它以你对该文件夹或计划的权限运行。",
+      "folder": "文件夹",
+      "kind": "类型",
+      "last": "最近 {{status}} {{when}}",
+      "name": "名称",
+      "namePlaceholder": "夜间冒烟测试",
+      "none": "还没有定时运行。",
+      "plan": "计划",
+      "ranNow": "运行完成",
+      "runNow": "立即运行",
+      "target": "文件夹 / 计划",
+      "title": "定时测试运行",
+      "tz": "时间为 {{tz}}。"
+    },
+    "day": {
+      "1": "一",
+      "2": "二",
+      "3": "三",
+      "4": "四",
+      "5": "五",
+      "6": "六",
+      "7": "日"
+    }
+  },
+  "picker": {
+    "search": "搜索…",
+    "none": "未找到",
+    "loadFailed": "无法加载列表",
+    "useTyped": "使用“{{value}}”",
+    "typeToSearch": "仅显示前面的结果 — 输入以搜索。"
+  },
+  "pending": {
+    "title_one": "来自你的智能体的 {{count}} 项配置更改",
+    "title_other": "来自你的智能体的 {{count}} 项配置更改",
+    "body": "这些是 AI 智能体通过 MCP 请求的。你应用之前不会有任何改变；应用时以你的身份执行。",
+    "anAgent": "某个智能体",
+    "apply": "应用",
+    "reject": "拒绝",
+    "applied": "已应用",
+    "applyFailed": "无法应用该更改",
+    "banner_one": "来自智能体的 {{count}} 项配置更改正在“设置”中等你处理",
+    "banner_other": "来自智能体的 {{count}} 项配置更改正在“设置”中等你处理"
+  },
+  "agentRun": {
+    "run": "用我的智能体运行",
+    "runAgain": "再次运行",
+    "starting": "正在启动…",
+    "running": "运行中",
+    "done": "完成",
+    "stop": "停止",
+    "openTab": "在终端标签页中打开",
+    "close": "关闭",
+    "webNote": "在浏览器中：复制命令，并在 Claude Code 已配置 PatchMan MCP 的终端中运行。桌面应用会直接在这里运行。"
+  },
+  "verify": {
+    "title": "修复检查",
+    "openCount_one": "{{count}} 个已发布问题在新提交后等待检查",
+    "openCount_other": "{{count}} 个已发布问题在新提交后等待检查",
+    "inProgress": "代理正在检查修复（{{when}}开始）",
+    "withAgent": "用我的代理验证修复",
+    "withAgentHint": "你的代理读取已发布的问题以及该评审之后的改动，并对每个问题给出：已修复、未修复、部分修复或已过时。在你应用之前不会发送任何内容。",
+    "verdict": {
+      "fixed": "已修复",
+      "not_fixed": "未修复",
+      "partly": "部分修复",
+      "obsolete": "已过时"
+    },
+    "appliedState": {
+      "resolved": "已解决",
+      "replied": "已回复"
+    },
+    "resolveVerified_one": "解决已验证的 ({{count}})",
+    "resolveVerified_other": "解决已验证的 ({{count}})",
+    "replyOpen_one": "回复未修复的 ({{count}})",
+    "replyOpen_other": "回复未修复的 ({{count}})",
+    "resolveConfirmTitle_one": "回复并解决 {{count}} 个讨论？",
+    "resolveConfirmTitle_other": "回复并解决 {{count}} 个讨论？",
+    "replyConfirmTitle_one": "回复 {{count}} 个讨论？",
+    "replyConfirmTitle_other": "回复 {{count}} 个讨论？",
+    "applyConfirmBody": "回复会以你本人的名义连同代理的证据发到 {{mr}}。",
+    "applied_one": "已发送 {{count}} 条回复",
+    "applied_other": "已发送 {{count}} 条回复",
+    "appliedFailed_one": "{{count}} 条失败",
+    "appliedFailed_other": "{{count}} 条失败",
+    "applyFailed": "无法应用修复检查",
+    "applyNote": "已验证问题的 GitLab 讨论会被解决；在 GitHub 上只发布回复。"
   }
 }

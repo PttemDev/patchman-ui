@@ -92,6 +92,7 @@ import { PodMetricsChart } from '@/components/k8s/PodMetricsChart';
 import { K8sOverview } from '@/components/k8s/K8sOverview';
 import { K8sApplyDialog } from '@/components/k8s/K8sApplyDialog';
 import { PodLogsTab } from '@/components/k8s/PodLogsTab';
+import { statusTone } from '@/components/k8s/statusTone';
 import { useSafeConfirm } from '@/components/k8s/safeConfirm';
 import { cn } from '@/lib/utils';
 import { isDesktop } from '@/lib/platform';
@@ -2491,22 +2492,6 @@ function ErrorBlock({ text }: { text: string }) {
 }
 
 // ── helpers ──────────────────────────────────────────────────────────────────
-
-// statusTone maps a Kubernetes status/phase to a semantic dot + text color,
-// matching the badge language used across the Redis/Kafka/S3 tools.
-function statusTone(status: string): { dot: string; text: string } {
-  const s = status.toLowerCase();
-  if (['running', 'ready', 'active', 'bound', 'available', 'succeeded', 'complete', 'completed', 'healthy'].some((k) => s.includes(k))) {
-    return { dot: 'bg-emerald-500', text: 'text-emerald-500' };
-  }
-  if (['pending', 'containercreating', 'creating', 'terminating', 'progressing', 'notready', 'not ready', 'waiting'].some((k) => s.includes(k))) {
-    return { dot: 'bg-amber-500', text: 'text-amber-500' };
-  }
-  if (['fail', 'error', 'crashloop', 'evicted', 'unknown', 'imagepull', 'errimage', 'oomkilled', 'backoff'].some((k) => s.includes(k))) {
-    return { dot: 'bg-destructive', text: 'text-destructive' };
-  }
-  return { dot: 'bg-muted-foreground/40', text: 'text-foreground/80' };
-}
 
 // Best-effort: does this event row reference the object with `name`? The BE's
 // `extra` map is the wire contract but its exact keys can vary, so we probe a

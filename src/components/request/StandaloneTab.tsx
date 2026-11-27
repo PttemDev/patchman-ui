@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { LockScreen } from '@/components/security/LockScreen';
-import { CloudCog, Database, Radio, HardDrive, GitBranch, Wrench, ExternalLink, LayoutDashboard, Rabbit, Waypoints, ScrollText } from 'lucide-react';
+import { CloudCog, Database, Radio, HardDrive, GitBranch, Wrench, ExternalLink, LayoutDashboard, Rabbit, Waypoints, ScrollText, TerminalSquare, ClipboardCheck } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useRequestStore } from '@/stores/requestStore';
 import { useAuthStore } from '@/stores/authStore';
@@ -50,6 +50,10 @@ function TypeIcon({ tab }: { tab: Tab }) {
       return <CloudCog className="h-4 w-4 text-sky-500 shrink-0" />;
     case 'servicemap':
       return <Waypoints className="h-4 w-4 text-violet-500 shrink-0" />;
+    case 'qahub':
+      return <ClipboardCheck className="h-4 w-4 text-primary shrink-0" />;
+    case 'terminal':
+      return <TerminalSquare className="h-4 w-4 text-emerald-500 shrink-0" />;
     case 'tool': {
       const Icon = toolDef(tab.toolKind)?.icon ?? Wrench;
       return <Icon className="h-4 w-4 text-violet-400 shrink-0" />;

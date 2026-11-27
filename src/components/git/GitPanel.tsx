@@ -64,7 +64,7 @@ import { GitFindInFiles, GitSearchEverywhere } from './GitSearchDialogs';
 import { GitFolderMenu, RecentFolderList, openGitFolder, pickGitFolder } from './GitFolderMenu';
 import { useGitRecentFoldersStore } from '@/stores/gitRecentFoldersStore';
 import { GIT_KEYMAP, shortcutHint, useScopedKeymap } from '@/lib/keymap';
-import type { GitRefs, GitStatus } from '@/types';
+import type { GitHistoryOpResult, GitRefs, GitStatus } from '@/types';
 import type { Tab, GitRepoSummary, GitBranch, GitCommit, GitFileDiff } from '@/types';
 
 type Mode = 'history' | 'browse' | 'changes' | 'mrs' | 'ci';
@@ -580,9 +580,12 @@ export function GitPanel({ tab }: { tab: Tab }) {
   // ── clone ───────────────────────────────────────────────────────────
   const touchRecent = useGitRecentFoldersStore((s) => s.touch);
   const recentCount = useGitRecentFoldersStore((s) => s.folders.length);
-  const handleClone = useCallback(async () => {
-    if (!conn || !selectedRepo) return;
+  // Clones the selected project (or reuses the tree the BE already has) and
+  // returns it; null when it failed (a toast already said why).
+  const cloneSelected = useCallback(async (): Promise<{ id: string; connectionId: string } | null> => {
+    if (!conn || !selectedRepo) return null;
     setCloning(true);
+    let out: { id: string; connectionId: string } | null = null;
     try {
       const accessToken = await gitOpsToken(conn.id);
       const repoId = crypto.randomUUID();
@@ -600,12 +603,62 @@ export function GitPanel({ tab }: { tab: Tab }) {
       await loadLocalRepos();
       // The BE answers an existing tree of this project instead of cloning
       // again — open that one.
-      updateTab(tab.id, { gitRepoId: row?.id || repoId, gitView: 'changes' });
+      out = { id: row?.id || repoId, connectionId: row?.connectionId || conn.id };
     } catch (err) {
       toast({ title: t('clone.failedTitle'), description: extractErr(err, t('errors.clone')), variant: 'destructive' });
     }
     setCloning(false);
-  }, [conn, selectedRepo, toast, loadLocalRepos, tab.id, updateTab, t, touchRecent]);
+    return out;
+  }, [conn, selectedRepo, toast, loadLocalRepos, t, touchRecent]);
+
+  const handleClone = useCallback(async () => {
+    const r = await cloneSelected();
+    if (r) updateTab(tab.id, { gitRepoId: r.id, gitView: 'changes' });
+  }, [cloneSelected, tab.id, updateTab]);
+
+  // MR "Resolve conflicts": GitLab/GitHub can't resolve conflicts through
+  // their APIs, so do what a developer does — on the local clone (cloned
+  // here when missing) check out the source branch, bring it up to date,
+  // merge the target branch into it, and open the resolver on the
+  // conflicts. Committing the merge and pushing updates the MR.
+  const [resolvingMR, setResolvingMR] = useState(false);
+  const resolveMRConflicts = useCallback(async (src: string, dst: string) => {
+    if (!desktop) return;
+    setResolvingMR(true);
+    try {
+      const repo = localRepo ? { id: localRepo.id, connectionId: localRepo.connectionId } : await cloneSelected();
+      if (!repo) return;
+      const st = (await gitAPI.status(repo.id)).data as GitStatus;
+      if ((st.staged?.length ?? 0) + (st.unstaged?.length ?? 0) + (st.conflicted?.length ?? 0) > 0) {
+        toast({ title: t('mr.resolveDirtyTitle'), description: t('mr.resolveDirtyDesc', { branch: st.branch }), variant: 'destructive' });
+        updateTab(tab.id, { gitRepoId: repo.id, gitView: 'changes' });
+        return;
+      }
+      let accessToken = '';
+      try { accessToken = await gitOpsToken(repo.connectionId); } catch { /* public repo */ }
+      await gitAPI.fetch(repo.id, { accessToken, remote: 'origin' });
+      await gitAPI.checkout(repo.id, { accessToken, ref: `origin/${src}` });
+      // An existing local branch may be behind the MR: catch it up first.
+      const up = (await gitAPI.merge(repo.id, { accessToken, ref: `origin/${src}` })).data as GitHistoryOpResult;
+      const res = up?.conflicts
+        ? up
+        : (await gitAPI.merge(repo.id, { accessToken, ref: `origin/${dst}` })).data as GitHistoryOpResult;
+      updateTab(tab.id, { gitRepoId: repo.id, gitRef: src, gitView: 'changes' });
+      if (res?.conflicts) {
+        toast({
+          title: t('mr.resolveOpenedTitle', { count: res.state?.conflicted.length ?? 0 }),
+          description: t('mr.resolveOpenedDesc', { src, dst }),
+        });
+      } else {
+        toast({ title: t('mr.resolveCleanTitle'), description: t('mr.resolveCleanDesc', { src, dst }) });
+      }
+      afterOp();
+    } catch (err) {
+      toast({ title: t('mr.resolveFailed'), description: extractErr(err, t('mr.resolveFailed')), variant: 'destructive' });
+    } finally {
+      setResolvingMR(false);
+    }
+  }, [desktop, localRepo, cloneSelected, toast, t, updateTab, tab.id, afterOp]);
 
   // A folder that auto-matched a connection unusable here (CI/CD then said
   // "Connection not found") is moved, once, to a usable connection on the
@@ -1253,6 +1306,9 @@ export function GitPanel({ tab }: { tab: Tab }) {
                 currentBranch={refs?.current}
                 defaultBranch={localRepo?.defaultBranch || selectedRepo?.defaultBranch}
                 onCheckedOut={(b) => { afterOp(); onCheckedOut(b); }}
+                onResolveConflicts={desktop && selectedRepo ? resolveMRConflicts : undefined}
+                resolving={resolvingMR}
+                hasLocalClone={!!localRepo}
               />
             )}
             {mode === 'ci' && !folderMode && (

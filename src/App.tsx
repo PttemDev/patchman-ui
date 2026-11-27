@@ -34,8 +34,10 @@ import { hasOverlayTitleBar, isDesktop } from '@/lib/platform';
 import { RemoteConnectGate, useBackendGate } from '@/components/RemoteConnectGate';
 import { RemoteNoticeBanner } from '@/components/RemoteNoticeBanner';
 import { runBackendGuard } from '@/lib/backendGuard';
+import { useTrayBadge } from '@/hooks/useTrayBadge';
 import { useUpdateChecker } from '@/hooks/useUpdateChecker';
 import { initDetachHost } from '@/lib/detach/DetachController';
+import { initTerminalBridge } from '@/components/terminal/terminalBridge';
 
 // React render-time errors. The boundary still has to render *something* in
 // place of the broken subtree (you can't unmount the boundary itself), but
@@ -217,6 +219,7 @@ function App() {
   useRemoteConnectDeepLink();
   useTrayEvents();
   useUpdateChecker();
+  useTrayBadge();
 
   // Desktop backend gate: no reachable backend yet (open-source build, no baked
   // URL, no remote chosen) → 'setup'; the active backend is incompatible with
@@ -240,6 +243,7 @@ function App() {
   // standalone (detached) window. Runs once per main-window session.
   useEffect(() => {
     initDetachHost();
+    if (isDesktop()) initTerminalBridge(); // detached terminal tabs talk to their shell here
   }, []);
 
   // Packaged desktop only: suppress the webview's native right-click menu on

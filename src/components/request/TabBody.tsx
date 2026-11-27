@@ -38,6 +38,7 @@ const NoteView = lazyWithReload(() => import('@/components/notes/NoteView').then
 const GrafanaTab = lazyWithReload(() => import('@/components/grafana/GrafanaTab'));
 const RabbitTab = lazyWithReload(() => import('@/components/rabbit/RabbitTab'));
 const GraylogTab = lazyWithReload(() => import('@/components/graylog/GraylogTab'));
+const QAHubTab = lazyWithReload(() => import('@/components/qahub/QAHubTab'));
 const GoogleCloudTab = lazyWithReload(() => import('@/components/gcp/GoogleCloudTab'));
 const ServiceMapTab = lazyWithReload(() => import('@/components/servicemap/ServiceMapTab'));
 const ESDiscoverPanel = lazyWithReload(() => import('@/components/es/ESDiscoverPanel'));
@@ -54,6 +55,7 @@ import { RequestSettingsTab } from './RequestSettingsTab';
 import { ResponsePanel } from '@/components/response/ResponsePanel';
 import { CodeGenDialog } from '@/components/codegen/CodeGenDialog';
 import { SaveToCollectionDialog } from './SaveToCollectionDialog';
+import { TerminalTabPanel } from '@/components/terminal/TerminalTabPanel';
 import type { Tab } from '@/types';
 
 interface TabBodyProps {
@@ -167,6 +169,7 @@ export function TabBody({ tab }: TabBodyProps) {
   if (tab.type === 'es') return <ESConsolePanel tab={tab} />;
   if (tab.type === 'k8s') return <K8sExplorerPanel tab={tab} />;
   if (tab.type === 'git') return <GitPanel tab={tab} />;
+  if (tab.type === 'terminal') return <TerminalTabPanel tab={tab} />;
   if (tab.type === 'tool') return <DevToolsPanel tab={tab} />;
   if (tab.type === 'note') {
     return (
@@ -200,6 +203,13 @@ export function TabBody({ tab }: TabBodyProps) {
     return (
       <Suspense fallback={<div className="flex-1 min-h-0 flex items-center justify-center text-sm text-muted-foreground">…</div>}>
         <GraylogTab key={tab.id} tab={tab} />
+      </Suspense>
+    );
+  }
+  if (tab.type === 'qahub') {
+    return (
+      <Suspense fallback={<div className="flex-1 min-h-0 flex items-center justify-center text-sm text-muted-foreground">…</div>}>
+        <QAHubTab key={tab.id} tab={tab} />
       </Suspense>
     );
   }

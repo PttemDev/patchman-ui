@@ -35,7 +35,7 @@
     "closeTab": "Close Current Tab",
     "goCollections": "Go to Collections",
     "goHistory": "Go to History",
-    "goQa": "Go to QA",
+    "goQa": "Open CR + QA Hub",
     "goMock": "Go to Mock Servers",
     "switchToTab": "Switch to: {{name}}",
     "newRequest": "New Request",
@@ -108,7 +108,14 @@
     "newRequest": "New Request",
     "settings": "Settings",
     "checkUpdates": "Check for Updates…",
-    "quit": "Quit PatchMan"
+    "quit": "Quit PatchMan",
+    "qaInbox": "QA Inbox",
+    "installUpdate": "Update available — install…",
+    "badge": {
+      "inbox_one": "{{count}} item in QA Inbox",
+      "inbox_other": "{{count}} items in QA Inbox",
+      "update": "update available"
+    }
   },
   "quitConfirm": {
     "title": "Quit PatchMan?",

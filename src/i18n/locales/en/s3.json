@@ -56,7 +56,12 @@
     "testFailed": "Test failed",
     "updateFailedAll": "Update failed on every backend",
     "createFailedAll": "Create failed on every backend",
-    "saveFailed": "Save failed"
+    "saveFailed": "Save failed",
+    "bucket": "Bucket (optional)",
+    "bucketPlaceholder": "my-bucket",
+    "prefix": "Path (optional)",
+    "prefixPlaceholder": "team/reports/",
+    "pinHint": "For keys that may only use one bucket or path: the connection opens there instead of listing buckets."
   },
   "share": {
     "title": "Share \"{{name}}\"",

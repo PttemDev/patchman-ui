@@ -13,7 +13,9 @@
     "appearance": "Apariencia",
     "security": "Seguridad",
     "editor": "Editor",
-    "gcp": "Google Cloud"
+    "terminal": "Terminal",
+    "gcp": "Google Cloud",
+    "jira": "Jira"
   },
   "proxy": {
     "heading": "Proxy personalizado",
@@ -157,8 +159,15 @@
         "rabbitmq": "RabbitMQ",
         "graylog": "Graylog",
         "observability": "Observabilidad (mapa de servicios)",
-        "gcp": "Google Cloud"
+        "gcp": "Google Cloud",
+        "jira": "Jira (solo lectura)"
       }
+    },
+    "qaSetupAsk": {
+      "title": "Preguntarme antes de que un agente de IA cambie la configuración de CR + QA",
+      "on": "Activado: los agentes necesitan tu OK (se pregunta en el cliente o queda pendiente en CR + QA Hub → Ajustes).",
+      "off": "Desactivado: los agentes aplican directamente los cambios de configuración de CR + QA (vínculos, umbrales, programaciones, canales, conexiones de Jira).",
+      "failed": "No se pudo guardar"
     }
   },
   "data": {
@@ -268,7 +277,8 @@
     "scope": {
       "global": "En todas partes",
       "git": "Pestaña Git",
-      "editor": "Editor Git"
+      "editor": "Editor Git",
+      "terminal": "Terminal"
     },
     "custom": "personalizado",
     "pressKeys": "Pulsa las teclas…",
@@ -279,6 +289,17 @@
     "reset": "Restablecer",
     "resetOne": "Restablecer a {{chord}}",
     "osReserved": "{{chord}} está reservado por el sistema operativo.",
+    "toggleTerminal": "Mostrar / ocultar terminal",
+    "terminalNewSession": "Nueva sesión de terminal",
+    "terminalCloseSession": "Cerrar sesión de terminal",
+    "terminalNextSession": "Siguiente sesión de terminal",
+    "terminalPrevSession": "Sesión de terminal anterior",
+    "terminalLineEdges": "Inicio / fin de línea",
+    "terminalKillLine": "Borrar línea",
+    "terminalWordJump": "Palabra anterior / siguiente",
+    "terminalAcceptSuggestion": "Aceptar sugerencia",
+    "terminalAcceptWord": "Aceptar una palabra de la sugerencia",
+    "terminalReserved": "{{chord}} pertenece a la terminal (el shell o la edición de línea) y no se puede usar aquí.",
     "conflict": "{{chord}} también está asignado a: {{names}}. Gana la primera coincidencia.",
     "browserReserved": "En el navegador esta combinación puede quedársela el navegador; en la app de escritorio funciona bien.",
     "footer": "Se guarda en este dispositivo. Los atajos de la pestaña Git y del editor tienen prioridad mientras esa vista está activa.",
@@ -393,6 +414,24 @@
       }
     }
   },
+  "terminal": {
+    "heading": "Terminal",
+    "description": "Cursor, fuente y colores de los terminales integrados. Se guarda en este dispositivo.",
+    "colorScheme": "Esquema de color",
+    "schemeApp": "Igual que la app",
+    "cursorStyle": "Estilo del cursor",
+    "style": {
+      "block": "Bloque",
+      "bar": "Barra",
+      "underline": "Subrayado"
+    },
+    "cursorBlink": "Parpadeo del cursor",
+    "cursorColor": "Color del cursor",
+    "themeColor": "Color del tema",
+    "custom": "Personalizado",
+    "useThemeColor": "Usar color del tema",
+    "fontSize": "Tamaño de fuente"
+  },
   "gcp": {
     "heading": "Google Cloud",
     "description": "Límites para las herramientas de Google Cloud. Se aplican a ti en la app y a los agentes de IA que trabajan para ti.",
@@ -408,5 +447,9 @@
     "errPositive": "Ambos valores deben ser mayores que 0.",
     "errAskAboveMax": "El valor de \"preguntar\" no puede superar el máximo.",
     "errCeiling": "El máximo no puede superar los {{gb}} GB del servidor."
+  },
+  "jira": {
+    "heading": "Jira",
+    "description": "Tus conexiones de Jira Cloud y Data Center. PatchMan solo lee Jira: incidencias, criterios de aceptación y búsquedas."
   }
 }

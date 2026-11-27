@@ -6,6 +6,7 @@
 //   • tray://new-request   → open a fresh request tab
 //   • tray://open-settings → open Settings
 //   • tray://check-updates → run an update check + open Settings → Updates
+//   • tray://qa-inbox      → open the CR + QA Hub on the Inbox
 // The tray menu is built with English defaults; we push the app's translated
 // labels down via the `set_tray_labels` command on mount AND whenever the
 // language changes, so the menu follows Settings → Language. Quit / Show are
@@ -32,6 +33,11 @@ export function useTrayEvents() {
         unlisteners.push(
           await listen('tray://new-request', () => {
             useRequestStore.getState().addTab();
+          }),
+        );
+        unlisteners.push(
+          await listen('tray://qa-inbox', () => {
+            void import('@/components/qahub/openQAHub').then((m) => m.openQAHub('inbox'));
           }),
         );
         unlisteners.push(
@@ -90,6 +96,7 @@ export function useTrayEvents() {
             settings: t('tray.settings'),
             check_updates: t('tray.checkUpdates'),
             quit: t('tray.quit'),
+            qa_inbox: t('tray.qaInbox'),
           },
         });
       } catch {

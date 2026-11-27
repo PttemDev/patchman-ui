@@ -23,6 +23,7 @@ export type ValueClass =
   | 'binary';
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const MONGO_UUID_RE = /^UUID\('[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'\)$/i;
 const URL_RE = /^https?:\/\/[^\s<>"]+$/i;
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}([T ]\d{2}:\d{2}(:\d{2}(\.\d+)?)?(Z|[+-]\d{2}:?\d{2})?)?$/;
@@ -43,7 +44,8 @@ export function classifyValue(value: unknown, colType?: string): ValueClass {
     const t = (colType || '').toLowerCase();
     // Postgres bytea hex / mysql binary
     if (t === 'bytea' || t === 'blob' || t === 'binary') return 'binary';
-    if (UUID_RE.test(s)) return 'uuid';
+    // Mongo UUIDs come as UUID('…') (mongosh / Compass notation).
+    if (UUID_RE.test(s) || t === 'uuid' || MONGO_UUID_RE.test(s)) return 'uuid';
     if (URL_RE.test(s)) return 'url';
     if (EMAIL_RE.test(s)) return 'email';
     if (ISO_DATE_RE.test(s)) return 'date';

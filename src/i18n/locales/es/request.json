@@ -53,7 +53,9 @@
       "rabbit": "RabbitMQ",
       "graylog": "Graylog",
       "servicemap": "Mapa de servicios",
-      "plugin": "Complemento"
+      "plugin": "Complemento",
+      "terminal": "Terminal · {{cwd}}",
+      "qahub": "CR + QA Hub"
     },
     "moreParams": "parámetros más"
   },

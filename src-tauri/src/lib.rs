@@ -39,6 +39,7 @@ use tauri::TitleBarStyle;
 #[cfg(any(target_os = "linux", all(debug_assertions, windows)))]
 use tauri_plugin_deep_link::DeepLinkExt;
 
+mod nightrun;
 mod plugindev;
 mod security;
 use security::Security;
@@ -370,6 +371,7 @@ fn show_main(app: &tauri::AppHandle) {
 /// set_tray_labels on launch and whenever the app language changes).
 struct TrayMenu {
     show: MenuItem<tauri::Wry>,
+    qa_inbox: MenuItem<tauri::Wry>,
     new_request: MenuItem<tauri::Wry>,
     settings: MenuItem<tauri::Wry>,
     check_updates: MenuItem<tauri::Wry>,
@@ -383,6 +385,25 @@ struct TrayLabels {
     settings: String,
     check_updates: String,
     quit: String,
+    /// "QA Inbox" — the count is appended by set_tray_badge. Optional so an
+    /// older FE build keeps working.
+    #[serde(default)]
+    qa_inbox: Option<String>,
+}
+
+/// What the tray / dock badge shows (set_tray_badge).
+#[derive(serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct TrayBadge {
+    /// QA Inbox items (0 = none).
+    count: u32,
+    /// An app update is ready to install.
+    update: bool,
+    /// Localized texts: "QA Inbox", "Update available — install…", tooltip.
+    inbox_label: String,
+    update_label: String,
+    check_updates_label: String,
+    tooltip: String,
 }
 
 /// Relabel the tray menu in the app's current language. Called by the FE
@@ -394,6 +415,52 @@ fn set_tray_labels(labels: TrayLabels, menu: tauri::State<'_, TrayMenu>) -> Resu
     menu.settings.set_text(&labels.settings).map_err(|e| e.to_string())?;
     menu.check_updates.set_text(&labels.check_updates).map_err(|e| e.to_string())?;
     menu.quit.set_text(&labels.quit).map_err(|e| e.to_string())?;
+    if let Some(q) = labels.qa_inbox {
+        menu.qa_inbox.set_text(&q).map_err(|e| e.to_string())?;
+    }
+    Ok(())
+}
+
+/// Badge for the QA Inbox count and a pending app update (CR_QA_P0_PLAN
+/// P0.c): the menu-bar title next to the tray glyph ("3", "3 ↑", "↑"), the
+/// tray tooltip and menu ("QA Inbox (3)", "Update available — install…"),
+/// and the Dock / taskbar badge (macOS label, Linux count; Windows has no
+/// badge count — the tray title and tooltip carry it there).
+#[tauri::command]
+fn set_tray_badge(app: tauri::AppHandle, badge: TrayBadge, menu: tauri::State<'_, TrayMenu>) -> Result<(), String> {
+    let mut title = String::new();
+    if badge.count > 0 {
+        title.push_str(&badge.count.min(999).to_string());
+    }
+    if badge.update {
+        if !title.is_empty() {
+            title.push(' ');
+        }
+        title.push('↑');
+    }
+    if let Some(tray) = app.tray_by_id("main") {
+        let _ = tray.set_title(if title.is_empty() { None } else { Some(title.as_str()) });
+        let _ = tray.set_tooltip(Some(badge.tooltip.as_str()));
+    }
+    let inbox_text = if badge.count > 0 {
+        format!("{} ({})", badge.inbox_label, badge.count)
+    } else {
+        badge.inbox_label.clone()
+    };
+    menu.qa_inbox.set_text(&inbox_text).map_err(|e| e.to_string())?;
+    let upd = if badge.update { &badge.update_label } else { &badge.check_updates_label };
+    menu.check_updates.set_text(upd).map_err(|e| e.to_string())?;
+    if let Some(w) = app.get_webview_window("main") {
+        #[cfg(target_os = "macos")]
+        {
+            let _ = w.set_badge_label(if title.is_empty() { None } else { Some(title.clone()) });
+        }
+        #[cfg(not(target_os = "macos"))]
+        {
+            let n = badge.count as i64 + if badge.update { 1 } else { 0 };
+            let _ = w.set_badge_count(if n > 0 { Some(n) } else { None });
+        }
+    }
     Ok(())
 }
 
@@ -475,6 +542,7 @@ async fn grafana_sso_login(
 /// labels are localized at runtime via set_tray_labels.
 fn build_tray(app: &tauri::App) -> tauri::Result<()> {
     let show = MenuItem::with_id(app, "show", "Show PatchMan", true, None::<&str>)?;
+    let qa_inbox = MenuItem::with_id(app, "qa_inbox", "QA Inbox", true, None::<&str>)?;
     let new_request = MenuItem::with_id(app, "new_request", "New Request", true, None::<&str>)?;
     let settings = MenuItem::with_id(app, "settings", "Settings", true, None::<&str>)?;
     let check_updates =
@@ -483,11 +551,12 @@ fn build_tray(app: &tauri::App) -> tauri::Result<()> {
     let quit = MenuItem::with_id(app, "quit", "Quit PatchMan", true, None::<&str>)?;
     let menu = Menu::with_items(
         app,
-        &[&show, &new_request, &settings, &check_updates, &sep, &quit],
+        &[&show, &qa_inbox, &new_request, &settings, &check_updates, &sep, &quit],
     )?;
 
     app.manage(TrayMenu {
         show: show.clone(),
+        qa_inbox: qa_inbox.clone(),
         new_request: new_request.clone(),
         settings: settings.clone(),
         check_updates: check_updates.clone(),
@@ -505,6 +574,10 @@ fn build_tray(app: &tauri::App) -> tauri::Result<()> {
             "new_request" => {
                 show_main(app);
                 let _ = app.emit("tray://new-request", ());
+            }
+            "qa_inbox" => {
+                show_main(app);
+                let _ = app.emit("tray://qa-inbox", ());
             }
             "settings" => {
                 show_main(app);
@@ -551,6 +624,10 @@ pub fn run() {
     let app = builder
         .invoke_handler(tauri::generate_handler![
             set_tray_labels,
+            set_tray_badge,
+            nightrun::night_run_state,
+            nightrun::night_run_install,
+            nightrun::night_run_remove,
             confirm_quit,
             grafana_sso_login,
             local_api_token,
@@ -569,6 +646,7 @@ pub fn run() {
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_notification::init())
         .setup(move |app| {
             if cfg!(debug_assertions) {
                 app.handle().plugin(

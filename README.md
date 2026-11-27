@@ -54,7 +54,7 @@ PatchMan started as a Postman-style API client and grew into a single place for 
 - **One app, many tools.** The HTTP client sits next to database, Redis, Elasticsearch, Kafka, RabbitMQ, S3, Kubernetes and Google Cloud browsers, plus a Git workspace for GitLab, GitHub and local folders, so you don't need a separate tool for each.
 - **Self-hosted, for teams.** Run one backend for your team. Workspaces, roles and per-person sharing control who can see and change what. Connection secrets are encrypted at rest.
 - **Desktop and web.** Use it in the browser against your server, or install the desktop app. The desktop app also works offline without an account.
-- **Built for AI agents.** PatchMan is an MCP server with **more than 130 tools**, and installed plugins can add their own. Agents such as Claude Code, Claude Desktop or Cursor can send requests, query data, file test cases, draw diagrams and keep a shared long-term memory, with per-token permissions.
+- **Built for AI agents.** PatchMan is an MCP server with **more than 150 tools**, and installed plugins can add their own. Agents such as Claude Code, Claude Desktop or Cursor can send requests, query data, file test cases, draw diagrams and keep a shared long-term memory, with per-token permissions.
 
 ---
 
@@ -103,7 +103,7 @@ All screenshots use demo data.
 
 ### API client
 - HTTP methods with params, headers, body (JSON, form, multipart, XML, raw, binary, GraphQL, SOAP) and auth (Bearer, Basic, API key, OAuth 2.0, Digest, AWS Signature, Hawk, NTLM).
-- `{{variable}}` highlighting with hover-to-edit and autocomplete. Pre-request and test scripts.
+- `{{variable}}` highlighting with hover-to-edit and autocomplete. Pre-request and test scripts; pre-request scripts run before variables are resolved and have CryptoJS, `btoa` and `atob`.
 - A response viewer with pretty, raw and preview modes, headers, cookies, timing and a transform tab. Save responses as examples.
 - History, a cookie jar, a proxy mode, and requests sent from the backend so browser CORS rules don't get in the way.
 - Code generation for cURL, Python, JavaScript (fetch and axios), Go, Java, C#, PHP, Ruby, Swift, Kotlin, Rust and Dart.
@@ -119,13 +119,13 @@ Every connection uses the same model: credentials are stored encrypted, and the 
 
 | Tool | What you can do |
 |---|---|
-| **Databases** | PostgreSQL (and Cockroach, Yugabyte, Redshift), MySQL (and MariaDB, TiDB), SQL Server, MongoDB and BigQuery. Editor with examples and saved queries, schema browser, result grid with filters, aggregates, charts and export. MongoDB adds index management, explain plans and an aggregation pipeline builder. BigQuery checks every query with a free dry run first and enforces scan limits you set (per query, per connection, or a server-wide ceiling). |
+| **Databases** | PostgreSQL (and Cockroach, Yugabyte, Redshift), MySQL (and MariaDB, TiDB), SQL Server, MongoDB and BigQuery. Editor with examples and saved queries, schema browser, result grid with filters, aggregates, charts and export. The editor runs the selection or the statement at the cursor, completes aliases, foreign-key joins and schema names, and selected rows copy as TSV, CSV, JSON, Markdown or INSERT statements. MongoDB runs mongosh-style scripts and adds index management, explain plans and an aggregation pipeline builder. BigQuery checks every query with a free dry run first and enforces scan limits you set (per query, per connection, or a server-wide ceiling). |
 | **Redis** | Key browser with smart SCAN, typed value views, TTL and memory, key counts per database, a console and a cheatsheet. Read-only by default. |
 | **Elasticsearch** | Index and alias browser, mappings, Kibana data views with search, and a console with completion, drafts and saved queries. |
 | **Kafka** | Brokers, topics with sizes, consumer groups and lag, and message peek. Peek never commits offsets. |
 | **RabbitMQ** | Overview, queues, exchanges, topology, peek with requeue, publish, a live tail and moving messages out of a DLQ. |
-| **S3** | Buckets and objects. |
-| **Kubernetes** | Contexts, resources, pod logs with search and download, an exec terminal, apply, and historical pod metrics from Prometheus. |
+| **S3** | Buckets and objects. A connection can be limited to one bucket or path. |
+| **Kubernetes** | Contexts, resources, pod logs with search and download (and a picker for the other pods of the same workload), an exec terminal, apply, and historical pod metrics from Prometheus. |
 | **Google Cloud** | Projects, Cloud Storage buckets and objects, Pub/Sub topics and subscriptions with peek (without consuming) and publish, GKE clusters, Cloud Logging search and BigQuery. Connect with a service account key, gcloud on this computer (desktop), or your Google account (web). |
 
 ### Observability and dashboards
@@ -143,6 +143,7 @@ Every connection uses the same model: credentials are stored encrypted, and the 
 - In the Git workspace, the file tree marks changed files and folders (also while edits are unsaved), and its JetBrains-style menu has a Git submenu (compare, rollback, annotate, history), copy path, find in folder and reveal in Finder. Show History lists only the commits that touched a file or folder, following renames. Editor tabs and the Changes list use the same status colours and have their own context menus, tabs can be reordered by dragging, and diffs show whitespace-only changes unless you hide them.
 
 ### QA and performance
+- CR + QA Hub: link a Git project to Jira (Cloud or Data Center), watch merge requests on the MR Radar and in an Inbox, have your own AI agent review them over MCP (or check whether earlier findings were fixed), draft test cases from the acceptance criteria, run tests on a schedule, and post reports to Slack or Microsoft Teams. A GitLab webhook keeps it up to date.
 - Test cases with request, check (status, body, JSON path, header, response time), extract and wait steps.
 - Nested folders, running a whole folder, run history, test planning and JUnit import.
 - Load tests with five profiles, thresholds and live results.
@@ -169,6 +170,8 @@ Every connection uses the same model: credentials are stored encrypted, and the 
 - A Tauri 2 desktop app with an embedded backend (a Go sidecar using SQLite).
 - Security: only the app itself can talk to its embedded backend (a per-launch token and a strict origin check), a content security policy, an optional app lock with Touch ID or your Mac password (on open and after a period of inactivity), and Touch ID before every secret is revealed. The key that encrypts your saved secrets is kept in the macOS Keychain.
 - Works offline without an account. Sign in later to sync to your server.
+- A terminal with several sessions, tabs, detachable windows, shell history and a library of common commands. On macOS opening it asks for Touch ID or the account password; Windows and Linux have no such check yet.
+- Desktop notifications and a badge for the CR + QA Inbox, and an optional nightly agent run on macOS.
 - Menu-bar tray, updates from GitHub Releases (signed, checked in the background and in Settings → Updates) and a built-in Claude Code terminal.
 - macOS is the main desktop target. Windows (x64) and Linux (x64) preview builds are published with each release; the app lock, Touch ID step-up and Keychain storage are macOS only (see [Download](#download)).
 
@@ -467,6 +470,8 @@ Re-checked for 1.73.0 (November 2026): `npm run build`, `npm run check:i18n` and
 Re-checked for 1.74.0 (November 2026): `npm run build`, `npm run check:i18n` and `cargo check` (desktop shell) pass; the changes since 1.73.0 were scanned for secrets, internal hostnames and personal names; `npm audit` shows the same 13 moderate/low advisories.
 
 Re-checked for 1.74.1 (November 2026): `npm run build` and `npm run check:i18n` pass; the changes since 1.74.0 (two frontend fixes) were scanned for secrets, internal hostnames and personal names.
+
+Re-checked for 1.78.5 (November 2026): `npm run build`, `npm run check:i18n`, `cargo check` and `cargo test` (desktop shell) pass; the changes since 1.74.1 (1.75.0 to 1.78.5) were scanned for secrets, internal hostnames and personal names. The public GitLab webhook checks its secret token in constant time. Pre-approved agent tools are limited to the six CR + QA tools.
 
 Dependency notes: `xlsx` is installed from the SheetJS CDN (`0.20.3`) because newer releases are not published to npm, and `package.json` uses `overrides` to pin patched versions of `lodash-es`, `dompurify` and `nanoid`.
 

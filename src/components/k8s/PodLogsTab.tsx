@@ -1,9 +1,9 @@
 import { memo, useCallback, useDeferredValue, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useVirtualizer } from '@tanstack/react-virtual';
-import { AlertTriangle, ArrowDown, ChevronDown, ChevronRight, ChevronUp, Download, Loader2, Search } from 'lucide-react';
+import { AlertTriangle, ArrowDown, Boxes, ChevronDown, ChevronRight, ChevronUp, Download, Loader2, Search } from 'lucide-react';
 import { k8sAPI, type DBScope } from '@/services/api';
-import type { ResourceRow } from '@/types';
+import type { K8sPodSibling, K8sPodSiblings, ResourceRow } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -13,6 +13,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { useToast } from '@/components/ui/use-toast';
 import { downloadText } from '@/lib/downloadText';
 import { cn } from '@/lib/utils';
+import { statusTone } from './statusTone';
 import {
   advanceCursor, buildLogLine, createResumeFilter, createSseDecoder, formatTs, isErrorLine, nextMatch,
   parseTailDraft, passesLevel,
@@ -99,17 +100,52 @@ export function PodLogsTab({
 }) {
   const { t } = useTranslation('k8s');
   const { toast } = useToast();
+
+  // ── pod switcher: a sibling pod (same owner) replaces the opened one in this
+  // view; container / tail / follow / previous stay. Opening another pod in the
+  // drawer (a new `row`) drops the pick.
+  const rowKey = `${row.namespace}/${row.name}`;
+  const [podPick, setPodPick] = useState<{ row: string; pod: string } | null>(null);
+  const pod = podPick?.row === rowKey ? podPick.pod : row.name;
+  const [siblings, setSiblings] = useState<{ row: string; pods: K8sPodSibling[] } | null>(null);
+  const [siblingsLoading, setSiblingsLoading] = useState(false);
+  const [siblingsOff, setSiblingsOff] = useState(false); // older BE: no endpoint
+  const siblingReq = useRef(0);
+  const loadSiblings = useCallback(async () => {
+    if (!connId || !context) return;
+    const n = ++siblingReq.current;
+    setSiblingsLoading(true);
+    try {
+      const res = await k8sAPI.podSiblings(connId, { context, namespace: row.namespace || undefined, pod: row.name }, scope);
+      if (n !== siblingReq.current) return;
+      const data = res.data as K8sPodSiblings | undefined;
+      setSiblings({ row: rowKey, pods: data?.pods ?? [] });
+    } catch (e) {
+      if (n !== siblingReq.current) return;
+      // The switcher is an extra: a backend without the endpoint hides it, any
+      // other failure keeps the last list (the log view itself is unaffected).
+      if ((e as { response?: { status?: number } })?.response?.status === 404) setSiblingsOff(true);
+    } finally {
+      if (n === siblingReq.current) setSiblingsLoading(false);
+    }
+  }, [connId, context, row.namespace, row.name, rowKey, scope]);
+  useEffect(() => { void loadSiblings(); }, [loadSiblings]);
+  const siblingPods = useMemo(() => (siblings?.row === rowKey ? siblings.pods : []), [siblings, rowKey]);
+  const activeSibling = pod === row.name ? undefined : siblingPods.find((p) => p.name === pod);
+
   const containers = useMemo(() => {
+    if (activeSibling) return activeSibling.containers ?? [];
     const spec = (obj?.spec ?? {}) as Record<string, unknown>;
     const main = Array.isArray(spec.containers) ? spec.containers : [];
     const init = Array.isArray(spec.initContainers) ? spec.initContainers : [];
     return [...main, ...init]
       .map((c) => (c && typeof c === 'object' ? (c as Record<string, unknown>).name : undefined))
       .filter((n): n is string => typeof n === 'string');
-  }, [obj]);
+  }, [obj, activeSibling]);
 
+  // The picked container survives a pod switch when the new pod has it.
   const [containerPick, setContainerPick] = useState('');
-  const container = containerPick || containers[0] || '';
+  const container = (containerPick && (containers.length === 0 || containers.includes(containerPick)) ? containerPick : containers[0]) || '';
   const [follow, setFollow] = useState(true);
   const [timestamps, setTimestamps] = useState(false);
   const [previous, setPrevious] = useState(false);
@@ -132,7 +168,7 @@ export function PodLogsTab({
   // ── buffer ──
   // Lines live in a ref (appends are O(1)); `view` is the render snapshot,
   // bumped at most once per animation frame while a stream is busy.
-  const target = JSON.stringify([connId, context, scope, row.namespace, row.name, container, previous, tailLines]);
+  const target = JSON.stringify([connId, context, scope, row.namespace, pod, container, previous, tailLines]);
   const bufRef = useRef<LogBuffer>(emptyBuffer(''));
   const [view, setView] = useState({ lines: [] as LogLine[], errors: 0, levelled: 0, structured: 0 });
   const rafRef = useRef(0);
@@ -203,7 +239,7 @@ export function PodLogsTab({
         const { url } = k8sAPI.logsUrl(connId, {
           context,
           namespace: row.namespace || undefined,
-          pod: row.name,
+          pod,
           container: container || undefined,
           follow,
           timestamps: true,
@@ -281,7 +317,7 @@ export function PodLogsTab({
       ac.abort();
       if (timer) clearTimeout(timer);
     };
-  }, [target, connId, context, scope, row.namespace, row.name, container, follow, previous, tailLines, t, publish, schedulePublish]);
+  }, [target, connId, context, scope, row.namespace, pod, container, follow, previous, tailLines, t, publish, schedulePublish]);
 
   // ── filter + search ──
   const q = useDeferredValue(query.trim().toLowerCase());
@@ -373,7 +409,7 @@ export function PodLogsTab({
   }, []);
 
   // ── download ──
-  const fileBase = `${row.name}${container ? `_${container}` : ''}${previous ? '_previous' : ''}`;
+  const fileBase = `${pod}${container ? `_${container}` : ''}${previous ? '_previous' : ''}`;
   const downloadVisible = () => {
     downloadText(`${fileBase}.log`, shown.map((l) => (timestamps && l.ts ? `${l.ts} ${l.text}` : l.text)).join('\n') + '\n');
   };
@@ -381,7 +417,7 @@ export function PodLogsTab({
     setDownloading(true);
     try {
       const { url } = k8sAPI.logsUrl(connId, {
-        context, namespace: row.namespace || undefined, pod: row.name, container: container || undefined,
+        context, namespace: row.namespace || undefined, pod, container: container || undefined,
         follow: false, tailLines: 'all', timestamps, previous,
       }, scope);
       const res = await fetch(url);
@@ -426,6 +462,36 @@ export function PodLogsTab({
   return (
     <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
       <div className="shrink-0 flex items-center gap-2 px-3 py-1.5 border-b bg-muted/20 flex-wrap">
+        {!siblingsOff && (siblingPods.length > 1 || pod !== row.name) && (
+          <Select
+            value={pod}
+            onValueChange={(v) => setPodPick(v === row.name ? null : { row: rowKey, pod: v })}
+            onOpenChange={(o) => { if (o) void loadSiblings(); }}
+          >
+            <SelectTrigger className="w-[260px] max-w-full h-7 text-xs" title={`${pod}\n${t('logs.podSwitchTip')}`} aria-label={t('logs.pod')}>
+              {/* A div, not a span: the trigger line-clamps a direct child span,
+                  which broke the flex row (icon above, name wrapping below). */}
+              <div className="flex min-w-0 flex-1 items-center gap-1.5 overflow-hidden text-left">
+                <Boxes className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                <span className="truncate font-mono">{pod}</span>
+              </div>
+            </SelectTrigger>
+            <SelectContent className="max-h-80">
+              {siblingsLoading && siblingPods.length === 0 && (
+                <div className="px-2 py-1.5 text-[11px] text-muted-foreground">{t('logs.podsLoading')}</div>
+              )}
+              {siblingPods.map((p) => (
+                <SelectItem key={p.name} value={p.name} className="text-xs [&>span:last-child]:flex-1 [&>span:last-child]:min-w-0">
+                  <SiblingOption pod={p} opened={p.name === row.name} />
+                </SelectItem>
+              ))}
+              {/* A picked pod that has since gone (deleted / replaced) stays selectable. */}
+              {pod !== row.name && !siblingPods.some((p) => p.name === pod) && (
+                <SelectItem value={pod} className="text-xs"><span className="font-mono">{pod}</span></SelectItem>
+              )}
+            </SelectContent>
+          </Select>
+        )}
         <Select value={container} onValueChange={setContainerPick} disabled={containers.length === 0}>
           <SelectTrigger className="w-[160px] h-7 text-xs"><SelectValue placeholder={t('logs.container')} /></SelectTrigger>
           <SelectContent>
@@ -627,6 +693,30 @@ export function PodLogsTab({
         )}
       </div>
     </div>
+  );
+}
+
+// One row of the pod switcher: name, status dot, ready, restarts, age; the pod
+// the drawer was opened on is marked.
+function SiblingOption({ pod: p, opened }: { pod: K8sPodSibling; opened: boolean }) {
+  const { t } = useTranslation('k8s');
+  const tone = statusTone(p.status || '');
+  return (
+    <span className="flex w-full items-center gap-2 min-w-0">
+      <span className={cn('inline-block h-2 w-2 shrink-0 rounded-full', tone.dot)} title={p.status || undefined} />
+      <span className="font-mono truncate max-w-[260px]">{p.name}</span>
+      {opened && (
+        <span className="shrink-0 rounded bg-primary/10 px-1 text-[9px] text-primary">{t('logs.podOpened')}</span>
+      )}
+      <span className="ml-auto flex shrink-0 items-center gap-2 pl-2 text-[10px] tabular-nums text-muted-foreground">
+        <span className={tone.text}>{p.status || '—'}</span>
+        <span title={t('col.ready')}>{p.ready || '—'}</span>
+        <span title={t('col.restarts')} className={cn(p.restarts > 0 && 'text-amber-600 dark:text-amber-400')}>
+          {t('logs.podRestarts', { count: p.restarts ?? 0 })}
+        </span>
+        <span title={t('col.age')}>{p.age || '—'}</span>
+      </span>
+    </span>
   );
 }
 

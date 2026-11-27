@@ -13,7 +13,9 @@
     "appearance": "外观",
     "security": "安全",
     "editor": "编辑器",
-    "gcp": "Google Cloud"
+    "terminal": "终端",
+    "gcp": "Google Cloud",
+    "jira": "Jira"
   },
   "proxy": {
     "heading": "自定义 Proxy",
@@ -157,8 +159,15 @@
         "rabbitmq": "RabbitMQ",
         "graylog": "Graylog",
         "observability": "可观测性（服务地图）",
-        "gcp": "Google Cloud"
+        "gcp": "Google Cloud",
+        "jira": "Jira（只读）"
       }
+    },
+    "qaSetupAsk": {
+      "title": "AI 智能体更改 CR + QA 配置前先询问我",
+      "on": "开启：智能体必须获得你的同意（在客户端中询问，或在 CR + QA Hub → 设置 中等你处理）。",
+      "off": "关闭：智能体直接应用 CR + QA 配置更改（关联、阈值、定时、渠道、Jira 连接）。",
+      "failed": "无法保存"
     }
   },
   "data": {
@@ -268,7 +277,8 @@
     "scope": {
       "global": "全局",
       "git": "Git 标签页",
-      "editor": "Git 编辑器"
+      "editor": "Git 编辑器",
+      "terminal": "终端"
     },
     "custom": "自定义",
     "pressKeys": "请按键…",
@@ -279,6 +289,17 @@
     "reset": "重置",
     "resetOne": "重置为 {{chord}}",
     "osReserved": "{{chord}} 被操作系统保留。",
+    "toggleTerminal": "显示 / 隐藏终端",
+    "terminalNewSession": "新建终端会话",
+    "terminalCloseSession": "关闭终端会话",
+    "terminalNextSession": "下一个终端会话",
+    "terminalPrevSession": "上一个终端会话",
+    "terminalLineEdges": "行首 / 行尾",
+    "terminalKillLine": "删除整行",
+    "terminalWordJump": "上一个 / 下一个单词",
+    "terminalAcceptSuggestion": "接受建议",
+    "terminalAcceptWord": "接受建议中的一个单词",
+    "terminalReserved": "{{chord}} 属于终端（shell 或行编辑），不能在此使用。",
     "conflict": "{{chord}} 也绑定到：{{names}}。以先匹配者为准。",
     "browserReserved": "在浏览器中此组合键可能被浏览器占用；在桌面应用中可正常使用。",
     "footer": "保存在此设备上。Git 标签页和编辑器的快捷键在该视图激活时优先于全局快捷键。",
@@ -393,6 +414,24 @@
       }
     }
   },
+  "terminal": {
+    "heading": "终端",
+    "description": "内置终端的光标、字体和颜色。保存在此设备上。",
+    "colorScheme": "配色方案",
+    "schemeApp": "与应用相同",
+    "cursorStyle": "光标样式",
+    "style": {
+      "block": "方块",
+      "bar": "竖线",
+      "underline": "下划线"
+    },
+    "cursorBlink": "光标闪烁",
+    "cursorColor": "光标颜色",
+    "themeColor": "主题颜色",
+    "custom": "自定义",
+    "useThemeColor": "使用主题颜色",
+    "fontSize": "字体大小"
+  },
   "gcp": {
     "heading": "Google Cloud",
     "description": "Google Cloud 工具的限制。它们适用于你在应用中的操作，也适用于为你工作的 AI 代理。",
@@ -408,5 +447,9 @@
     "errPositive": "两个值都必须大于 0。",
     "errAskAboveMax": "“询问”值不能大于最大值。",
     "errCeiling": "最大值不能超过服务器的 {{gb}} GB。"
+  },
+  "jira": {
+    "heading": "Jira",
+    "description": "你的 Jira Cloud 和 Data Center 连接。PatchMan 只读取 Jira：问题、验收标准和搜索。"
   }
 }
